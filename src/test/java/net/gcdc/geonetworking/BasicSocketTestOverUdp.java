@@ -10,7 +10,7 @@ import java.net.InetSocketAddress;
 import org.junit.Test;
 import org.threeten.bp.Instant;
 
-public class BasciSocketTestOverUdp {
+public class BasicSocketTestOverUdp {
 
     @Test
     public void test() throws IOException, InterruptedException {

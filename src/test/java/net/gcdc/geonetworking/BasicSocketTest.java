@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.threeten.bp.Instant;
 
 
-public class BasciSocketTest {
+public class BasicSocketTest {
 
     @Test
     public void test() throws IOException, InterruptedException {
