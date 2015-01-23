@@ -2,9 +2,12 @@ package net.gcdc;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.SocketException;
 
 import net.gcdc.geonetworking.Address;
 import net.gcdc.geonetworking.BtpPacket;
@@ -19,7 +22,7 @@ import net.gcdc.geonetworking.StationConfig;
 
 import org.threeten.bp.Instant;
 
-public class StdinClient {
+public class BtpStdinClient {
 
     private final static String usage =
             "Usage: java -cp gn.jar StdinClient <local-port> <udp-to-ethernet-remote-address-and-port>";
@@ -40,6 +43,16 @@ public class StdinClient {
         SocketAddress remoteAddress =
                 new InetSocketAddress(hostAndPort[0], Integer.parseInt(hostAndPort[1]));
 
+        runSenderAndReceiver(localPort, remoteAddress, System.in, System.out);
+    }
+
+    public static void runSenderAndReceiver(
+            final int           localPort,
+            final SocketAddress remoteAddress,
+            final InputStream   in,
+            final PrintStream   out
+            ) throws SocketException {
+
         LinkLayer linkLayer = new LinkLayerUdpToEthernet(localPort, remoteAddress);
 
         PositionProvider positionProvider = new PositionProvider() {
@@ -58,7 +71,7 @@ public class StdinClient {
             @Override public void run() {
                 short destinationPort = (short) 2000;
                 String s;
-                try (InputStreamReader isr = new InputStreamReader(System.in);
+                try (InputStreamReader isr = new InputStreamReader(in);
                         BufferedReader br = new BufferedReader(isr)){
                     s = br.readLine();
                     while(s != null) {
@@ -76,9 +89,8 @@ public class StdinClient {
                 while(true) {
                     try {
                         BtpPacket packet = socket.receive();
-                        System.out.println(packet);
+                        out.println(new String(packet.payload()));
                     } catch (InterruptedException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                 }

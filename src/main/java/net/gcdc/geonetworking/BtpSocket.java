@@ -2,7 +2,7 @@ package net.gcdc.geonetworking;
 
 import java.io.IOException;
 
-public class BtpSocket {
+public class BtpSocket implements AutoCloseable {
 
     private GeonetStation station;
 
@@ -35,5 +35,10 @@ public class BtpSocket {
             data = station.receive();
         }
         return BtpPacket.fromGeonetData(data);
+    }
+
+    @Override
+    public void close() {
+        station.close();
     }
 }

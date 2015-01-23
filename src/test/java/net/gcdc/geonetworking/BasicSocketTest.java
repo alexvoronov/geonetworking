@@ -11,7 +11,7 @@ import org.threeten.bp.Instant;
 
 public class BasicSocketTest {
 
-    @Test
+    @Test(timeout=1000)
     public void test() throws IOException, InterruptedException {
         DuplicatorLinkLayer d = new DuplicatorLinkLayer();
         LinkLayer l1 = d.get();
@@ -43,6 +43,16 @@ public class BasicSocketTest {
         assertEquals("ports", packet1.destinationPort(), packet2.destinationPort());
         assertArrayEquals("data and sender payload", data, packet1.payload());
         assertArrayEquals("data and receiver payload", data, packet2.payload());
+
+
+        socket1.send(packet1);
+
+        BtpPacket packet3 = socket2.receive();
+
+        assertEquals("ports", packet1.destinationPort(), packet3.destinationPort());
+        assertArrayEquals("data and sender payload", data, packet1.payload());
+        assertArrayEquals("data and receiver payload", data, packet3.payload());
+
     }
 
 }

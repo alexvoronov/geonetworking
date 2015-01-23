@@ -8,7 +8,7 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Arrays;
 
-public class LinkLayerUdpToEthernet implements LinkLayer {
+public class LinkLayerUdpToEthernet implements LinkLayer, AutoCloseable {
 
     final SocketAddress remoteAddress;
 
@@ -32,6 +32,11 @@ public class LinkLayerUdpToEthernet implements LinkLayer {
     @Override
     public void send(byte[] payload) throws IOException {
         socket.send(new DatagramPacket(payload, payload.length, remoteAddress));
+    }
+
+    @Override
+    public void close() {
+        socket.close();
     }
 
 }

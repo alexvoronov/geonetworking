@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /* Java and ETSI both use Big Endian. */
-public class GeonetStation implements Runnable {
+public class GeonetStation implements Runnable, AutoCloseable {
 
     private StationConfig                         config;
     private LinkLayer                             linkLayer;
@@ -203,5 +203,9 @@ public class GeonetStation implements Runnable {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void close() {
     }
 }

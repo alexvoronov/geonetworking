@@ -7,12 +7,14 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
+import net.gcdc.UdpDuplicator;
+
 import org.junit.Test;
 import org.threeten.bp.Instant;
 
 public class BasicSocketTestOverUdp {
 
-    @Test
+    @Test(timeout=2000)
     public void test() throws IOException, InterruptedException {
 
         int client1 = 4440;
@@ -54,6 +56,17 @@ public class BasicSocketTestOverUdp {
         assertEquals("ports", packet1.destinationPort(), packet2.destinationPort());
         assertArrayEquals("data and sender payload", data, packet1.payload());
         assertArrayEquals("data and receiver payload", data, packet2.payload());
+
+
+        byte[] data2 = new byte[] { 0x13, 0x14, 0x7F };
+        BtpPacket packet21 = BtpPacket.singleHop(data2, (short) port);
+
+        socket1.send(packet21);
+
+        BtpPacket packet22 = socket2.receive();
+        assertEquals("ports", packet21.destinationPort(), packet22.destinationPort());
+        assertArrayEquals("data and sender payload", data2, packet21.payload());
+        assertArrayEquals("data and receiver payload", data2, packet22.payload());
     }
 
 }
