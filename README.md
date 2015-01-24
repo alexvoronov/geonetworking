@@ -19,8 +19,19 @@ Implementation targets Java 7 at the moment, with some use of backported feature
 
 ### Building, Testing and Running
 
-[SBT](http://www.scala-sbt.org/) is used as a build tool. Later it should be changed to something else. To run tests: ```sbt test```.
+[SBT](http://www.scala-sbt.org/) is used as a build tool. Later it should be changed to something else. 
 
+Running tests: 
+```
+sbt test
+```
+
+Compile and run command-line client:
+```
+sbt assembly
+echo 4001 127.0.0.1:4000 | java -cp target/scala-2.10/geonetworking-assembly-0.1.0-SNAPSHOT.jar net.gcdc.DuplicatorUdpServer &
+java -cp target/scala-2.10/geonetworking-assembly-0.1.0-SNAPSHOT.jar net.gcdc.StdinClient 4000 127.0.0.1:4001
+```
 
 ### Other GeoNetworking implementations
 
