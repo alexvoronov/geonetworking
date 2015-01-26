@@ -12,10 +12,9 @@ Only Single Hop Broadcast is supported at the moment, and GeoBroadcast is planne
 
 API here is work-in-progress, and is expected to change when usage patterns emerge. Feedback is welcome.
 
-The implementation assumes that there is a separate entity (e.g. on the same or on a separate machine) taking care of [Link Layer](http://en.wikipedia.org/wiki/Link_layer) communication. Communication between that entity and GeoNetworking stack is implemented via UDP at the moment.
+The implementation assumes that there is a separate entity (e.g. on the same or on a separate machine) taking care of [Link Layer](http://en.wikipedia.org/wiki/Link_layer) communication. Communication between that entity and GeoNetworking stack is implemented via UDP at the moment (see [LinkLayerUdpToEthernet](https://github.com/alexvoronov/geonetworking/blob/master/src/main/java/net/gcdc/geonetworking/LinkLayerUdpToEthernet.java)). It is easy to change Link Layer entities by implementing a [LinkLayer](https://github.com/alexvoronov/geonetworking/blob/master/src/main/java/net/gcdc/geonetworking/LinkLayer.java), one option could be to use Java bindings for Pcap to sniff and inject frames.
 
 Implementation targets Java 7 at the moment, with some use of backported features from Java 8.
-
 
 ### Building, Testing and Running
 
@@ -32,6 +31,11 @@ sbt assembly
 echo 4001 127.0.0.1:4000 | java -cp target/scala-2.10/geonetworking-assembly-0.1.0-SNAPSHOT.jar net.gcdc.DuplicatorUdpServer &
 java -cp target/scala-2.10/geonetworking-assembly-0.1.0-SNAPSHOT.jar net.gcdc.StdinClient 4000 127.0.0.1:4001
 ```
+The first line compiles the source and assembles everything into one big "fat" jar. 
+
+The second line starts a fake UDP Link Layer entity that echoes packets back. Echo server listens on UDP port 4001, and forwards all packets to UDP port 4000.
+
+The third line starts a command line client. The client assumes that Link Layer can be reached by sending payload to UDP port 4001, and expects that the payload from Link Layer can be received on UDP port 4000. The client gets BTP payload from stdin, and prints received BTP payload to stdout.
 
 ### Other GeoNetworking implementations
 
