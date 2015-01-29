@@ -44,4 +44,4 @@ This implementation was inspired by [DriveITS](https://github.com/Dimme/driveits
 
 ### License
 
-Apache License Version 2.0.
+This GeoNetworking source code is released under the business-friendly Apache 2.0 license.
