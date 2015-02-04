@@ -199,7 +199,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 payload = linkLayer.receive();
                 onReceiveFromLowerLayer(payload);
             } catch (IOException | InterruptedException e) {
-                System.err.println("Geonetworking station got an exception, but it will try to continue its operation.");
+                System.err.println("Geonetworking station got an IO exception, but it will try to continue its operation.");
                 e.printStackTrace();
             }
         }
