@@ -20,7 +20,14 @@ Implementation targets Java 7 at the moment, with some use of backported feature
 
 [SBT](http://www.scala-sbt.org/) is used as a build tool. Later it might be changed to something else. 
 
+Making Eclipse project files: 
+
+```
+sbt eclipse
+```
+
 Running tests: 
+
 ```
 sbt test
 ```
@@ -41,15 +48,15 @@ The third line starts a command line client. The client assumes that Link Layer 
 
 #### Run with utoepy as link layer
 
-Run command-line client on top of [utoepy](https://github.com/alexvoronov/utoepy) on top of [tap0](http://en.wikipedia.org/wiki/TUN/TAP):
+Run command-line client on top of [utoepy](https://github.com/alexvoronov/utoepy) bound to [tap0](http://en.wikipedia.org/wiki/TUN/TAP):
 
 ```
 sudo python udp2eth.py 4001 tap0
-sudo python eth2udp.py 127.0.0.1:4000 tap0
+sudo python eth2udp.py 127.0.0.1:4000 tap0 --keep-own-frames
 java -cp geonetworking-assembly-0.1.0-SNAPSHOT.jar net.gcdc.BtpStdinClient 4000 127.0.0.1:4001
 ```
 
-In this setting, `eth2udp` picks the frames sent by `udp2eth`, so the sender will hear its own packets. TAP interfaces of multiple computers can be connected with OpenVPN, here is a diagram for that case:
+With `--keep-own-frames`, `eth2udp` will pick even the frames sent by `udp2eth`, so the sender will hear its own packets. TAP interfaces of multiple computers can be connected with OpenVPN, here is a diagram for that case:
 
 ```
            +--------+                    +---------+    +----------+   +-------+   +----------+    +---------+
