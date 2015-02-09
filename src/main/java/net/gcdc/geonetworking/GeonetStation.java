@@ -121,6 +121,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
         ByteBuffer buffer = ByteBuffer.wrap(payload).asReadOnlyBuffer();  // I promise not to write.
         try {
             BasicHeader  basicHeader  = BasicHeader.getFrom(buffer);
+            if (basicHeader.version() != config.itsGnProtocolVersion) { return; }  // Ignore packet.
             CommonHeader commonHeader = CommonHeader.getFrom(buffer);
 
             switch (commonHeader.typeAndSubtype()) {

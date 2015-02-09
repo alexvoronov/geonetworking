@@ -1,6 +1,5 @@
 package net.gcdc.geonetworking;
 
-import java.util.Random;
 
 /**
  * Geonetworking ITS station configuration parameters.
@@ -11,7 +10,7 @@ import java.util.Random;
  */
 public class StationConfig {
 
-    public long itsGnLoacalGnAddr = new Random().nextLong();
+    public long itsGnLoacalGnAddr = Address.random(false, StationType.Passenger_Car, 752).value();
 
     /** Version of the GeoNetworking protocol set in the GeoNetworking protocol headers. */
     public final int itsGnProtocolVersion = 0;  // Version for EN 302 636-4-1 (V1.2.1).

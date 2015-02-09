@@ -1,6 +1,7 @@
 package net.gcdc.geonetworking;
 
 import java.nio.ByteBuffer;
+import java.util.Random;
 
 /**
  * The network address for the GeoAdhoc router entity in the ITS-S.
@@ -8,8 +9,68 @@ import java.nio.ByteBuffer;
  * 64-bit address encoded as 8-octets octet string with network byte order.
  *
  * From ASN1:  DISPLAY-HINT "2x:2x:2x:2x"
+ *
+ *  Octets:         1               2               3
+ *  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1
+ *  Bits:               10                  20
+ *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+ *  Bits backwards:           50                  40
+ *  3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |M|   Type  | Country Code      | MAC Address 48 bit
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *  1-1 2 3 4 5-1 2 3 4 5 6 7 8 9 0-1 2 3 4 5 6 ....
+ *
  */
 public class Address {
+
+
+    public static final int LENGTH = 8;
+
+    private final long value;
+
+    public Address(long value) {
+        this.value = value;
+    }
+
+    public Address(boolean isManual, StationType stationType, int countryCode, long lowLevelAddress) {
+        this(
+                ((isManual ? 1L : 0L)                            << 63) |  // bit  63
+                ((stationType.value() & 0b0001_1111L)            << 58) |  // bits 62-58
+                ((countryCode & 0b0011_1111_1111L)               << 48) |  // bits 57-48
+                ((lowLevelAddress & 0x00_00_ff_ff_ff_ff_ff_ffL))          // bits 47-0
+        );
+        if (countryCode > 0b0011_1111_1111) {
+            throw new IllegalArgumentException("Country code is outside of the range 0-" +
+                    0b0011_1111_1111);
+        }
+    }
+
+    public boolean isManual() {
+        return (value >>> 63) != 0;
+    }
+    public StationType stationType() {
+        return StationType.fromValue((int)((value >>> 58) & 0b0001_1111));
+    }
+    public int countryCode() {
+        return (int)((value >>> 48) & 0b0011_1111_1111);
+    }
+    public long lowLevelAddress() {
+        return value & 0x00_00_ff_ff_ff_ff_ff_ffL;
+    }
+
+    public long value() {
+        return value;
+    }
+
+    @Override
+    public String toString() {
+        return new StringBuilder(Long.toHexString(value).toUpperCase())
+            .insert(12, ':')
+            .insert( 8, ':')
+            .insert( 4, ':')
+            .toString();
+    }
 
     @Override
     public int hashCode() {
@@ -33,28 +94,16 @@ public class Address {
         return true;
     }
 
-    public static final int LENGTH = 8;
-
-    private long value;
-
-    public Address(long value) {
-        this.value = value;
-    }
-
-    @Override
-    public String toString() {
-        return new StringBuilder(Long.toHexString(value).toUpperCase())
-            .insert(12, ':')
-            .insert( 8, ':')
-            .insert( 4, ':')
-            .toString();
-    }
-
     public ByteBuffer putTo(ByteBuffer buffer) {
         return buffer.putLong(value);
     }
 
     public static Address getFrom(ByteBuffer buffer) {
         return new Address(buffer.getLong());
+    }
+
+    public static Address random(boolean isManual, StationType stationType, int countryCode) {
+        return new Address(isManual, stationType, countryCode,
+                new Random().nextLong() & 0x00_00_ff_ff_ff_ff_ff_ffL);
     }
 }
