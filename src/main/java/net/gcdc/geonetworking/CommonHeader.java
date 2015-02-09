@@ -89,7 +89,7 @@ public class CommonHeader {
             .put(reserved);
     }
 
-    public static CommonHeader fromBuffer(ByteBuffer buffer) {
+    public static CommonHeader getFrom(ByteBuffer buffer) {
         byte nextHeaderAndReserved = buffer.get();
         byte typeAndSubtypeByte    = buffer.get();
         byte trafficClassByte      = buffer.get();

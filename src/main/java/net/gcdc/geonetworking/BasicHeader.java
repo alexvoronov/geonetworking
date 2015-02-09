@@ -25,8 +25,16 @@ public class BasicHeader {
         private NextHeader(int value) { this.value = value; }
         public  int value()           { return value;       }
         public static NextHeader fromValue(int value) {
-            for (NextHeader h : NextHeader.values()) { if (h.value() == value) { return h; } }
-            throw new IllegalArgumentException("Bad next header for Basic Header: " + value);
+            switch (value) {
+                case  0: return ANY;
+                case  1: return COMMON_HEADER;
+                case  2: return SECURED_PACKET;
+                default: throw new IllegalArgumentException("Bad next header for Basic Header: " +
+                                                            value);
+            }
+            // "Universal" version:
+            // for (NextHeader h : NextHeader.values()) { if (h.value() == value) { return h; } }
+            // throw new IllegalArgumentException("Bad next header for Basic Header: " + value);
         }
 
     }
@@ -72,8 +80,13 @@ public class BasicHeader {
             public  int    code()                { return code;                            }
 
             public  static Base fromCode(int code) {
-                for (Lifetime.Base b : Base.values()) { if (b.code() == code) { return b; } }
-                throw new IllegalArgumentException("Bad lifetime base: " + code);
+                switch (code) {
+                    case  0: return X50MS;
+                    case  1: return X1S;
+                    case  2: return X10S;
+                    case  3: return X100S;
+                    default: throw new IllegalArgumentException("Bad lifetime base: " + code);
+                }
             }
         }
 
@@ -90,9 +103,9 @@ public class BasicHeader {
         }
 
         public static Lifetime fromSeconds(double seconds) {
-            Base currentBase = Base.values()[0];
-            for (Lifetime.Base b : Base.values()) {
-                currentBase = b;
+            Base currentBase = Base.values()[0];       // Start with the smallest base.
+            for (Lifetime.Base b : Base.values()) {    // Increase base one by one...
+                currentBase = b;                       // ...until base is big enough:
                 if (currentBase.asSeconds() * MAX_MULTIPLIER > seconds)  { break; }
             }
             byte multiplier = (byte) (seconds / currentBase.asSeconds());

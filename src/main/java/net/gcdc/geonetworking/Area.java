@@ -4,9 +4,9 @@ import java.nio.ByteBuffer;
 
 public abstract class Area {
     public static enum Type {
-        CIRCLE(0),
-        RECTANGLE(1),
-        ELLIPSE(2);
+        CIRCLE    (0),
+        RECTANGLE (1),
+        ELLIPSE   (2);
 
         private final int code;
         private Type(int code) { this.code = code; }

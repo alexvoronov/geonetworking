@@ -13,6 +13,7 @@ public class BtpSocket implements AutoCloseable {
     public static BtpSocket on(StationConfig config, LinkLayer linkLayer, PositionProvider positionProvider) {
         GeonetStation station = new GeonetStation(config, linkLayer, positionProvider);
         new Thread(station).start();
+        station.startBecon();
         return new BtpSocket(station);
     }
 

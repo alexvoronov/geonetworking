@@ -42,6 +42,8 @@ public class DuplicatorLinkLayer {
                 }
             }
 
+            @Override
+            public void close() { }
         };
         links.add(link);
         return link;

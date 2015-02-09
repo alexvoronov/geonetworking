@@ -1,8 +1,15 @@
 package net.gcdc.geonetworking;
 
 import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.util.Random;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /* Java and ETSI both use Big Endian. */
 public class GeonetStation implements Runnable, AutoCloseable {
@@ -30,7 +37,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 (byte) config.itsGnProtocolVersion,
                 BasicHeader.NextHeader.COMMON_HEADER,
                 BasicHeader.Lifetime.fromSeconds(data.destination.maxLifetimeSeconds().orElse(
-                        (double) config.itsGnDefaultPacketLifetimeSeconds)),
+                        (double) config.itsGnDefaultPacketLifetime)),
                 data.destination.remainingHopLimit().orElse((byte) config.itsGnDefaultHopLimit));
     }
 
@@ -81,7 +88,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 llPayload.putShort(sequenceNumber());       // Octets 12-13
                 llPayload.putShort((short)0);  // Reserved. // Octets 14-15
                 positionVector.putTo(llPayload);            // Octets 16-39
-                ((Destination.Geobroadcast)data.destination).area.putTo(llPayload);  // Octets 40-53
+                ((Destination.Geobroadcast)data.destination).area().putTo(llPayload);  // Octets 40-53
                 llPayload.putShort((short)0);  // Reserved. // Octets 54-55
                 llPayload.put(data.payload);
 
@@ -91,10 +98,17 @@ public class GeonetStation implements Runnable, AutoCloseable {
             }
             case ANY:
             case BEACON:
+                ByteBuffer llPayload = ByteBuffer.allocate(36);
+                basicHeader.putTo(llPayload);    // octets 0-3
+                commonHeader.putTo(llPayload);   // octets 4-11
+                positionVector.putTo(llPayload); // octets 12-35
+
+                sendToLowerLayer(llPayload);
+                break;
             case GEOUNICAST:
             case LOCATION_SERVICE_REPLY:
             case LOCATION_SERVICE_REQUEST:
-            case MULTI_HOP:
+            case MULTI_HOP:  // Topologically Scoped Broadcast (TSB)
             default:
                 // Ignore for now.
                 break;
@@ -105,69 +119,79 @@ public class GeonetStation implements Runnable, AutoCloseable {
     private void onReceiveFromLowerLayer(byte[] payload) throws InterruptedException {
         // Do we want to clone payload before we start reading from it?
         ByteBuffer buffer = ByteBuffer.wrap(payload).asReadOnlyBuffer();  // I promise not to write.
+        try {
+            BasicHeader  basicHeader  = BasicHeader.getFrom(buffer);
+            CommonHeader commonHeader = CommonHeader.getFrom(buffer);
 
-        BasicHeader basicHeader = BasicHeader.getFrom(buffer);
-        CommonHeader commonHeader = CommonHeader.fromBuffer(buffer);
-
-        switch (commonHeader.typeAndSubtype()) {
-            case SINGLE_HOP: {
-                LongPositionVector senderLpv = LongPositionVector.getFrom(buffer);
-                int reserved = buffer.getInt();  // 32 bit media-dependent info.
-                byte[] upperPayload = new byte[commonHeader.payloadLength()];
-                buffer.slice().get(upperPayload, 0, commonHeader.payloadLength());
-                GeonetData indication = new GeonetData(
-                        commonHeader.nextHeader(),
-                        new Destination.SingleHop(Optional.of(basicHeader.lifetime().asSeconds())),
-                        Optional.of(commonHeader.trafficClass()),
-                        Optional.of(senderLpv),
-                        upperPayload
-                        );
-                sendToUpperLayer(indication);
-                break;
-            }
-            case GEOBROADCAST_CIRCLE:
-            case GEOBROADCAST_ELLIPSE:
-            case GEOBROADCAST_RECTANGLE:
-            {
-                short sequenceNumber = buffer.getShort();
-                buffer.getShort();  // Reserved 16-bit.
-                LongPositionVector senderLpv = LongPositionVector.getFrom(buffer);
-                Area area = Area.getFrom(buffer, Area.Type.fromCode(commonHeader.typeAndSubtype().subtype()));
-                buffer.getShort();  // Reserved 16-bit.
-                byte[] upperPayload = new byte[commonHeader.payloadLength()];
-
-                // TODO: add duplicate packet detection.
-                if (area.contains(position())) {
-                    Destination destination = Destination.geobroadcast(area);  //  TODO: add lifetime and hops
+            switch (commonHeader.typeAndSubtype()) {
+                case SINGLE_HOP: {
+                    LongPositionVector senderLpv = LongPositionVector.getFrom(buffer);
+                    int reserved = buffer.getInt();  // 32 bit media-dependent info.
+                    byte[] upperPayload = new byte[commonHeader.payloadLength()];
+                    buffer.slice().get(upperPayload, 0, commonHeader.payloadLength());
                     GeonetData indication = new GeonetData(
                             commonHeader.nextHeader(),
-                            destination,
+                            Destination.singleHop().withMaxLifetimeSeconds(basicHeader.lifetime().asSeconds()),
                             Optional.of(commonHeader.trafficClass()),
                             Optional.of(senderLpv),
                             upperPayload
                             );
                     sendToUpperLayer(indication);
+                    break;
                 }
-                throw new UnsupportedOperationException("Not implemented yet.");  // TODO: Forward if necessary.
-                //break;
+                case GEOBROADCAST_CIRCLE:
+                case GEOBROADCAST_ELLIPSE:
+                case GEOBROADCAST_RECTANGLE:
+                {
+                    short sequenceNumber = buffer.getShort();
+                    buffer.getShort();  // Reserved 16-bit.
+                    LongPositionVector senderLpv = LongPositionVector.getFrom(buffer);
+                    Area area = Area.getFrom(buffer, Area.Type.fromCode(commonHeader.typeAndSubtype().subtype()));
+                    buffer.getShort();  // Reserved 16-bit.
+                    byte[] upperPayload = new byte[commonHeader.payloadLength()];
+
+                    // TODO: add duplicate packet detection.
+                    if (area.contains(position())) {
+                        Destination destination = Destination.geobroadcast(area)
+                                .withMaxLifetimeSeconds(basicHeader.lifetime().asSeconds())
+                                .withRemainingHopLimit((byte)(basicHeader.remainingHopLimit() - 1))
+                                .withMaxHopLimit(commonHeader.maximumHopLimit());
+                        GeonetData indication = new GeonetData(
+                                commonHeader.nextHeader(),
+                                destination,
+                                Optional.of(commonHeader.trafficClass()),
+                                Optional.of(senderLpv),
+                                upperPayload
+                                );
+                        sendToUpperLayer(indication);
+                    }
+                    // TODO: Forward if necessary.
+                    break;
+                }
+                case BEACON:
+                case LOCATION_SERVICE_REQUEST:
+                case LOCATION_SERVICE_REPLY:
+                    // Do nothing.
+                    // At the moment we don't maintain Location Table.
+                    break;
+                case GEOANYCAST_CIRCLE:
+                case GEOANYCAST_ELLIPSE:
+                case GEOANYCAST_RECTANGLE:
+                case GEOUNICAST:
+                case MULTI_HOP:
+                case ANY:
+                default:
+                    // Ignore for now.
+                    break;
             }
-            case GEOANYCAST_CIRCLE:
-            case GEOANYCAST_ELLIPSE:
-            case GEOANYCAST_RECTANGLE:
-            case GEOUNICAST:
-            case LOCATION_SERVICE_REPLY:
-            case LOCATION_SERVICE_REQUEST:
-            case MULTI_HOP:
-            case ANY:
-            case BEACON:
-            default:
-                // Ignore for now.
-                break;
+        } catch (BufferUnderflowException ex) {
+            Logger.getGlobal().log(Level.WARNING, "Can't parse the packet, ignoring.");
         }
     }
 
+    /** Returns the position of this station, from {@link #positionProvider}. */
     public Position position() {
-        throw new UnsupportedOperationException("NotImplemented yet.");  // TODO
+        return positionProvider.getLatestPosition().position();
     }
 
     /** Interface to lower layer (Ethernet/ITS-G5/802.11p, Link Layer) */
@@ -207,5 +231,43 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
     @Override
     public void close() {
+        beaconScheduler.shutdownNow();
+        try {
+            linkLayer.close();
+        } catch (Exception e) {
+            Logger.getGlobal().log(Level.SEVERE, "Exception in LinkLayer close()", e);
+            e.printStackTrace();
+        }
+    }
+
+    private final ScheduledExecutorService beaconScheduler =
+            Executors.newSingleThreadScheduledExecutor();
+
+    private void sendBeacon() {
+        Optional<TrafficClass> emptyTrafficClass = Optional.empty();    // #send will use default.
+        Optional<LongPositionVector> emptyPosition = Optional.empty();  // #send fills in current.
+        GeonetData data = new GeonetData(UpperProtocolType.ANY, Destination.beacon(),
+                emptyTrafficClass, emptyPosition, new byte[] {});
+        try {
+            send(data);
+        } catch (IOException e) {
+            Logger.getGlobal().log(Level.SEVERE, "Exception in sending beacon", e);
+            e.printStackTrace();
+        }
+    }
+
+    public void startBecon() {
+        scheduleNextBeacon();
+    }
+
+    private void scheduleNextBeacon() {
+        final Runnable sendAndScheduleNext = new Runnable() {
+            @Override public void run() { sendBeacon(); scheduleNextBeacon(); };
+        };
+
+        final long delay = config.itsGnBeaconServiceRetransmitTimer +
+                new Random().nextInt(config.itsGnBeaconServiceMaxJitter);
+
+        beaconScheduler.schedule(sendAndScheduleNext, delay, TimeUnit.MILLISECONDS);
     }
 }

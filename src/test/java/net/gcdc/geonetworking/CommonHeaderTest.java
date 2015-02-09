@@ -23,7 +23,7 @@ public class CommonHeaderTest {
         h1.putTo(buffer);
         assertEquals(buffer.position(), CommonHeader.LENGTH);
         buffer.flip();
-        CommonHeader h2 = CommonHeader.fromBuffer(buffer);
+        CommonHeader h2 = CommonHeader.getFrom(buffer);
         assertArrayEquals(buffer.array(), h2.putTo(ByteBuffer.allocate(CommonHeader.LENGTH)).array());
         assertEquals(h1.nextHeader(), h2.nextHeader());
         assertEquals(h1.typeAndSubtype(), h2.typeAndSubtype());
