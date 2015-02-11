@@ -52,6 +52,12 @@ public class Address {
     public StationType stationType() {
         return StationType.fromValue((int)((value >>> 58) & 0b0001_1111));
     }
+    /** Returns country code.
+     *
+     * Country codes are according to Annex to ITU Operational Bulletin No. 741 - 1.VI.2001:
+     * "Complement to Recommendation ITU-T E.212 (11/98)".
+     * See http://www.itu.int/dms_pub/itu-t/opb/sp/T-SP-OB.741-2001-PDF-E.pdf
+     */
     public int countryCode() {
         return (int)((value >>> 48) & 0b0011_1111_1111);
     }

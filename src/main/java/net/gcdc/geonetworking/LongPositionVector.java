@@ -9,6 +9,12 @@ import org.threeten.bp.OffsetDateTime;
 import org.threeten.bp.ZoneOffset;
 
 /**
+ * Long Position Vector containing detailed station information.
+ *
+ * Usually used to describe sender position.
+ *
+ * Long Position Vector contains Geonetworking Address, Timestamp, Position, PAI, Speed and Heading.
+ *
  * Timestamp.
  * time in milliseconds at which the latitude and longitude of the ITS-S were
  * acquired
@@ -85,10 +91,15 @@ public class LongPositionVector {
         this.headingDegreesFromNorth = headingDegreesFromNorth;
     }
 
+    /** Long Position Vector length in bytes. */
     public static final int LENGTH = 24;
 
     public ByteBuffer putTo(ByteBuffer buffer) {
-        address.orElse(new Address(1)).putTo(buffer);
+        if (address.isPresent()) {
+            address.get().putTo(buffer);
+        } else {
+            throw new IllegalStateException("Address not initialized in Long Position Vector.");
+        }
         buffer.putInt((int)instantToTaiMillisSince2004Mod32(timestamp));
         position.putTo(buffer);
         // Bit 15 is position accuracy indication isPositionAccurate
@@ -142,12 +153,12 @@ public class LongPositionVector {
     /** Returns TAI milliseconds mod 2^32 for the given date.
      *
      * Since java int is signed 32 bit integer, return long instead.
-     * It is the same on byte level, but just to avoid scaring people with negative values here.
+     * It is the same on byte level, but just to avoid confusing people with negative values here.
      *
      *
      * From http://stjarnhimlen.se/comp/time.html:
      *
-     * TAI = International Atomic Time (Temps Atomique International = TAI) is
+     * TAI (Temps Atomique International or International Atomic Time) is
      * defined as the weighted average of the time kept by about 200
      * atomic clocks in over 50 national laboratories worldwide.
      * TAI-UT1 was approximately 0 on 1958 Jan 1.
@@ -169,12 +180,20 @@ public class LongPositionVector {
         return taiMillis % (1L << 32);
     }
 
+    /** Returns the nearest to now instant that will have given amount of TAI millis since 2004. */
     public static Instant millisMod32ToInstant(int intMillisX) {
         long millisX = Long.parseLong(Integer.toBinaryString(intMillisX), 2);  // unsigned int...
         Instant now = Instant.now();
         long millisNow = instantToTaiMillisSince2004Mod32(now);
         long delta = millisNow - millisX;
-        if (delta < 0) { delta += (1L << 32); }
+        // Small positive delta is what we expect.
+        // Small negative delta is fine too, it would mean that the packet came from the future,
+        // which can be explained by our clock being a little behind.
+        // Huge negative delta is from previous mod32, and should be changed to small positive.
+        // Huge positive delta might come from a packet a little from the future and next mod32,
+        // we want instead a small negative delta.
+        if (delta < -(1L << 31)) { delta += (1L << 32); }
+        if (delta >  (1L << 31)) { delta -= (1L << 32); }
         Instant instantX = now.minusMillis(delta);
         return instantX;
     }

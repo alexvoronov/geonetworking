@@ -13,7 +13,7 @@ public class LongPositionVectorTest {
     @Test
     public void test() {
         LongPositionVector v1 = new LongPositionVector(
-                new Address(new java.util.Random().nextLong()),
+                Address.random(true, StationType.Unknown, 240),
                 Instant.now(),
                 new Position(13, 17),
                 true,
@@ -26,7 +26,7 @@ public class LongPositionVectorTest {
     @Test
     public void test2() {
         roundTrip(new LongPositionVector(
-                new Address(new java.util.Random().nextLong()),
+                Address.random(true, StationType.Unknown, 240),
                 Instant.now(),
                 new Position(13, 17),
                 false,
