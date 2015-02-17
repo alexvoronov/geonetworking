@@ -33,4 +33,14 @@ public class StationConfig {
 
     /** Beacon service: Maximum Beacon Jitter in ms. */
     public int itsGnBeaconServiceMaxJitter = itsGnBeaconServiceRetransmitTimer / 4;
+
+    /** Default theoretical maximum communication range in meters. */
+    public int itsGnDefaultMaxCommunicationRange = 1000;
+
+    /** Minimum duration a GeoBroadcast packet shall be buffered in the CBF packet buffer in ms. */
+    public int itsGnGeoBroadcastCbfMinTime = 1;
+
+    /** Maximum duration a GeoBroadcast packet shall be buffered in the CBF packet buffer in ms. */
+    public int itsGnGeoBroadcastCbfMaxTime = 100;
+
 }

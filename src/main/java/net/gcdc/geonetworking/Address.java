@@ -46,6 +46,9 @@ public class Address {
         }
     }
 
+    /** For MANAGED address configuration, returns true if address is manually configured by
+     * geonet Management, and false if the address from geonet Management.
+     * For AUTO address configuration (station takes a random number) - undefined in standard? */
     public boolean isManual() {
         return (value >>> 63) != 0;
     }
@@ -108,6 +111,13 @@ public class Address {
         return new Address(buffer.getLong());
     }
 
+    /**
+     *
+     * @param isManual Address is manually configured, e.g. after DAD, and is not an initial random.
+     * @param stationType
+     * @param countryCode
+     * @return
+     */
     public static Address random(boolean isManual, StationType stationType, int countryCode) {
         return new Address(isManual, stationType, countryCode,
                 new Random().nextLong() & 0x00_00_ff_ff_ff_ff_ff_ffL);

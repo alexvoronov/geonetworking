@@ -94,6 +94,18 @@ public class LongPositionVector {
     /** Long Position Vector length in bytes. */
     public static final int LENGTH = 24;
 
+
+    private final static double SPEED_STORE_SCALE   = 0.01;  // 0.01 meters per second.
+    private final static double HEADING_STORE_SCALE = 0.1;   // 0.1 degrees from north.
+
+    private int speedAsStoreUnit(double speedMetersPerSecond) {
+        return (int) Math.round(speedMetersPerSecond / SPEED_STORE_SCALE);
+    }
+
+    private short headingAsStoreUnit(double headingDegreesFromNorth) {
+        return (short) Math.round(headingDegreesFromNorth / HEADING_STORE_SCALE);
+    }
+
     public ByteBuffer putTo(ByteBuffer buffer) {
         if (address.isPresent()) {
             address.get().putTo(buffer);
@@ -106,7 +118,7 @@ public class LongPositionVector {
         // Bits 0-14 are speed. Negative numbers have all 1-s in the BIG-END, so if speed is
         // negative, we need to remove the 1 from the bit 15.
         short speedMask = 0b0111_1111_1111_1111;
-        int speedRoundedCentimetersPerSecond = (int) Math.round(speedMetersPerSecond * 100.0);
+        int speedRoundedCentimetersPerSecond = speedAsStoreUnit(speedMetersPerSecond);
         if (Math.abs(speedRoundedCentimetersPerSecond) >= Math.pow(2, 15)) {
             throw new IllegalStateException("Speed is too high and requires longer that 14 bits (" +
                     speedMetersPerSecond  + " m/s, max is " + ((Math.pow(2, 15) - 1) * 0.01) + ")");
@@ -114,7 +126,7 @@ public class LongPositionVector {
         short confidenceAndSpeed = (short) (( (isPositionConfident ? 1 : 0) << 15 ) |
                 (speedMask & (short) speedRoundedCentimetersPerSecond));
         buffer.putShort(confidenceAndSpeed);
-        buffer.putShort((short)Math.round(headingDegreesFromNorth * 10.0));
+        buffer.putShort(headingAsStoreUnit(headingDegreesFromNorth));
         return buffer;
     }
 
@@ -135,9 +147,9 @@ public class LongPositionVector {
         // Negative: shortened 15-bit and normal 16-bit integers are different only in the last bit.
         short speed = (short) (speed15bit | (isNegativeSpeed ? 1<<15 : 0));
         // Speed was encoded as 0.01 meters per second.
-        double   speedMetersPerSecond = speed * 0.01;
+        double   speedMetersPerSecond = speed * SPEED_STORE_SCALE;
         // Heading was encoded as an unsigned units of 0.1 degree from North.
-        double   headingDegreesFromNorth = buffer.getShort() / 10.0;
+        double   headingDegreesFromNorth = buffer.getShort() * HEADING_STORE_SCALE;
         return new LongPositionVector(
             address,
             timestamp,
@@ -196,6 +208,51 @@ public class LongPositionVector {
         if (delta >  (1L << 31)) { delta -= (1L << 32); }
         Instant instantX = now.minusMillis(delta);
         return instantX;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((address == null) ? 0 : address.hashCode());
+        result = prime * result + headingAsStoreUnit(headingDegreesFromNorth);
+        result = prime * result + (isPositionConfident ? 1231 : 1237);
+        result = prime * result + ((position == null) ? 0 : position.hashCode());
+        result = prime * result + speedAsStoreUnit(speedMetersPerSecond);
+        result = prime * result + ((timestamp == null) ? 0 : timestamp.hashCode());
+        return result;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        LongPositionVector other = (LongPositionVector) obj;
+        if (address == null) {
+            if (other.address != null)
+                return false;
+        } else if (!address.equals(other.address))
+            return false;
+        if (headingAsStoreUnit(headingDegreesFromNorth) != headingAsStoreUnit(other.headingDegreesFromNorth))
+            return false;
+        if (isPositionConfident != other.isPositionConfident)
+            return false;
+        if (position == null) {
+            if (other.position != null)
+                return false;
+        } else if (!position.equals(other.position))
+            return false;
+        if (speedAsStoreUnit(speedMetersPerSecond) != speedAsStoreUnit(other.speedMetersPerSecond))
+            return false;
+        if (timestamp == null) {
+            if (other.timestamp != null)
+                return false;
+        } else if (!timestamp.equals(other.timestamp))
+            return false;
+        return true;
     }
 
     public LongPositionVector withAddress(Address address) {

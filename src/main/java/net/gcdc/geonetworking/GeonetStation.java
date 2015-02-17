@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.threeten.bp.Duration;
 import org.threeten.bp.Instant;
 
 
@@ -98,11 +99,9 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 llPayload.putShort((short)0);  // Reserved. // Octets 54-55
                 llPayload.put(data.payload);
 
-                // TODO: run forwarding algorithm to determine the next hop.
                 sendToLowerLayer(llPayload);
                 break;
             }
-            case ANY:
             case BEACON:
                 ByteBuffer llPayload = ByteBuffer.allocate(36);
                 basicHeader.putTo(llPayload);    // octets 0-3
@@ -115,6 +114,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
             case LOCATION_SERVICE_REPLY:
             case LOCATION_SERVICE_REQUEST:
             case MULTI_HOP:  // Topologically Scoped Broadcast (TSB)
+            case ANY:
             default:
                 // Ignore for now.
                 break;
@@ -136,6 +136,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
             switch (commonHeader.typeAndSubtype()) {
                 case SINGLE_HOP: {
                     LongPositionVector senderLpv = LongPositionVector.getFrom(buffer);
+                    @SuppressWarnings("unused")
                     int reserved = buffer.getInt();  // 32 bit media-dependent info.
                     byte[] upperPayload = new byte[commonHeader.payloadLength()];
                     buffer.slice().get(upperPayload, 0, commonHeader.payloadLength());
@@ -160,25 +161,23 @@ public class GeonetStation implements Runnable, AutoCloseable {
                     Area area = Area.getFrom(buffer, Area.Type.fromCode(commonHeader.typeAndSubtype().subtype()));
                     buffer.getShort();  // Reserved 16-bit.
                     byte[] upperPayload = new byte[commonHeader.payloadLength()];
+                    buffer.slice().get(upperPayload, 0, commonHeader.payloadLength());
 
-                    if (isDuplicate(senderLpv, sequenceNumber)) {
-                        break;
-                    }
-                    if (area.contains(position())) {
-                        Destination destination = Destination.geobroadcast(area)
-                                .withMaxLifetimeSeconds(basicHeader.lifetime().asSeconds())
-                                .withRemainingHopLimit((byte)(basicHeader.remainingHopLimit() - 1))
-                                .withMaxHopLimit(commonHeader.maximumHopLimit());
-                        GeonetData indication = new GeonetData(
-                                commonHeader.nextHeader(),
-                                destination,
-                                Optional.of(commonHeader.trafficClass()),
-                                Optional.of(senderLpv),
-                                upperPayload
-                                );
+                    Destination.Geobroadcast destination = Destination.geobroadcast(area)
+                            .withMaxLifetimeSeconds(basicHeader.lifetime().asSeconds())
+                            .withRemainingHopLimit((basicHeader.remainingHopLimit()))
+                            .withMaxHopLimit(commonHeader.maximumHopLimit());
+                    GeonetData indication = new GeonetData(
+                            commonHeader.nextHeader(),
+                            destination,
+                            Optional.of(commonHeader.trafficClass()),
+                            Optional.of(senderLpv),
+                            upperPayload
+                            );
+                    if (area.contains(position()) && !isDuplicate(senderLpv, sequenceNumber)) {
                         sendToUpperLayer(indication);
                     }
-                    // TODO: Forward if necessary.
+                    forwardIfNecessary(payload, destination);
                     break;
                 }
                 case BEACON:
@@ -199,6 +198,70 @@ public class GeonetStation implements Runnable, AutoCloseable {
             }
         } catch (BufferUnderflowException | IllegalArgumentException ex) {
             Logger.getGlobal().log(Level.WARNING, "Can't parse the packet, ignoring.");
+        }
+    }
+
+    private final Map<byte[], ScheduledFuture<?>> contentionSet = new HashMap<>();
+    private final ScheduledExecutorService cbfScheduler =
+            Executors.newSingleThreadScheduledExecutor();
+
+    private void sendForwardedPacket(byte[] payload, Instant timeAdded) {
+        ByteBuffer buffer = ByteBuffer.wrap(payload.clone());  // We will overwrite here too.
+        BasicHeader basicHeader = BasicHeader.getFrom(buffer);
+        double queueTimeInSeconds = Duration.between(timeAdded, Instant.now()).toMillis() * 0.001;
+        double newLifetime = basicHeader.lifetime().asSeconds() - queueTimeInSeconds;
+        byte newHops = (byte)(basicHeader.remainingHopLimit() - 1);
+        if (newLifetime <= 0 || newHops < 2) { return; }
+        BasicHeader newBasicHeader = new BasicHeader(basicHeader.version(),
+                basicHeader.nextHeader(), BasicHeader.Lifetime.fromSeconds(newLifetime), newHops);
+        buffer.rewind();
+        newBasicHeader.putTo(buffer);
+        try {
+            sendToLowerLayer(buffer);
+        } catch (IOException e) {
+            Logger.getGlobal().log(Level.SEVERE, "Exception in sending forwarded packet", e);
+            e.printStackTrace();
+        }
+
+    }
+
+    private void forwardIfNecessary(final byte[] payload, Destination.Geobroadcast gbc) {
+        if (contentionSet.containsKey(payload)) {
+            contentionSet.get(payload).cancel(false);
+            contentionSet.remove(payload);
+            return;
+        }
+
+        if(gbc.remainingHopLimit().orElse((byte) 1) < 2) { return; }
+
+        if (gbc.area().contains(position())) {
+            long   maxTimeout  = config.itsGnGeoBroadcastCbfMaxTime;        // In milliseconds.
+            long   minTimeout  = config.itsGnGeoBroadcastCbfMinTime;        // In milliseconds.
+            double maxDistance = config.itsGnDefaultMaxCommunicationRange;  // In meters.
+
+            // This is not real Contention-based forwarding algorithm, since we don't know the
+            // distance to the last forwarder.
+            // TODO: add LL-address (modify LinkLayer and utoepy) and Location Table.
+            // TODO: Look up position of the last forwarder in Location Table using LL-address.
+            double lastDistance = new Random().nextInt(config.itsGnDefaultMaxCommunicationRange);
+
+            // If distance is 0, then timeout is maxTimeout.
+            // If distance is maxDistance or more, then timeout is minTimeout.
+            // If distance is between 0 and maxDistance, then timeout is linear interpolation.
+            long timeoutMillis = lastDistance > maxDistance ? minTimeout :
+                    (long) (maxTimeout - (maxTimeout - minTimeout) * (lastDistance / maxDistance));
+
+            final Instant timeAdded = Instant.now();
+
+            ScheduledFuture<?> sendingFuture = cbfScheduler.schedule(
+                    new Runnable() { @Override public void run() {
+                        sendForwardedPacket(payload, timeAdded); }; },
+                    timeoutMillis, TimeUnit.MILLISECONDS);
+
+            contentionSet.put(payload, sendingFuture);
+
+        } else {
+            // TODO: Greedy Line Forwarding (requires Location Table).
         }
     }
 
@@ -324,6 +387,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
      *
      * Used for Single Hop Broadcast and Beacon, but those messages are never sent as duplicates...
      */
+    @SuppressWarnings("unused")  // There is no valid use-case yet.
     private boolean isDuplicate(LongPositionVector lpv) {
         if (lastSeenTimestamp.containsKey(lpv.address().get()) &&
                 ! lpv.timestamp().isAfter(lastSeenTimestamp.get(lpv.address().get()))) {

@@ -19,34 +19,9 @@ public class Position {
                 + longitudeDegrees + "]";
     }
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        long temp;
-        result = prime * result + asStoreUnit(lattitudeDegrees);
-        result = prime * result + asStoreUnit(longitudeDegrees);
-        return result;
-    }
-
     final static double MICRODEGREE = 1E-6;
     final static double STORE_UNIT = 0.1 * MICRODEGREE;
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
-        Position other = (Position) obj;
-        if (asStoreUnit(lattitudeDegrees) != asStoreUnit(other.lattitudeDegrees))
-            return false;
-        if (asStoreUnit(longitudeDegrees) != asStoreUnit(other.longitudeDegrees))
-            return false;
-        return true;
-    }
 
     private final double lattitudeDegrees;
     private final double longitudeDegrees;
@@ -57,6 +32,9 @@ public class Position {
     }
 
     public static final int LENGTH = 8;
+
+    public double lattitudeDegrees() { return lattitudeDegrees; }
+    public double longitudeDegrees() { return longitudeDegrees; }
 
     private static double fromStoreUnit(int latOrLong) {
         return latOrLong * STORE_UNIT;
@@ -75,4 +53,31 @@ public class Position {
     public static Position getFrom(ByteBuffer buffer) {
         return new Position(fromStoreUnit(buffer.getInt()), fromStoreUnit(buffer.getInt()));
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        long temp;
+        result = prime * result + asStoreUnit(lattitudeDegrees);
+        result = prime * result + asStoreUnit(longitudeDegrees);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Position other = (Position) obj;
+        if (asStoreUnit(lattitudeDegrees) != asStoreUnit(other.lattitudeDegrees))
+            return false;
+        if (asStoreUnit(longitudeDegrees) != asStoreUnit(other.longitudeDegrees))
+            return false;
+        return true;
+    }
+
 }

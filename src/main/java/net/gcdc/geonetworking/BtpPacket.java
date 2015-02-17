@@ -5,24 +5,24 @@ import java.util.Arrays;
 
 public class BtpPacket {
 
-    private Optional<Short>         sourcePort;
-    private short                   destinationPort;
-    private Optional<Short>         destinationPortInfo;
-    private byte[]                  payload;
-    private Destination          destination;
-    private Optional<TrafficClass>  trafficClass;
-    private Optional<LongPositionVector> senderPosition;
+    private final Optional<Short>              sourcePort;
+    private final short                        destinationPort;
+    private final Optional<Short>              destinationPortInfo;
+    private final byte[]                       payload;  // Final reference, but mutable content!
+    private final Destination                  destination;
+    private final Optional<TrafficClass>       trafficClass;
+    private final Optional<LongPositionVector> senderPosition;
 
     private byte[] gnPayload = null;
 
     private BtpPacket(
-            Optional<Short>         sourcePort,
-            short                   destinationPort,
-            Optional<Short>         destinationPortInfo,
-            byte[]                  payload,
-            Destination          destination,
-            Optional<TrafficClass>  trafficClass,
-            Optional<LongPositionVector>            senderPosition
+            Optional<Short>              sourcePort,
+            short                        destinationPort,
+            Optional<Short>              destinationPortInfo,
+            byte[]                       payload,
+            Destination                  destination,
+            Optional<TrafficClass>       trafficClass,
+            Optional<LongPositionVector> senderPosition
         ) {
         this.sourcePort          = sourcePort;
         this.destinationPort     = destinationPort;
@@ -33,34 +33,48 @@ public class BtpPacket {
         this.senderPosition      = senderPosition;
     }
 
-//    public static BtpPacket beacon() {
-//        return new BtpPacket();
-//    }
-
     public static BtpPacket singleHop(byte[] payload, short destinationPort) {
-        Optional<Short>         sourcePort          = Optional.empty();
-        Optional<Short>         destinationPortInfo = Optional.empty();
-        Optional<TrafficClass>  trafficClass        = Optional.empty();
-        Optional<LongPositionVector> senderPosition = Optional.empty();
+        Optional<Short>              emptySourcePort          = Optional.empty();
+        Optional<Short>              emptyDestinationPortInfo = Optional.empty();
+        Optional<TrafficClass>       emptyTrafficClass        = Optional.empty();
+        Optional<LongPositionVector> emptySenderPosition      = Optional.empty();
 
         return new BtpPacket(
-                sourcePort,
+                emptySourcePort,
                 destinationPort,
-                destinationPortInfo,
+                emptyDestinationPortInfo,
                 payload,
                 Destination.singleHop(),
-                trafficClass,
-                senderPosition
+                emptyTrafficClass,
+                emptySenderPosition
                 );
     }
 
-    public Optional<Short>         sourcePort()           { return sourcePort; }
-    public short                   destinationPort()      { return destinationPort; }
-    public Optional<Short>         destinationPortInfo () { return destinationPortInfo; }
-    public byte[]                  payload ()             { return payload.clone(); }  // Extra defensive here. Just in case.
-    public Destination          destination ()         { return destination; }
-    public Optional<TrafficClass>  trafficClass ()        { return trafficClass; }
-    public Optional<LongPositionVector>            senderPosition ()      { return senderPosition; }
+    public static BtpPacket customDestination(byte[] payload, short destinationPort,
+            Destination destination) {
+        Optional<Short>              emptySourcePort          = Optional.empty();
+        Optional<Short>              emptyDestinationPortInfo = Optional.empty();
+        Optional<TrafficClass>       emptyTrafficClass        = Optional.empty();
+        Optional<LongPositionVector> emptySenderPosition      = Optional.empty();
+
+        return new BtpPacket(
+                emptySourcePort,
+                destinationPort,
+                emptyDestinationPortInfo,
+                payload,
+                destination,
+                emptyTrafficClass,
+                emptySenderPosition
+                );
+    }
+
+    public Optional<Short>              sourcePort()           { return sourcePort;          }
+    public short                        destinationPort()      { return destinationPort;     }
+    public Optional<Short>              destinationPortInfo () { return destinationPortInfo; }
+    public byte[]                       payload ()             { return payload.clone();     }  // Extra defensive here. Just in case.
+    public Destination                  destination ()         { return destination;         }
+    public Optional<TrafficClass>       trafficClass ()        { return trafficClass;        }
+    public Optional<LongPositionVector> senderPosition ()      { return senderPosition;      }
 
     public byte[] asBytes() {
         if (gnPayload == null) {
