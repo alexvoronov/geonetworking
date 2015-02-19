@@ -25,35 +25,38 @@ import org.threeten.bp.Instant;
 public class BtpStdinClient {
 
     private final static String usage =
-            "Usage: java -cp gn.jar StdinClient <local-port> <udp-to-ethernet-remote-address-and-port>";
+            "Usage: java -cp gn.jar StdinClient <local-port> <udp-to-ethernet-remote-address-and-port> <--has-ethernet-header | --no-ethernet-header>";
 
     public static void main(String[] args) throws IOException {
-        if (args.length != 2) {
+        if (args.length != 3) {
             System.err.println(usage);
             System.exit(1);
         }
 
         int localPort = Integer.parseInt(args[0]);
+
         String[] hostAndPort = args[1].split(":");
         if (hostAndPort.length != 2) {
             System.err.println(usage);
             System.exit(1);
         }
-
         SocketAddress remoteAddress =
                 new InetSocketAddress(hostAndPort[0], Integer.parseInt(hostAndPort[1]));
 
-        runSenderAndReceiver(localPort, remoteAddress, System.in, System.out);
+        boolean hasEthernetHeader = args[2].equalsIgnoreCase("--has-ethernet-header");
+
+        runSenderAndReceiver(localPort, remoteAddress, hasEthernetHeader, System.in, System.out);
     }
 
     public static void runSenderAndReceiver(
             final int           localPort,
             final SocketAddress remoteAddress,
+            final boolean       hasEthernetHeader,
             final InputStream   in,
             final PrintStream   out
             ) throws SocketException {
 
-        LinkLayer linkLayer = new LinkLayerUdpToEthernet(localPort, remoteAddress);
+        LinkLayer linkLayer = new LinkLayerUdpToEthernet(localPort, remoteAddress, hasEthernetHeader);
 
         PositionProvider positionProvider = new PositionProvider() {
             final Optional<Address> emptyAddress = Optional.empty();

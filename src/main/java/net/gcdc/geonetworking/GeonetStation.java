@@ -27,6 +27,12 @@ public class GeonetStation implements Runnable, AutoCloseable {
     private final LinkedBlockingQueue<GeonetData> queueUpward = new LinkedBlockingQueue<>();
     private int lastUsedSequenceNumber = 0;
 
+    private short GN_ETHER_TYPE = (short) 0x8947;
+    private byte[] BROADCAST_MAC = new byte[] {
+            (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
+    private byte[] EMPTY_MAC = new byte[6];  // Initialized to all 0.
+    private int ETHER_HEADER_LENGTH = 14;
+
     public GeonetStation(StationConfig config, LinkLayer linkLayer, PositionProvider positionProvider) {
         this.config = config;
         this.linkLayer = linkLayer;
@@ -72,7 +78,14 @@ public class GeonetStation implements Runnable, AutoCloseable {
                                         // Set to 0 if not used. Can be used for DCC-related
                                         // information in ITS-G5 (ETSI TS 102 636-4-2).
 
-                ByteBuffer llPayload = ByteBuffer.allocate(40 + data.payload.length);
+                ByteBuffer llPayload = ByteBuffer.allocate(
+                        (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) +
+                        40 + data.payload.length);
+                if (linkLayer.hasEthernetHeader()) {
+                    llPayload.put(BROADCAST_MAC);
+                    llPayload.put(EMPTY_MAC);
+                    llPayload.putShort(GN_ETHER_TYPE);
+                }
                 basicHeader.putTo(llPayload);    // octets 0-3
                 commonHeader.putTo(llPayload);   // octets 4-11
                 positionVector.putTo(llPayload); // octets 12-35
@@ -89,7 +102,14 @@ public class GeonetStation implements Runnable, AutoCloseable {
             case GEOANYCAST_CIRCLE:
             case GEOANYCAST_ELLIPSE:
             case GEOANYCAST_RECTANGLE: {
-                ByteBuffer llPayload = ByteBuffer.allocate(55 + data.payload.length);
+                ByteBuffer llPayload = ByteBuffer.allocate(
+                        (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) +
+                        56 + data.payload.length);
+                if (linkLayer.hasEthernetHeader()) {
+                    llPayload.put(BROADCAST_MAC);  // It is possible to look up Location Table too.
+                    llPayload.put(EMPTY_MAC);
+                    llPayload.putShort(GN_ETHER_TYPE);
+                }
                 basicHeader.putTo(llPayload);               // Octets  0- 3
                 commonHeader.putTo(llPayload);              // Octets  4-11
                 llPayload.putShort(sequenceNumber());       // Octets 12-13
@@ -103,7 +123,14 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 break;
             }
             case BEACON:
-                ByteBuffer llPayload = ByteBuffer.allocate(36);
+                ByteBuffer llPayload = ByteBuffer.allocate(
+                        (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) +
+                        36);
+                if (linkLayer.hasEthernetHeader()) {
+                    llPayload.put(BROADCAST_MAC);
+                    llPayload.put(EMPTY_MAC);
+                    llPayload.putShort(GN_ETHER_TYPE);
+                }
                 basicHeader.putTo(llPayload);    // octets 0-3
                 commonHeader.putTo(llPayload);   // octets 4-11
                 positionVector.putTo(llPayload); // octets 12-35
@@ -126,6 +153,17 @@ public class GeonetStation implements Runnable, AutoCloseable {
         // Do we want to clone payload before we start reading from it?
         ByteBuffer buffer = ByteBuffer.wrap(payload).asReadOnlyBuffer();  // I promise not to write.
         try {
+            byte[] llDstAddress = new byte[6];  // Initialized to 0.
+            byte[] llSrcAddress = new byte[6];
+            if (linkLayer.hasEthernetHeader()) {
+                buffer.get(llDstAddress);  // Should be either me or broadcast, but we don't check.
+                buffer.get(llSrcAddress);
+                short ethertype = buffer.getShort();
+                if (ethertype != GN_ETHER_TYPE) {
+                    throw new IllegalArgumentException("Ethertype is not Geonetworking");
+                }
+            }
+
             BasicHeader  basicHeader  = BasicHeader.getFrom(buffer);
             if (basicHeader.version() != config.itsGnProtocolVersion) {
                 throw new IllegalArgumentException("Unrecognized protocol version: " +
@@ -206,15 +244,25 @@ public class GeonetStation implements Runnable, AutoCloseable {
             Executors.newSingleThreadScheduledExecutor();
 
     private void sendForwardedPacket(byte[] payload, Instant timeAdded) {
-        ByteBuffer buffer = ByteBuffer.wrap(payload.clone());  // We will overwrite here too.
+        if (!linkLayer.hasEthernetHeader()) { return; }  // Forwarding does not work without MAC.
+        ByteBuffer buffer = ByteBuffer.wrap(payload.clone());  // We overwrite the old payload.
+        byte[] llDstMac = new byte[6];
+        byte[] llSrcMac = new byte[6];
+        buffer.get(llDstMac);
+        buffer.get(llSrcMac);
+        short ethertype = buffer.getShort();
+        if (ethertype != GN_ETHER_TYPE) { return; }  // Ignore the packet.
         BasicHeader basicHeader = BasicHeader.getFrom(buffer);
-        double queueTimeInSeconds = Duration.between(timeAdded, Instant.now()).toMillis() * 0.001;
-        double newLifetime = basicHeader.lifetime().asSeconds() - queueTimeInSeconds;
+        double queuingTimeInSeconds = Duration.between(timeAdded, Instant.now()).toMillis() * 0.001;
+        double newLifetime = basicHeader.lifetime().asSeconds() - queuingTimeInSeconds;
         byte newHops = (byte)(basicHeader.remainingHopLimit() - 1);
         if (newLifetime <= 0 || newHops < 2) { return; }
         BasicHeader newBasicHeader = new BasicHeader(basicHeader.version(),
                 basicHeader.nextHeader(), BasicHeader.Lifetime.fromSeconds(newLifetime), newHops);
         buffer.rewind();
+        buffer.put(BROADCAST_MAC);  // Destination. TODO: add lookup for greedy and line forwarding.
+        buffer.put(EMPTY_MAC);      // Source.
+        buffer.putShort(ethertype);
         newBasicHeader.putTo(buffer);
         try {
             sendToLowerLayer(buffer);
@@ -226,6 +274,10 @@ public class GeonetStation implements Runnable, AutoCloseable {
     }
 
     private void forwardIfNecessary(final byte[] payload, Destination.Geobroadcast gbc) {
+        // We can't forward if we don't know who was the last forwarder.
+        // Packets have only the original sender, so for the last forwarder we need MAC address from LL.
+        if (!linkLayer.hasEthernetHeader()) { return; }
+
         if (contentionSet.containsKey(payload)) {
             contentionSet.get(payload).cancel(false);
             contentionSet.remove(payload);
@@ -239,9 +291,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
             long   minTimeout  = config.itsGnGeoBroadcastCbfMinTime;        // In milliseconds.
             double maxDistance = config.itsGnDefaultMaxCommunicationRange;  // In meters.
 
-            // This is not real Contention-based forwarding algorithm, since we don't know the
-            // distance to the last forwarder.
-            // TODO: add LL-address (modify LinkLayer and utoepy) and Location Table.
+            // Contention-based forwarding algorithm needs distance to the last forwarder.
             // TODO: Look up position of the last forwarder in Location Table using LL-address.
             double lastDistance = new Random().nextInt(config.itsGnDefaultMaxCommunicationRange);
 

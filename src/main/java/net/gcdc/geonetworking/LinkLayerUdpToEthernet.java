@@ -12,15 +12,18 @@ public class LinkLayerUdpToEthernet implements LinkLayer, AutoCloseable {
 
     final SocketAddress remoteAddress;
 
+    final boolean hasEthernetHeader;
+
     final DatagramSocket socket;
     final int BUFFER_LENGTH = 65535;
     final byte[] buffer = new byte[BUFFER_LENGTH];
     final DatagramPacket receptionPacket = new DatagramPacket(buffer, BUFFER_LENGTH);
 
-    public LinkLayerUdpToEthernet(int localPort, SocketAddress remoteAddress)
+    public LinkLayerUdpToEthernet(int localPort, SocketAddress remoteAddress, boolean hasEthernetHeader)
             throws SocketException {
         this.socket = new DatagramSocket(localPort);
         this.remoteAddress = remoteAddress;
+        this.hasEthernetHeader = hasEthernetHeader;
     }
 
     @Override
@@ -37,6 +40,11 @@ public class LinkLayerUdpToEthernet implements LinkLayer, AutoCloseable {
     @Override
     public void close() {
         socket.close();
+    }
+
+    @Override
+    public boolean hasEthernetHeader() {
+        return hasEthernetHeader;
     }
 
 }

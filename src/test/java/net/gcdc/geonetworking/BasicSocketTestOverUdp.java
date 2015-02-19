@@ -25,10 +25,12 @@ public class BasicSocketTestOverUdp {
         d.add(server1, new InetSocketAddress(InetAddress.getLocalHost(), client1));
         d.add(server2, new InetSocketAddress(InetAddress.getLocalHost(), client2));
 
+        boolean hasEthernetHeader = false;
+
         LinkLayer l1 = new LinkLayerUdpToEthernet(client1,
-                new InetSocketAddress(InetAddress.getLocalHost(), server1));
+                new InetSocketAddress(InetAddress.getLocalHost(), server1), hasEthernetHeader);
         LinkLayer l2 = new LinkLayerUdpToEthernet(client2,
-                new InetSocketAddress(InetAddress.getLocalHost(), server2));
+                new InetSocketAddress(InetAddress.getLocalHost(), server2), hasEthernetHeader);
 
         StationConfig config1 = new StationConfig();
         StationConfig config2 = new StationConfig();
