@@ -18,12 +18,12 @@ public class AreaTest {
 
         Position p5 = new Position(30, 120); // China
 
-        assertEquals(8915000, Area.distanceMeters(p4, p5), 300000);
-        assertEquals( 616000, Area.distanceMeters(p3, p4), 1000);
-        assertEquals( 358000, Area.distanceMeters(p1, p2), 1000);
+        assertEquals(8915000, p4.distanceInMetersTo(p5), 300000);
+        assertEquals( 616000, p3.distanceInMetersTo(p4), 1000);
+        assertEquals( 358000, p1.distanceInMetersTo(p2), 1000);
 
-        assertEquals( 60, Area.bearingDegrees(p1, p2), 10);
-        assertEquals(295, Area.bearingDegrees(p3, p4), 10);
+        assertEquals( 60, p1.bearingInDegreesTowards(p2), 10);
+        assertEquals(295, p3.bearingInDegreesTowards(p4), 10);
 
         Position slottsberget   = new Position(57.702878, 11.927723);
         Position damen          = new Position(57.703864, 11.945876);

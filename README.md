@@ -5,7 +5,7 @@ A basic implementation of the [ETSI](http://en.wikipedia.org/wiki/ETSI) GeoNetwo
 
 ### Scope
 
-Only Single Hop Broadcast is supported at the moment, and GeoBroadcast is planned. There are currently no plans to implement GeoAnycast or GeoUnicast, and no plans to implement security either.
+Sending and receiving Single Hop Broadcast and GeoBroadcast is supported. Forwarding of GeoBroadcast packets is on the wishlist. There are currently no plans for GeoUnicast or Security.
 
 
 ### Implementation

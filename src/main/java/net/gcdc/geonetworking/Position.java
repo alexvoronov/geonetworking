@@ -80,4 +80,49 @@ public class Position {
         return true;
     }
 
+    public double distanceInMetersTo(Position other) {
+        return distanceMeters(this, other);
+    }
+
+    public double bearingInDegreesTowards(Position other) {
+        return bearingDegrees(this, other);
+    }
+
+    public static double distanceMeters(Position pos1, Position pos2) {
+        return distanceMeters(
+                pos1.lattitudeDegrees(), pos1.longitudeDegrees(),
+                pos2.lattitudeDegrees(), pos2.longitudeDegrees());
+    }
+
+    public static double distanceMeters(double lat1, double lng1, double lat2, double lng2) {
+        double earthRadius = 6371000; // In meters. In miles: 3958.75;
+        double dLat = Math.toRadians(lat2-lat1);
+        double dLng = Math.toRadians(lng2-lng1);
+        double a = Math.pow(Math.sin(dLat / 2), 2) +
+                Math.pow(Math.sin(dLng / 2), 2) *
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2));
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double dist = earthRadius * c;
+
+        return dist;
+    }
+
+    public static double bearingDegrees(Position pos1, Position pos2) {
+        return bearingDegrees(
+                pos1.lattitudeDegrees(), pos1.longitudeDegrees(),
+                pos2.lattitudeDegrees(), pos2.longitudeDegrees());
+    }
+
+    public static double bearingDegrees(double lat1, double lng1, double lat2, double lng2){
+        double latRad1 = Math.toRadians(lat1);
+        double latRad2 = Math.toRadians(lat2);
+        double lngDiffRad = Math.toRadians(lng2-lng1);
+        double y = Math.sin(lngDiffRad)*Math.cos(latRad2);
+        double x = Math.cos(latRad1) * Math.sin(latRad2) -
+                Math.sin(latRad1) * Math.cos(latRad2) * Math.cos(lngDiffRad);
+
+        return (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
+    }
+
+
 }
