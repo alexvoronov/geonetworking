@@ -2,6 +2,7 @@ package net.gcdc.geonetworking;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -76,39 +77,60 @@ public class BasicGeobroadcastTest {
             }
         };
 
-        @SuppressWarnings("unused")
-        BtpSocket socket1 = BtpSocket.on(config1, l1, posSlottsberget);
-        BtpSocket socket2 = BtpSocket.on(config2, l2, posKuggen);
-        BtpSocket socket3 = BtpSocket.on(config3, l3, posSemcon);
-        final BtpSocket socket4 = BtpSocket.on(config4, l4, posJarntorget);
+        final BtpSocket socketAtSlottsberget = BtpSocket.on(config1, l1, posSlottsberget);
+        final BtpSocket socketAtKuggen       = BtpSocket.on(config2, l2, posKuggen);
+        final BtpSocket socketAtSemcon       = BtpSocket.on(config3, l3, posSemcon);
+        final BtpSocket socketAtJarntorget   = BtpSocket.on(config4, l4, posJarntorget);
 
-        byte[] payload = new byte[] {10, 20, 30};
-        short destinationPort = 4001;
+        final byte[] payload = new byte[] {10, 20, 30};
+        final short destinationPort = 4001;
 
         // Kuggen and Semcon inside, Jarntorget outside.
-        Destination destination = Destination.geobroadcast(
+        final Destination destinationKuggen = Destination.geobroadcast(
                 Area.rectangle(kuggen, 1.2 * kuggen.distanceInMetersTo(semcon),
                         0.5 * kuggen.distanceInMetersTo(semcon), 50));
 
-        BtpPacket packet = BtpPacket.customDestination(payload, destinationPort, destination);
-        socket1.send(packet);
+        // Send.
+        final BtpPacket packet = BtpPacket.customDestination(payload, destinationPort, destinationKuggen);
+        socketAtSlottsberget.send(packet);
 
-        BtpPacket packet2 = socket2.receive();
+        // Receive without timeout.
+        final BtpPacket packet2 = socketAtKuggen.receive();
         assertArrayEquals(packet.payload(), packet2.payload());
 
-        BtpPacket packet3 = socket3.receive();
-        assertArrayEquals(packet.payload(), packet3.payload());
+//        // Receive without timeout.
+//        BtpPacket packet3 = socketAtSemcon.receive();
+//        assertArrayEquals(packet.payload(), packet3.payload());
+
+        // Receive with timeout.
+        final List<Throwable> exceptionsSemcon = Collections.synchronizedList(new ArrayList<Throwable>());
+        Thread receiverSemcon = new Thread(new Runnable() {
+            @Override public void run() {
+                try {
+                    BtpPacket packet3 = socketAtSemcon.receive();
+                    assertArrayEquals(packet.payload(), packet3.payload());
+                } catch (final Throwable e) {
+                    exceptionsSemcon.add(e);
+                }
+            }
+        });
+        receiverSemcon.start();
+        Thread.sleep(10);  // In Milliseconds.
+        receiverSemcon.interrupt();
+        receiverSemcon.join();
+        assertTrue(exceptionsSemcon.isEmpty());
 
 
-        final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<Throwable>());
+        // Receive with timeout. Too far -- should never receive.
+        final List<Throwable> exceptionsJarntorget = Collections.synchronizedList(new ArrayList<Throwable>());
         Thread receiverJarntorget = new Thread(new Runnable() {
             @Override public void run() {
                 try {
                     @SuppressWarnings("unused")  // We should never receive it.
-                    BtpPacket packet4 = socket4.receive();
-//                    org.junit.Assert.fail("should have never received");
+                    BtpPacket packet4 = socketAtJarntorget.receive();
+                    org.junit.Assert.fail("should have never received");
                 } catch (final Throwable e) {
-                    exceptions.add(e);
+                    exceptionsJarntorget.add(e);
                 }
             }
         });
@@ -116,8 +138,8 @@ public class BasicGeobroadcastTest {
         Thread.sleep(10);  // In Milliseconds.
         receiverJarntorget.interrupt();
         receiverJarntorget.join();
-        assertEquals(exceptions.size(), 1);
-        assertEquals(exceptions.get(0).getClass(), InterruptedException.class);
+        assertEquals(exceptionsJarntorget.size(), 1);
+        assertEquals(exceptionsJarntorget.get(0).getClass(), InterruptedException.class);
     }
 
 }
