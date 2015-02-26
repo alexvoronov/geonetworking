@@ -38,7 +38,7 @@ Compile and run command-line client:
 ```
 sbt assembly
 echo 4001 127.0.0.1:4000 | java -cp target/scala-2.10/geonetworking-assembly-0.1.0-SNAPSHOT.jar net.gcdc.UdpDuplicatorRunner
-java -cp target/scala-2.10/geonetworking-assembly-0.1.0-SNAPSHOT.jar net.gcdc.BtpStdinClient 4000 127.0.0.1:4001
+java -cp target/scala-2.10/geonetworking-assembly-0.1.0-SNAPSHOT.jar net.gcdc.BtpStdinClient --local-port 4000 --remote-address 127.0.0.1:4001 --no-ethernet-header --position 13.000,50.000 --btp-destination-port 2001
 ```
 The first line compiles the source and assembles everything into one big "fat" jar. 
 
@@ -53,7 +53,7 @@ Run command-line client on top of [utoepy](https://github.com/alexvoronov/utoepy
 ```
 sudo python udp2eth.py 4001 tap0
 sudo python eth2udp.py 127.0.0.1:4000 tap0 --keep-own-frames
-java -cp geonetworking-assembly-0.1.0-SNAPSHOT.jar net.gcdc.BtpStdinClient 4000 127.0.0.1:4001
+java -cp target/scala-2.10/geonetworking-assembly-0.1.0-SNAPSHOT.jar net.gcdc.BtpStdinClient --local-port 4000 --remote-address 127.0.0.1:4001 --no-ethernet-header --position 13.000,50.000 --btp-destination-port 2001
 ```
 
 With `--keep-own-frames`, `eth2udp` will pick even the frames sent by `udp2eth`, so the sender will hear its own packets. TAP interfaces of multiple computers can be connected with OpenVPN, here is a diagram for that case:

@@ -123,6 +123,4 @@ public class Position {
 
         return (Math.toDegrees(Math.atan2(y, x)) + 360) % 360;
     }
-
-
 }
