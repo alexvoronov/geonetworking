@@ -42,6 +42,14 @@ import org.threeten.bp.ZoneOffset;
  */
 public class LongPositionVector {
 
+    @Override
+    public String toString() {
+        return "LPV[" + (address.isPresent() ? address.get() : "") + " " + timestamp
+                + " " + position + " PAI=" + isPositionConfident
+                + ", " + speedMetersPerSecond + " m/s, bearing "
+                + headingDegreesFromNorth + " degrees]";
+    }
+
     private final Optional<Address>  address;
     private final Instant            timestamp;
     private final Position           position;

@@ -10,8 +10,11 @@ javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
 scalacOptions += "-target:jvm-1.7"
 
+
+// Time
 libraryDependencies += "org.threeten" % "threetenbp" % "1.2"
 
+// Junit & hamcrest (matchers)
 libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % Test
 
 libraryDependencies += "junit" % "junit" % "4.12" % Test
@@ -23,3 +26,8 @@ libraryDependencies += "org.hamcrest" % "hamcrest-core" % "1.3" % Test
 libraryDependencies += "org.hamcrest" % "hamcrest-library" % "1.3" % Test
 
 libraryDependencies += "org.hamcrest" % "hamcrest-integration" % "1.3" % Test
+
+libraryDependencies += "org.hamcrest" % "hamcrest-integration" % "1.3" % Test
+
+// Json 
+libraryDependencies += "com.google.code.gson" % "gson" % "2.3.1"

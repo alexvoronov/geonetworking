@@ -10,13 +10,14 @@ import java.nio.ByteBuffer;
  *
  *     http://webapp.etsi.org/WorkProgram/Report_WorkItem.asp?WKI_ID=35130
  *
+ * NOTE: GPSd can return position that is (NaN, NaN).
+ *
  * 32 bit signed integer in [1/10 micro-degree] units.
  */
 public class Position {
     @Override
     public String toString() {
-        return "Position [lattitudeDegrees=" + lattitudeDegrees + ", longitudeDegrees="
-                + longitudeDegrees + "]";
+        return "Pos[" + lattitudeDegrees + ", " + longitudeDegrees + "]";
     }
 
     final static double MICRODEGREE = 1E-6;
@@ -58,7 +59,6 @@ public class Position {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        long temp;
         result = prime * result + asStoreUnit(lattitudeDegrees);
         result = prime * result + asStoreUnit(longitudeDegrees);
         return result;
