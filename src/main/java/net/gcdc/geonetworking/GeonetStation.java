@@ -3,6 +3,8 @@ package net.gcdc.geonetworking;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -25,13 +27,15 @@ public class GeonetStation implements Runnable, AutoCloseable {
     private LinkLayer                             linkLayer;
     private PositionProvider                      positionProvider;
     private final LinkedBlockingQueue<GeonetData> queueUpward = new LinkedBlockingQueue<>();
-    private int lastUsedSequenceNumber = 0;
+    private final Collection<GeonetDataListener>  listeners = new ArrayList<>();
+    private int                                   lastUsedSequenceNumber = 0;
 
     private short GN_ETHER_TYPE = (short) 0x8947;
     private byte[] BROADCAST_MAC = new byte[] {
             (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
     private byte[] EMPTY_MAC = new byte[6];  // Initialized to all 0.
     private int ETHER_HEADER_LENGTH = 14;
+
 
     public GeonetStation(StationConfig config, LinkLayer linkLayer, PositionProvider positionProvider) {
         this.config = config;
@@ -62,6 +66,19 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 config.itsGnIsMobile == 1,
                 (short) data.payload.length,
                 data.destination.maxHopLimit().orElse((byte) config.itsGnDefaultHopLimit));
+    }
+
+    /** Adds a listener for GeonetData indications (received messages from link layer).
+     *
+     * Listeners do not disable queue-based solution, so someone have to empty that queue using
+     * {@link #receive()} to avoid out-of-memory problems.
+     **/
+    public void addGeonetDataListener(GeonetDataListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeGeonetDataListener(GeonetDataListener listener) {
+        listeners.remove(listener);
     }
 
     public void send(GeonetData data) throws IOException {
@@ -334,6 +351,9 @@ public class GeonetStation implements Runnable, AutoCloseable {
      * */
     private void sendToUpperLayer(GeonetData indication) throws InterruptedException {
         queueUpward.put(indication);
+        for (GeonetDataListener l : listeners) {
+            l.onGeonetDataReceived(indication);
+        }
     }
 
     /** Returns the next Geonetworking Packet addressed to this station.

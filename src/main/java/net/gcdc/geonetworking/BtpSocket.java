@@ -14,7 +14,11 @@ public class BtpSocket implements AutoCloseable {
         GeonetStation station = new GeonetStation(config, linkLayer, positionProvider);
         new Thread(station).start();
         station.startBecon();
-        return new BtpSocket(station);
+        return BtpSocket.on(station);
+    }
+
+    public static BtpSocket on(GeonetStation runningStation) {
+        return new BtpSocket(runningStation);
     }
 
     public void send(BtpPacket packet) throws IOException {

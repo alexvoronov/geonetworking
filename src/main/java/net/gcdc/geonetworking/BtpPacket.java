@@ -50,6 +50,40 @@ public class BtpPacket {
                 );
     }
 
+    /** Dummy BTP-A packet for Plugtest. */
+    public static BtpPacket singleHopEmptyA(short destinationPort, short sourcePort) {
+        Optional<Short>              emptyDestinationPortInfo = Optional.empty();
+        Optional<TrafficClass>       emptyTrafficClass        = Optional.empty();
+        Optional<LongPositionVector> emptySenderPosition      = Optional.empty();
+
+        return new BtpPacket(
+                Optional.of(sourcePort),
+                destinationPort,
+                emptyDestinationPortInfo,
+                new byte[] {},
+                Destination.singleHop(),
+                emptyTrafficClass,
+                emptySenderPosition
+                );
+    }
+
+    /** Dummy BTP-B packet for Plugtest. */
+    public static BtpPacket singleHopEmptyB(short destinationPort, short DestinationPortInfo) {
+        Optional<Short>              emptySourcePort          = Optional.empty();
+        Optional<TrafficClass>       emptyTrafficClass        = Optional.empty();
+        Optional<LongPositionVector> emptySenderPosition      = Optional.empty();
+
+        return new BtpPacket(
+                emptySourcePort,
+                destinationPort,
+                Optional.of(DestinationPortInfo),
+                new byte[] {},
+                Destination.singleHop(),
+                emptyTrafficClass,
+                emptySenderPosition
+                );
+    }
+
     public static BtpPacket customDestination(byte[] payload, short destinationPort,
             Destination destination) {
         Optional<Short>              emptySourcePort          = Optional.empty();
@@ -122,7 +156,7 @@ public class BtpPacket {
             case ANY:
             case IPv6:
             default:
-                throw new IllegalArgumentException("Bad BTP protocol: " + data.protocol);
+                throw new IllegalArgumentException("Unsupported BTP protocol: " + data.protocol);
         }
     }
 }
