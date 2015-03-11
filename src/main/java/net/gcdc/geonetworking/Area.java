@@ -144,7 +144,7 @@ side);
      * @param shortDistanceMeters  half the short side -- the (shorter) distance between the center point and the long side of the rectangle (perpendicular bisector of the long
 side);
      * @param azimuthAngleDegreesFromNorth  azimuth angle of the long side of the rectangle.
-     * @return
+     * @return new rectangular area
      */
     public static Area rectangle(
             Position center,

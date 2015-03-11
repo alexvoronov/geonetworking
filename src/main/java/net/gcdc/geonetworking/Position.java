@@ -1,6 +1,11 @@
 package net.gcdc.geonetworking;
 
+import static java.lang.Math.asin;
+import static java.lang.Math.cos;
+import static java.lang.Math.sin;
+
 import java.nio.ByteBuffer;
+
 
 /**
  * Geographical position as defined in ETSI TS 102 890-3.
@@ -22,6 +27,7 @@ public class Position {
 
     final static double MICRODEGREE = 1E-6;
     final static double STORE_UNIT = 0.1 * MICRODEGREE;
+    final static double earthRadius = 6371000; // In meters. In miles: 3958.75;
 
 
     private final double lattitudeDegrees;
@@ -88,6 +94,30 @@ public class Position {
         return bearingDegrees(this, other);
     }
 
+    /** Returns the destination point from 'this' point having traveled the given distance on the given initial bearing (bearing normally varies around path followed).
+     *
+     * <p>
+     * Taken from <a href="http://www.movable-type.co.uk/scripts/latlong.html">http://www.movable-type.co.uk/scripts/latlong.html</a>
+     *
+     * @param distance Distance traveled, in meters
+     * @param bearing  Initial bearing in degrees from north
+     * @return Destination point
+     */
+    public Position moved(double distance, double bearing) {
+        double angDistRad = distance / earthRadius;  // Angular distance in radians.
+        double bearingRad = Math.toRadians(bearing);
+        double latRad1 = Math.toRadians(this.lattitudeDegrees);
+        double lonRad1 = Math.toRadians(this.longitudeDegrees);
+        double latRad2 = asin(
+                sin(latRad1) * cos(angDistRad) +
+                cos(latRad1) * sin(angDistRad) * cos(bearingRad));
+        double lonRad2 = lonRad1 + Math.atan2(sin(bearingRad) * sin(angDistRad) * cos(latRad1),
+                        cos(angDistRad) - sin(latRad1) * sin(latRad2));
+        lonRad2 = (lonRad2 + 3 * Math.PI) % (2 * Math.PI) - Math.PI; // normalise to -180..+180°
+
+        return new Position(Math.toDegrees(latRad2), Math.toDegrees(lonRad2));
+    }
+
     public static double distanceMeters(Position pos1, Position pos2) {
         return distanceMeters(
                 pos1.lattitudeDegrees(), pos1.longitudeDegrees(),
@@ -95,7 +125,6 @@ public class Position {
     }
 
     public static double distanceMeters(double lat1, double lng1, double lat2, double lng2) {
-        double earthRadius = 6371000; // In meters. In miles: 3958.75;
         double dLat = Math.toRadians(lat2-lat1);
         double dLng = Math.toRadians(lng2-lng1);
         double a = Math.pow(Math.sin(dLat / 2), 2) +
