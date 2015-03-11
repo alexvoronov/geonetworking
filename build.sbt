@@ -6,7 +6,7 @@ organization      := "net.gcdc"
 
 mainClass         := Some("net.gcdc.geonetworking.GnBtpRunner")
 
-javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+//javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
 scalacOptions += "-target:jvm-1.7"
 
@@ -31,3 +31,12 @@ libraryDependencies += "org.hamcrest" % "hamcrest-integration" % "1.3" % Test
 
 // Json 
 libraryDependencies += "com.google.code.gson" % "gson" % "2.3.1"
+
+
+publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
+
+// disable publishing the main API jar
+publishArtifact in (Compile, packageDoc) := false
+
+
+

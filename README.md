@@ -18,18 +18,20 @@ Implementation targets Java 7 at the moment, with some use of backported feature
 
 ### Building, Testing and Running
 
-[SBT](http://www.scala-sbt.org/) is used as a build tool. Later it might be changed to something else (Maven? Gradle?). 
+[SBT](http://www.scala-sbt.org/) and [Maven](http://maven.apache.org/) are supported as a build tools. Since they are independent from each other, they might be out of sync sometime (please open an issue then). 
 
-Making Eclipse project files: 
-
-```
-sbt eclipse
-```
+Most IDEs work with Maven projects directly, e.g. Eclipse supports Maven through [M2Eclipse](http://www.eclipse.org/m2e/). If you use SBT, you can generate Eclipse project files with ```sbt eclipse```.
 
 Running tests: 
 
 ```
 sbt test
+```
+
+or
+
+```
+mvn test
 ```
 
 #### Run with echo link layer
