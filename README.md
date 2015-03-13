@@ -16,6 +16,7 @@ The implementation assumes that there is a separate entity, e.g. [udp2eth](https
 
 Implementation targets Java 7 at the moment, with some use of backported features from Java 8.
 
+
 ### Building, Testing and Running
 
 [SBT](http://www.scala-sbt.org/) and [Maven](http://maven.apache.org/) are supported as a build tools. Since they are independent from each other, they might be out of sync sometime (please open an issue then). 
@@ -73,9 +74,14 @@ Stdout <---|    4000|<-------------------|         |<---|          |   |       |
            +--------+
 ```
 
+
 ### Other GeoNetworking implementations
 
 This implementation was inspired by [DriveITS](https://github.com/Dimme/driveits). Another open-source implementation, now outdated, is [CarGeo6](http://www.cargeo6.org/).
+
+
+### Acknowledgements
+This implementation was partly developed within [i-GAME](http://gcdc.net/i-game) project that has received funding from the European Union's Seventh Framework Programme for research, technological development and demonstration under grant agreement no [612035](http://cordis.europa.eu/project/rcn/110506_en.html).
 
 
 ### License
