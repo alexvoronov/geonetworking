@@ -8,14 +8,15 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.threeten.bp.Duration;
 import org.threeten.bp.Instant;
 
@@ -30,17 +31,23 @@ public class GeonetStation implements Runnable, AutoCloseable {
     private final Collection<GeonetDataListener>  listeners = new ArrayList<>();
     private int                                   lastUsedSequenceNumber = 0;
 
-    private short GN_ETHER_TYPE = (short) 0x8947;
-    private byte[] BROADCAST_MAC = new byte[] {
+    private LocationTable locationTable;
+    private final static Logger logger = LoggerFactory.getLogger(GeonetStation.class);
+
+    public final static short GN_ETHER_TYPE = (short) 0x8947;
+    private final static byte[] BROADCAST_MAC = new byte[] {
             (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
-    private byte[] EMPTY_MAC = new byte[6];  // Initialized to all 0.
-    private int ETHER_HEADER_LENGTH = 14;
+    private final static byte[] EMPTY_MAC = new byte[6];  // Initialized to all 0.
+    private final static int ETHER_HEADER_LENGTH = 14;
 
 
     public GeonetStation(StationConfig config, LinkLayer linkLayer, PositionProvider positionProvider) {
         this.config = config;
         this.linkLayer = linkLayer;
         this.positionProvider = positionProvider;
+        this.locationTable = new LocationTable(new ConfigProvider() {
+            @Override public StationConfig config() { return GeonetStation.this.config;}
+        });
     }
 
     private short sequenceNumber() {
@@ -99,7 +106,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                         (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) +
                         40 + data.payload.length);
                 if (linkLayer.hasEthernetHeader()) {
-                    llPayload.put(BROADCAST_MAC);
+                    llPayload.put(BROADCAST_MAC);  // TODO: add non-broadcast
                     llPayload.put(EMPTY_MAC);
                     llPayload.putShort(GN_ETHER_TYPE);
                 }
@@ -161,6 +168,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
             case ANY:
             default:
                 // Ignore for now.
+                logger.info("Ignored sending {}", data.destination.typeAndSubtype().toString());
                 break;
         }
     }
@@ -177,14 +185,15 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 buffer.get(llSrcAddress);
                 short ethertype = buffer.getShort();
                 if (ethertype != GN_ETHER_TYPE) {
-                    throw new IllegalArgumentException("Ethertype is not Geonetworking");
+                    logger.warn("Ethertype is not Geonetworking (no filtering in LinkLayer?)");
+                    return;
                 }
             }
 
             BasicHeader  basicHeader  = BasicHeader.getFrom(buffer);
             if (basicHeader.version() != config.itsGnProtocolVersion) {
-                throw new IllegalArgumentException("Unrecognized protocol version: " +
-                        basicHeader.version());
+                logger.warn("Unrecognized protocol version: " + basicHeader.version());
+                return;
             }
             CommonHeader commonHeader = CommonHeader.getFrom(buffer);
 
@@ -204,6 +213,9 @@ public class GeonetStation implements Runnable, AutoCloseable {
                             upperPayload
                             );
                     sendToUpperLayer(indication);
+                    // If there is no Ethernet header, llSrcAddress is all 0.
+                    locationTable.updateFromDirectMessage(senderLpv.address().get(),
+                            MacAddress.fromBytes(llSrcAddress), senderLpv);
                     break;
                 }
                 case GEOBROADCAST_CIRCLE:
@@ -232,14 +244,21 @@ public class GeonetStation implements Runnable, AutoCloseable {
                     if (area.contains(position()) && !isDuplicate(senderLpv, sequenceNumber)) {
                         sendToUpperLayer(indication);
                     }
+                    locationTable.updateFromForwardedMessage(senderLpv.address().get(), senderLpv);
                     forwardIfNecessary(payload, destination);
                     break;
                 }
                 case BEACON:
+                    LongPositionVector senderLpv = LongPositionVector.getFrom(buffer);
+                    locationTable.updateFromDirectMessage(senderLpv.address().get(),
+                            MacAddress.fromBytes(llSrcAddress), senderLpv);
+                    break;
                 case LOCATION_SERVICE_REQUEST:
                 case LOCATION_SERVICE_REPLY:
                     // Do nothing.
                     // At the moment we don't maintain Location Table.
+                    logger.info("Ignoring Location Service {}",
+                            commonHeader.typeAndSubtype().toString());
                     break;
                 case GEOANYCAST_CIRCLE:
                 case GEOANYCAST_ELLIPSE:
@@ -249,14 +268,16 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 case ANY:
                 default:
                     // Ignore for now.
+                    logger.info("Ignoring {}", commonHeader.typeAndSubtype().toString());
                     break;
             }
         } catch (BufferUnderflowException | IllegalArgumentException ex) {
-            Logger.getGlobal().log(Level.WARNING, "Can't parse the packet, ignoring.");
+            logger.warn("Can't parse the packet, ignoring.", ex);
         }
     }
 
-    private final Map<byte[], ScheduledFuture<?>> contentionSet = new HashMap<>();
+    // Do we need concurrent?
+    private final Map<byte[], ScheduledFuture<?>> contentionSet = new ConcurrentHashMap<>();
     private final ScheduledExecutorService cbfScheduler =
             Executors.newSingleThreadScheduledExecutor();
 
@@ -284,7 +305,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
         try {
             sendToLowerLayer(buffer);
         } catch (IOException e) {
-            Logger.getGlobal().log(Level.SEVERE, "Exception in sending forwarded packet", e);
+            logger.error("Exception in sending forwarded packet", e);
             e.printStackTrace();
         }
 
@@ -308,9 +329,16 @@ public class GeonetStation implements Runnable, AutoCloseable {
             long   minTimeout  = config.itsGnGeoBroadcastCbfMinTime;        // In milliseconds.
             double maxDistance = config.itsGnDefaultMaxCommunicationRange;  // In meters.
 
-            // Contention-based forwarding algorithm needs distance to the last forwarder.
-            // TODO: Look up position of the last forwarder in Location Table using LL-address.
-            double lastDistance = new Random().nextInt(config.itsGnDefaultMaxCommunicationRange);
+            ByteBuffer buffer = ByteBuffer.wrap(payload.clone()).asReadOnlyBuffer();
+            byte[] llDstMac = new byte[6];
+            byte[] llSrcMac = new byte[6];
+            buffer.get(llDstMac);
+            buffer.get(llSrcMac);
+            MacAddress lastForwarderMac = MacAddress.fromBytes(llSrcMac);
+            LongPositionVector lpv = locationTable.getPosition(lastForwarderMac);
+            if (lpv == null) { return; }  // Message was forwarded by someone who never sent beacon or SHB.
+
+            double lastDistance = positionProvider.getLatestPosition().position().distanceInMetersTo(lpv.position());
 
             // If distance is 0, then timeout is maxTimeout.
             // If distance is maxDistance or more, then timeout is minTimeout.
@@ -318,11 +346,11 @@ public class GeonetStation implements Runnable, AutoCloseable {
             long timeoutMillis = lastDistance > maxDistance ? minTimeout :
                     (long) (maxTimeout - (maxTimeout - minTimeout) * (lastDistance / maxDistance));
 
-            final Instant timeAdded = Instant.now();
+            final Instant schedulingInstant = Instant.now();
 
             ScheduledFuture<?> sendingFuture = cbfScheduler.schedule(
                     new Runnable() { @Override public void run() {
-                        sendForwardedPacket(payload, timeAdded); }; },
+                        sendForwardedPacket(payload, schedulingInstant); }; },
                     timeoutMillis, TimeUnit.MILLISECONDS);
 
             contentionSet.put(payload, sendingFuture);
@@ -385,8 +413,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
         try {
             linkLayer.close();
         } catch (Exception e) {
-            Logger.getGlobal().log(Level.SEVERE, "Exception in LinkLayer close()", e);
-            e.printStackTrace();
+            logger.error("Exception in LinkLayer close()", e);
         }
     }
 
@@ -497,8 +524,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
             try {
                 send(beaconData());
             } catch (IOException e) {
-                Logger.getGlobal().log(Level.SEVERE, "Exception in sending beacon", e);
-                e.printStackTrace();
+                logger.error("Exception in sending beacon", e);
             }
         }
 

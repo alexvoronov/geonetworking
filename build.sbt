@@ -32,6 +32,7 @@ libraryDependencies += "org.hamcrest" % "hamcrest-integration" % "1.3" % Test
 // Json 
 libraryDependencies += "com.google.code.gson" % "gson" % "2.3.1"
 
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.2"
 
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
 

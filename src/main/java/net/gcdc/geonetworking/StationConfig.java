@@ -43,4 +43,7 @@ public class StationConfig {
     /** Maximum duration a GeoBroadcast packet shall be buffered in the CBF packet buffer in ms. */
     public int itsGnGeoBroadcastCbfMaxTime = 100;
 
+    /** Lifetime of location table entry in seconds */
+    public int itsGnLifetimeLocTE = 20;
+
 }
