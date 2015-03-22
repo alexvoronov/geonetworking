@@ -106,6 +106,23 @@ public class LocationTable {
         return null;
     }
 
+    public Optional<MacAddress> closerThanMeTo(Position destination, Position me) {
+        Entry nearest = null;
+        double shortestDistance = me.distanceInMetersTo(destination);
+        for (Entry entry: gnMap.values()) {
+            final double dist = entry.position().position().distanceInMetersTo(destination);
+            if (dist < shortestDistance && entry.macAddress() != null) {
+                shortestDistance = dist;
+                nearest = entry;
+            }
+        }
+        if (nearest == null) {
+            return Optional.empty();
+        } else {
+            return Optional.of(nearest.macAddress());
+        }
+    }
+
 
 
     public void updateFromDirectMessage(final Address address, final MacAddress macAddress, final LongPositionVector position) {

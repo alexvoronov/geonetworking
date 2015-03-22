@@ -106,7 +106,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                         (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) +
                         40 + data.payload.length);
                 if (linkLayer.hasEthernetHeader()) {
-                    llPayload.put(BROADCAST_MAC);  // TODO: add non-broadcast
+                    llPayload.put(BROADCAST_MAC);
                     llPayload.put(EMPTY_MAC);
                     llPayload.putShort(GN_ETHER_TYPE);
                 }
@@ -130,7 +130,14 @@ public class GeonetStation implements Runnable, AutoCloseable {
                         (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) +
                         56 + data.payload.length);
                 if (linkLayer.hasEthernetHeader()) {
-                    llPayload.put(BROADCAST_MAC);  // It is possible to look up Location Table too.
+                    byte[] dstMac = BROADCAST_MAC;
+                    Area area = ((Destination.Geobroadcast)data.destination).area();
+                    if (!area.contains(position())) {
+                        Optional<MacAddress> betterDstMac = locationTable.closerThanMeTo(
+                            area.center(), position());
+                        if (betterDstMac.isPresent()) { dstMac = betterDstMac.get().asBytes(); }
+                    }
+                    llPayload.put(dstMac);
                     llPayload.put(EMPTY_MAC);
                     llPayload.putShort(GN_ETHER_TYPE);
                 }
@@ -281,7 +288,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
     private final ScheduledExecutorService cbfScheduler =
             Executors.newSingleThreadScheduledExecutor();
 
-    private void sendForwardedPacket(byte[] payload, Instant timeAdded) {
+    private void sendForwardedPacket(byte[] payload, Instant timeAdded, MacAddress dstMac) {
         if (!linkLayer.hasEthernetHeader()) { return; }  // Forwarding does not work without MAC.
         ByteBuffer buffer = ByteBuffer.wrap(payload.clone());  // We overwrite the old payload.
         byte[] llDstMac = new byte[6];
@@ -298,7 +305,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
         BasicHeader newBasicHeader = new BasicHeader(basicHeader.version(),
                 basicHeader.nextHeader(), BasicHeader.Lifetime.fromSeconds(newLifetime), newHops);
         buffer.rewind();
-        buffer.put(BROADCAST_MAC);  // Destination. TODO: add lookup for greedy and line forwarding.
+        buffer.put(dstMac.asBytes());
         buffer.put(EMPTY_MAC);      // Source.
         buffer.putShort(ethertype);
         newBasicHeader.putTo(buffer);
@@ -338,7 +345,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
             LongPositionVector lpv = locationTable.getPosition(lastForwarderMac);
             if (lpv == null) { return; }  // Message was forwarded by someone who never sent beacon or SHB.
 
-            double lastDistance = positionProvider.getLatestPosition().position().distanceInMetersTo(lpv.position());
+            double lastDistance = position().distanceInMetersTo(lpv.position());
 
             // If distance is 0, then timeout is maxTimeout.
             // If distance is maxDistance or more, then timeout is minTimeout.
@@ -350,13 +357,22 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
             ScheduledFuture<?> sendingFuture = cbfScheduler.schedule(
                     new Runnable() { @Override public void run() {
-                        sendForwardedPacket(payload, schedulingInstant); }; },
+                        sendForwardedPacket(payload, schedulingInstant,
+                                MacAddress.fromBytes(BROADCAST_MAC)); }; },
                     timeoutMillis, TimeUnit.MILLISECONDS);
 
             contentionSet.put(payload, sendingFuture);
 
         } else {
-            // TODO: Greedy Line Forwarding (requires Location Table).
+            // Greedy Line Forwarding (requires Location Table).
+            Optional<MacAddress> dstMac = locationTable.closerThanMeTo(gbc.area().center(),
+                    position());
+            if (dstMac.isPresent()) {
+                sendForwardedPacket(payload, Instant.now(), MacAddress.fromBytes(BROADCAST_MAC));
+            } else {
+                // We don't know where to forward it. Either store it or just drop.
+                return;
+            }
         }
     }
 

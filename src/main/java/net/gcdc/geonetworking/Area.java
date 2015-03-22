@@ -95,6 +95,10 @@ public class Area {
         return type;
     }
 
+    public Position center() {
+        return center;
+    }
+
     public boolean contains(Position position) {
         return f(position) >= 0;
     }
