@@ -77,6 +77,8 @@ public class BtpStdinClient {
             } else if (args[arg].startsWith("--btp-destination-port")) {
                 arg++;
                 btpDestinationPort = Short.parseShort(args[arg]);
+            } else {
+                throw new IllegalArgumentException("Unrecognized argument: " + args[arg]);
             }
         }
 

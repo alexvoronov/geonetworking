@@ -8,6 +8,12 @@ import java.nio.ByteBuffer;
  */
 public class Area {
 
+    @Override public String toString() {
+        return "Area [center=" + center + ", distanceAmeters=" + distanceAmeters
+                + ", distanceBmeters=" + distanceBmeters + ", angleDegreesFromNorth="
+                + angleDegreesFromNorth + ", type=" + type + "]";
+    }
+
     private final Position center;
     private final double   distanceAmeters;
     private final double   distanceBmeters;
@@ -125,6 +131,7 @@ public class Area {
         double b = distanceBmeters;
         switch (type) {
             case CIRCLE:
+                return 1 - Math.pow(x/a, 2) - Math.pow(x/a, 2);  // distanceB is 0 for circle.
             case ELLIPSE:
                 return 1 - Math.pow(x/a, 2) - Math.pow(y/b, 2);
             case RECTANGLE:
@@ -137,7 +144,7 @@ public class Area {
 
 
     public static Area circle(Position center, double radius) {
-        return new Area(center, radius, radius, 0, Type.CIRCLE);
+        return new Area(center, radius, 0, 0, Type.CIRCLE);
     }
 
     /**

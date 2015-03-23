@@ -17,6 +17,8 @@ import net.gcdc.geonetworking.Optional;
 import net.gcdc.geonetworking.Position;
 import net.gcdc.geonetworking.PositionProvider;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.threeten.bp.Instant;
 import org.threeten.bp.OffsetDateTime;
 
@@ -24,6 +26,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class GpsdClient implements PositionProvider, AutoCloseable {
+    private final static Logger logger = LoggerFactory.getLogger(GpsdClient.class);
 
     private TPV                   lastSeenTPV = null;
 
@@ -35,6 +38,7 @@ public class GpsdClient implements PositionProvider, AutoCloseable {
     private final Future<?>       runner;
 
     public GpsdClient(InetSocketAddress address) throws IOException {
+        logger.info("Starting GPSd client");
         socket = new Socket(address.getAddress(), address.getPort());
         rdr = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         wrt = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));

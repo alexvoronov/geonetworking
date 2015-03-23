@@ -15,6 +15,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import net.gcdc.geonetworking.Destination.Geobroadcast;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.threeten.bp.Duration;
@@ -29,31 +31,40 @@ public class GeonetStation implements Runnable, AutoCloseable {
     private PositionProvider                      positionProvider;
     private final LinkedBlockingQueue<GeonetData> queueUpward = new LinkedBlockingQueue<>();
     private final Collection<GeonetDataListener>  listeners = new ArrayList<>();
-    private int                                   lastUsedSequenceNumber = 0;
+    private int                                   nextFreeSequenceNumber = 0;
+    private final MacAddress senderMac;
 
     private LocationTable locationTable;
     private final static Logger logger = LoggerFactory.getLogger(GeonetStation.class);
 
     public final static short GN_ETHER_TYPE = (short) 0x8947;
-    private final static byte[] BROADCAST_MAC = new byte[] {
-            (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff};
-    private final static byte[] EMPTY_MAC = new byte[6];  // Initialized to all 0.
+    private final static MacAddress BROADCAST_MAC = new MacAddress(0xff_ff_ff_ff_ff_ffL);
+    private final static MacAddress EMPTY_MAC = new MacAddress(0);
     private final static int ETHER_HEADER_LENGTH = 14;
 
-
     public GeonetStation(StationConfig config, LinkLayer linkLayer, PositionProvider positionProvider) {
+        this(config, linkLayer, positionProvider, EMPTY_MAC);
+    }
+
+    public GeonetStation(StationConfig config, LinkLayer linkLayer, PositionProvider positionProvider, MacAddress senderMac) {
         this.config = config;
+        if (senderMac.value() != 0) {
+            config.itsGnLoacalGnAddr = new Address(false, StationType.Passenger_Car, 752, senderMac.value()).value();
+        }
         this.linkLayer = linkLayer;
         this.positionProvider = positionProvider;
+        this.senderMac = senderMac;
         this.locationTable = new LocationTable(new ConfigProvider() {
             @Override public StationConfig config() { return GeonetStation.this.config;}
         });
+        logger.info("Initialized station with GN address {} and MAC address {}", config.itsGnLoacalGnAddr, this.senderMac);
     }
 
     private short sequenceNumber() {
-        lastUsedSequenceNumber++;
-        if (lastUsedSequenceNumber > (1 << 16) - 1) { lastUsedSequenceNumber = 0; }
-        return (short) lastUsedSequenceNumber;
+        short result = (short) nextFreeSequenceNumber;
+        nextFreeSequenceNumber++;
+        if (nextFreeSequenceNumber > (1 << 16) - 1) { nextFreeSequenceNumber = 0; }
+        return result;
     }
 
     private BasicHeader basicHeader(GeonetData data) {
@@ -90,6 +101,8 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
     public void send(GeonetData data) throws IOException {
 
+        logger.debug("Sending message, hasEtherHeader: {}, sender mac {}", linkLayer.hasEthernetHeader(), senderMac);
+
         BasicHeader basicHeader = basicHeader(data);
         CommonHeader commonHeader = commonHeader(data);
         LongPositionVector senderPosition = data.sender.orElse(positionProvider.getLatestPosition());
@@ -106,8 +119,8 @@ public class GeonetStation implements Runnable, AutoCloseable {
                         (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) +
                         40 + data.payload.length);
                 if (linkLayer.hasEthernetHeader()) {
-                    llPayload.put(BROADCAST_MAC);
-                    llPayload.put(EMPTY_MAC);
+                    llPayload.put(BROADCAST_MAC.asBytes());
+                    llPayload.put(senderMac.asBytes());
                     llPayload.putShort(GN_ETHER_TYPE);
                 }
                 basicHeader.putTo(llPayload);    // octets 0-3
@@ -130,15 +143,16 @@ public class GeonetStation implements Runnable, AutoCloseable {
                         (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) +
                         56 + data.payload.length);
                 if (linkLayer.hasEthernetHeader()) {
-                    byte[] dstMac = BROADCAST_MAC;
+                    MacAddress dstMac = BROADCAST_MAC;
                     Area area = ((Destination.Geobroadcast)data.destination).area();
                     if (!area.contains(position())) {
+                        logger.debug("Area {} don't contains me {}", area, position());
                         Optional<MacAddress> betterDstMac = locationTable.closerThanMeTo(
                             area.center(), position());
-                        if (betterDstMac.isPresent()) { dstMac = betterDstMac.get().asBytes(); }
+                        if (betterDstMac.isPresent()) { dstMac = betterDstMac.get(); }
                     }
-                    llPayload.put(dstMac);
-                    llPayload.put(EMPTY_MAC);
+                    llPayload.put(dstMac.asBytes());
+                    llPayload.put(senderMac.asBytes());
                     llPayload.putShort(GN_ETHER_TYPE);
                 }
                 basicHeader.putTo(llPayload);               // Octets  0- 3
@@ -154,12 +168,13 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 break;
             }
             case BEACON:
+                logger.debug("Send, BEACON, hasEtherHeader: {}", linkLayer.hasEthernetHeader());
                 ByteBuffer llPayload = ByteBuffer.allocate(
                         (linkLayer.hasEthernetHeader() ? ETHER_HEADER_LENGTH : 0) +
                         36);
                 if (linkLayer.hasEthernetHeader()) {
-                    llPayload.put(BROADCAST_MAC);
-                    llPayload.put(EMPTY_MAC);
+                    llPayload.put(BROADCAST_MAC.asBytes());
+                    llPayload.put(senderMac.asBytes());
                     llPayload.putShort(GN_ETHER_TYPE);
                 }
                 basicHeader.putTo(llPayload);    // octets 0-3
@@ -182,6 +197,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
     /** Interface to lower layer (Ethernet/ITS-G5/802.11p, Link Layer) */
     private void onReceiveFromLowerLayer(byte[] payload) throws InterruptedException {
+        logger.debug("GN Received payload of size {}", payload.length);
         // Do we want to clone payload before we start reading from it?
         ByteBuffer buffer = ByteBuffer.wrap(payload).asReadOnlyBuffer();  // I promise not to write.
         try {
@@ -252,7 +268,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                         sendToUpperLayer(indication);
                     }
                     locationTable.updateFromForwardedMessage(senderLpv.address().get(), senderLpv);
-                    forwardIfNecessary(payload, destination);
+                    forwardIfNecessary(indication, sequenceNumber, MacAddress.fromBytes(llSrcAddress));
                     break;
                 }
                 case BEACON:
@@ -284,64 +300,70 @@ public class GeonetStation implements Runnable, AutoCloseable {
     }
 
     // Do we need concurrent?
-    private final Map<byte[], ScheduledFuture<?>> contentionSet = new ConcurrentHashMap<>();
+    private final Map<FingerprintedPacket, ScheduledFuture<?>> contentionSet = new ConcurrentHashMap<>();
     private final ScheduledExecutorService cbfScheduler =
             Executors.newSingleThreadScheduledExecutor();
 
-    private void sendForwardedPacket(byte[] payload, Instant timeAdded, MacAddress dstMac) {
+    // This method duplicates to a large extent send() - should be refactored.
+    private void sendForwardedPacket(FingerprintedPacket fpPacket, Instant timeAdded, MacAddress dstMac) {
         if (!linkLayer.hasEthernetHeader()) { return; }  // Forwarding does not work without MAC.
-        ByteBuffer buffer = ByteBuffer.wrap(payload.clone());  // We overwrite the old payload.
-        byte[] llDstMac = new byte[6];
-        byte[] llSrcMac = new byte[6];
-        buffer.get(llDstMac);
-        buffer.get(llSrcMac);
-        short ethertype = buffer.getShort();
-        if (ethertype != GN_ETHER_TYPE) { return; }  // Ignore the packet.
-        BasicHeader basicHeader = BasicHeader.getFrom(buffer);
         double queuingTimeInSeconds = Duration.between(timeAdded, Instant.now()).toMillis() * 0.001;
-        double newLifetime = basicHeader.lifetime().asSeconds() - queuingTimeInSeconds;
-        byte newHops = (byte)(basicHeader.remainingHopLimit() - 1);
+        double newLifetime = fpPacket.indication.destination.maxLifetimeSeconds().get() - queuingTimeInSeconds;
+        byte newHops = (byte)(fpPacket.indication.destination.remainingHopLimit().get() - 1);
         if (newLifetime <= 0 || newHops < 2) { return; }
-        BasicHeader newBasicHeader = new BasicHeader(basicHeader.version(),
-                basicHeader.nextHeader(), BasicHeader.Lifetime.fromSeconds(newLifetime), newHops);
-        buffer.rewind();
-        buffer.put(dstMac.asBytes());
-        buffer.put(EMPTY_MAC);      // Source.
-        buffer.putShort(ethertype);
-        newBasicHeader.putTo(buffer);
+        Geobroadcast destination = ((Geobroadcast) fpPacket.indication.destination)
+                .withMaxHopLimit(newHops).withMaxLifetimeSeconds(newLifetime);
+        GeonetData newData = new GeonetData(fpPacket.indication.protocol, destination,
+                fpPacket.indication.trafficClass, fpPacket.indication.sender,
+                fpPacket.indication.payload);
+        ByteBuffer llPayload = ByteBuffer.allocate(ETHER_HEADER_LENGTH  + 56 +
+                fpPacket.indication.payload.length);
+        llPayload.put(dstMac.asBytes());
+        llPayload.put(senderMac.asBytes());
+        llPayload.putShort(GN_ETHER_TYPE);
+        basicHeader(newData).putTo(llPayload);               // Octets  0- 3
+        commonHeader(newData).putTo(llPayload);              // Octets  4-11
+        llPayload.putShort((short)fpPacket.sequenceNumber);       // Octets 12-13
+        llPayload.putShort((short)0);  // Reserved. // Octets 14-15
+        fpPacket.indication.sender.get().putTo(llPayload);            // Octets 16-39
+        destination.area().putTo(llPayload);  // Octets 40-53
+        llPayload.putShort((short)0);  // Reserved. // Octets 54-55
+        llPayload.put(fpPacket.indication.payload);
+
         try {
-            sendToLowerLayer(buffer);
+            sendToLowerLayer(llPayload);
         } catch (IOException e) {
             logger.error("Exception in sending forwarded packet", e);
-            e.printStackTrace();
         }
 
     }
 
-    private void forwardIfNecessary(final byte[] payload, Destination.Geobroadcast gbc) {
+    private void forwardIfNecessary(GeonetData indication, int sequenceNumber, MacAddress lastForwarderMac) {
         // We can't forward if we don't know who was the last forwarder.
         // Packets have only the original sender, so for the last forwarder we need MAC address from LL.
         if (!linkLayer.hasEthernetHeader()) { return; }
 
-        if (contentionSet.containsKey(payload)) {
-            contentionSet.get(payload).cancel(false);
-            contentionSet.remove(payload);
+        // TODO: use duplicate packet detection for contentionSet key!
+        // Packet can arrive from another forwarder, but will have the same sequence number,
+        // the same source position vector (even with timestamp), but different remaining hop limit
+        // different lifetime, different source MAC.
+        // Also, if there is a newer packet from the same original source, then the old packet
+        // can be safely dropped -- FingerprintedPacket can't handle it.
+        final FingerprintedPacket fpPacket = new FingerprintedPacket(indication, sequenceNumber);
+        if (contentionSet.containsKey(fpPacket)) {
+            contentionSet.get(fpPacket).cancel(false);
+            contentionSet.remove(fpPacket);
             return;
         }
 
-        if(gbc.remainingHopLimit().orElse((byte) 1) < 2) { return; }
+        if(indication.destination.remainingHopLimit().orElse((byte) 1) < 2) { return; }
 
-        if (gbc.area().contains(position())) {
+        if (((Geobroadcast)indication.destination).area().contains(position())) {
             long   maxTimeout  = config.itsGnGeoBroadcastCbfMaxTime;        // In milliseconds.
             long   minTimeout  = config.itsGnGeoBroadcastCbfMinTime;        // In milliseconds.
             double maxDistance = config.itsGnDefaultMaxCommunicationRange;  // In meters.
 
-            ByteBuffer buffer = ByteBuffer.wrap(payload.clone()).asReadOnlyBuffer();
-            byte[] llDstMac = new byte[6];
-            byte[] llSrcMac = new byte[6];
-            buffer.get(llDstMac);
-            buffer.get(llSrcMac);
-            MacAddress lastForwarderMac = MacAddress.fromBytes(llSrcMac);
+
             LongPositionVector lpv = locationTable.getPosition(lastForwarderMac);
             if (lpv == null) { return; }  // Message was forwarded by someone who never sent beacon or SHB.
 
@@ -357,24 +379,60 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
             ScheduledFuture<?> sendingFuture = cbfScheduler.schedule(
                     new Runnable() { @Override public void run() {
-                        sendForwardedPacket(payload, schedulingInstant,
-                                MacAddress.fromBytes(BROADCAST_MAC)); }; },
+                        sendForwardedPacket(fpPacket, schedulingInstant, BROADCAST_MAC); }; },
                     timeoutMillis, TimeUnit.MILLISECONDS);
 
-            contentionSet.put(payload, sendingFuture);
+            contentionSet.put(fpPacket, sendingFuture);
 
         } else {
-            // Greedy Line Forwarding (requires Location Table).
-            Optional<MacAddress> dstMac = locationTable.closerThanMeTo(gbc.area().center(),
+            // Greedy Line Forwarding.
+            Optional<MacAddress> dstMac = locationTable.closerThanMeTo(((Geobroadcast)indication.destination).area().center(),
                     position());
             if (dstMac.isPresent()) {
-                sendForwardedPacket(payload, Instant.now(), MacAddress.fromBytes(BROADCAST_MAC));
+                sendForwardedPacket(fpPacket, Instant.now(), dstMac.get());
             } else {
                 // We don't know where to forward it. Either store it or just drop.
                 return;
             }
         }
     }
+
+    public static class FingerprintedPacket {
+        @Override public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((address() == null) ? 0 : address().hashCode());
+            result = prime * result + sequenceNumber;
+            result = prime * result + ((timestamp() == null) ? 0 : timestamp().hashCode());
+            return result;
+        }
+
+        @Override public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null) return false;
+            if (getClass() != obj.getClass()) return false;
+            FingerprintedPacket other = (FingerprintedPacket) obj;
+            if (address() == null) {
+                if (other.address() != null) return false;
+            } else if (!address().equals(other.address())) return false;
+            if (sequenceNumber != other.sequenceNumber) return false;
+            if (timestamp() == null) {
+                if (other.timestamp() != null) return false;
+            } else if (!timestamp().equals(other.timestamp())) return false;
+            return true;
+        }
+        private final int sequenceNumber;
+        private final GeonetData indication;
+
+        private Address address() { return indication.sender.get().address().get(); }
+        private Instant timestamp() { return indication.sender.get().timestamp(); }
+
+        public FingerprintedPacket(GeonetData indication, int sequenceNumber) {
+            this.indication = indication;
+            this.sequenceNumber = sequenceNumber;
+        }
+    }
+
 
     /** Returns the position of this station, from {@link #positionProvider}. */
     public Position position() {
@@ -412,13 +470,21 @@ public class GeonetStation implements Runnable, AutoCloseable {
     @Override
     public void run() {
         while (true) {
-            byte[] payload;
+            byte[] payload = new byte[] {};
             try {
                 payload = linkLayer.receive();
+            } catch (IOException e) {
+                logger.error("Geonetworking station got an IO exception, shutting down", e);
+                break;
+            } catch (InterruptedException e) {
+                logger.error("Geonetworking station got an InterruptedException in LinkLayer receive, shutting down", e);
+                break;
+            }
+            try {
                 onReceiveFromLowerLayer(payload);
-            } catch (IOException | InterruptedException e) {
-                System.err.println("Geonetworking station got an IO exception, but it will try to continue its operation.");
-                e.printStackTrace();
+            } catch (InterruptedException e) {
+                logger.error("Geonetworking station got an InterruptedException in handling the received message, shutting down", e);
+                break;
             }
         }
     }
@@ -538,6 +604,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
         private void sendBeacon() {
             try {
+                logger.info("Sending beacon");
                 send(beaconData());
             } catch (IOException e) {
                 logger.error("Exception in sending beacon", e);
@@ -555,6 +622,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
     };
 
     public void startBecon() {
+        logger.info("Starting BEACON service");
         beaconService.start();
     }
 

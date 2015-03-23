@@ -10,6 +10,7 @@ import java.util.Random;
  *
  * From ASN1:  DISPLAY-HINT "2x:2x:2x:2x"
  *
+ * <pre>
  *  Octets:         1               2               3
  *  0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1
  *  Bits:               10                  20
@@ -20,7 +21,7 @@ import java.util.Random;
  * |M|   Type  | Country Code      | MAC Address 48 bit
  * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
  *  1-1 2 3 4 5-1 2 3 4 5 6 7 8 9 0-1 2 3 4 5 6 ....
- *
+ * </pre>
  */
 public class Address {
 

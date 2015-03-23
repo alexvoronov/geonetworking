@@ -5,6 +5,10 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class MacAddress {
+    @Override public String toString() {
+        return "MacAddress[" + address + "]";
+    }
+
     private final long address;
 
     public MacAddress(long address) {

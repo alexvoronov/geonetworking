@@ -50,6 +50,22 @@ public class BtpPacket {
                 );
     }
 
+    public static BtpPacket singleHop(byte[] payload, short destinationPort, double maxLifetimeSec) {
+        Optional<Short>              emptySourcePort          = Optional.empty();
+        Optional<Short>              emptyDestinationPortInfo = Optional.empty();
+        Optional<TrafficClass>       emptyTrafficClass        = Optional.empty();
+        Optional<LongPositionVector> emptySenderPosition      = Optional.empty();
+
+        return new BtpPacket(
+                emptySourcePort,
+                destinationPort,
+                emptyDestinationPortInfo,
+                payload,
+                Destination.singleHop().withMaxLifetimeSeconds(maxLifetimeSec),
+                emptyTrafficClass,
+                emptySenderPosition
+                );
+    }
     /** Dummy BTP-A packet for Plugtest. */
     public static BtpPacket singleHopEmptyA(short destinationPort, short sourcePort) {
         Optional<Short>              emptyDestinationPortInfo = Optional.empty();
