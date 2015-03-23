@@ -52,7 +52,8 @@ implements TableModel
   @Override
   public int getRowCount ()
   {
-    return (this.locationTable == null) ? 0 : this.locationTable.size ();
+    throw new UnsupportedOperationException ();
+    // return (this.locationTable == null) ? 0 : this.locationTable.size ();
   }
 
   @Override
