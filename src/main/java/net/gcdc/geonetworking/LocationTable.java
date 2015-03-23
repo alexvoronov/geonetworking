@@ -1,5 +1,7 @@
 package net.gcdc.geonetworking;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -19,6 +21,8 @@ public class LocationTable {
     private final static Logger logger = LoggerFactory.getLogger(LocationTable.class);
 
     private final ConfigProvider configProvider;
+
+    private final Collection<UpdateListener> listeners = new ArrayList<>();
 
     // Do these maps have to be synchronized? Collections.synchronizedMap or ConcurrentHashMap?
     private final Map<Address, Entry> gnMap = new ConcurrentHashMap<>();
@@ -123,8 +127,6 @@ public class LocationTable {
         }
     }
 
-
-
     public void updateFromDirectMessage(final Address address, final MacAddress macAddress, final LongPositionVector position) {
         final Entry oldEntry = gnMap.get(address);
         final Entry entry = (oldEntry == null ? new Entry.Builder() : new Entry.Builder(oldEntry))
@@ -147,10 +149,12 @@ public class LocationTable {
         final ScheduledFuture<?> future = executor.schedule(
                 new Runnable() { @Override public void run() {
                     gnMap.remove(address);
-                    janitorFutures.remove(address);} },
+                    janitorFutures.remove(address);
+                    notifyListeners();} },
                 configProvider.config().itsGnLifetimeLocTE,
                 TimeUnit.SECONDS);
         janitorFutures.put(address, future);
+        notifyListeners();
     }
 
     public void updateFromForwardedMessage(Address address, LongPositionVector position) {
@@ -162,5 +166,16 @@ public class LocationTable {
             .create();
         logger.debug("Adding forwarded {}", address.toString());
         putAndSchedule(entry);
+    }
+
+    public static interface UpdateListener {
+        void onChange();
+    }
+
+    public void addListener(UpdateListener listener) { listeners.add(listener); }
+    public void removeListener(UpdateListener listener) { listeners.remove(listener); }
+
+    private void notifyListeners() {
+        for (UpdateListener listener : listeners) { listener.onChange(); }
     }
 }
