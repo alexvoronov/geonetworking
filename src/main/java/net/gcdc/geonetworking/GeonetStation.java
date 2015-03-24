@@ -268,7 +268,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                         sendToUpperLayer(indication);
                     }
                     locationTable.updateFromForwardedMessage(senderLpv.address().get(), senderLpv);
-                    forwardIfNecessary(indication, sequenceNumber, MacAddress.fromBytes(llSrcAddress));
+                    //forwardIfNecessary(indication, sequenceNumber, MacAddress.fromBytes(llSrcAddress));
                     break;
                 }
                 case BEACON:
