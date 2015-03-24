@@ -75,11 +75,12 @@ public class Address {
 
     @Override
     public String toString() {
-        return new StringBuilder(Long.toHexString(value).toUpperCase())
-            .insert(12, ':')
-            .insert( 8, ':')
-            .insert( 4, ':')
-            .toString();
+        // TODO: make sure that the length is correct!
+        return new StringBuilder(Long.toHexString(value).toUpperCase()).toString();
+//            .insert(12, ':')
+//            .insert( 8, ':')
+//            .insert( 4, ':')
+//            .toString();
     }
 
     @Override
