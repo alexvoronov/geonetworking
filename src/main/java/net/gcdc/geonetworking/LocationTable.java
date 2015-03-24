@@ -110,6 +110,7 @@ public class LocationTable {
         return null;
     }
 
+    // TODO: add a list of nodes-to-not-use (last forwarder)
     public Optional<MacAddress> closerThanMeTo(Position destination, Position me) {
         Entry nearest = null;
         double shortestDistance = me.distanceInMetersTo(destination);
@@ -166,6 +167,10 @@ public class LocationTable {
             .create();
         logger.debug("Adding forwarded {}", address.toString());
         putAndSchedule(entry);
+    }
+
+    public Collection<LocationTable.Entry> entries() {
+        return gnMap.values();
     }
 
     public static interface UpdateListener {
