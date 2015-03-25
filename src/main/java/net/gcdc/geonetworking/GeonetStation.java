@@ -525,6 +525,12 @@ public class GeonetStation implements Runnable, AutoCloseable {
      *     - packet time earlier than last seen
      *     - packet time equal to last seen AND number equal or less than last seen
      * Otherwise ok
+     *
+     * If we don't want to remove predecessor condition:
+     *  - replace lastSeenTimestamp and lastSeenSequence with last-seen-set
+     *  - use as a key in the last-seen-set: (GN address + seq number + timestamp)
+     *  - keep entries in last-seen-set for 105 minutes (time equal to BasicHeader.Lifetime.MaximumLifetime)
+     *
      */
     private boolean isDuplicate(LongPositionVector lpv, short sequenceNumber) {
         Instant lastTs = lastSeenTimestamp.get(lpv.address().get());  // null if element not found.

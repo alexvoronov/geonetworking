@@ -116,7 +116,7 @@ public class LocationTable {
         double shortestDistance = me.distanceInMetersTo(destination);
         for (Entry entry: gnMap.values()) {
             final double dist = entry.position().position().distanceInMetersTo(destination);
-            if (dist < shortestDistance && entry.macAddress() != null) {
+            if (dist < shortestDistance && entry.macAddress() != null && entry.isNeighbour()) {
                 shortestDistance = dist;
                 nearest = entry;
             }
