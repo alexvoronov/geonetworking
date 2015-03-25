@@ -18,6 +18,10 @@ public class MacAddress {
         this.address = address;
     }
 
+    public MacAddress(String str) {
+        this(parseFromString(str));
+    }
+
     public long value() { return address; }
 
     /** Returns 6-bytes array representing this address. */
@@ -37,6 +41,14 @@ public class MacAddress {
         int result = 1;
         result = prime * result + (int) (address ^ (address >>> 32));
         return result;
+    }
+
+    public static long parseFromString(String s) {
+        String[] bytes = s.split(":");
+        if (bytes.length != 6) {
+            throw new IllegalArgumentException("Malformed MAC, expected xx:xx:xx:xx:xx:xx, got " + s);
+        }
+        return new BigInteger(s.replace(":", ""), 16).longValue();
     }
 
     @Override public boolean equals(Object obj) {
