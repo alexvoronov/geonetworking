@@ -75,9 +75,11 @@ Stdout <---|    4000|<-------------------|         |<---|          |   |       |
 ```
 
 
-### Other GeoNetworking implementations
+### Related implementations
 
 This implementation was inspired by [DriveITS](https://github.com/Dimme/driveits). Another open-source implementation, now outdated, is [CarGeo6](http://www.cargeo6.org/).
+
+Some basic mechanism to send CAM messages exist in [gn-uppertester](https://github.com/alexvoronov/gn-uppertester), which was used to test this `geonetworking` implementation.
 
 
 ### Acknowledgements
