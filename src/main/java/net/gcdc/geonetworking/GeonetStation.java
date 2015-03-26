@@ -205,6 +205,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
             byte[] llSrcAddress = new byte[6];
             if (linkLayer.hasEthernetHeader()) {
                 buffer.get(llDstAddress);  // Should be either me or broadcast, but we don't check.
+                                           // If net interface is in promiscuous mode, so are we!
                 buffer.get(llSrcAddress);
                 short ethertype = buffer.getShort();
                 if (ethertype != GN_ETHER_TYPE) {
@@ -531,6 +532,10 @@ public class GeonetStation implements Runnable, AutoCloseable {
      *  - use as a key in the last-seen-set: (GN address + seq number + timestamp)
      *  - keep entries in last-seen-set for 105 minutes (time equal to BasicHeader.Lifetime.MaximumLifetime)
      *
+     * Without timestamp, seq number wraps at 65535. Max lifetime is 105 minutes.
+     * The rate needed to send 65535 packets in 105 minutes is about 1 packet in 95 milliseconds.
+     * If there will be broadcasts or unicasts faster than that, seq number alone will not be enough.
+     *
      */
     private boolean isDuplicate(LongPositionVector lpv, short sequenceNumber) {
         Instant lastTs = lastSeenTimestamp.get(lpv.address().get());  // null if element not found.
@@ -541,6 +546,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                     )
                  )
            ) {
+            logger.debug("DUPLICATE DETECTED");
             return true;
         } else {
             lastSeenTimestamp.put(lpv.address().get(), lpv.timestamp());

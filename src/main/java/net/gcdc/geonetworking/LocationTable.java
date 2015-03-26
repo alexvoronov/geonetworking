@@ -165,7 +165,7 @@ public class LocationTable {
             .position(position)
             .timestamp(Instant.now())
             .create();
-        logger.debug("Adding forwarded {}", address.toString());
+        logger.debug("Adding non-(SHB/BEACON) entry {}", address.toString());
         putAndSchedule(entry);
     }
 
