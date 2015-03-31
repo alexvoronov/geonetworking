@@ -1,10 +1,10 @@
 # CAM and DENM
 
-Basic Java classes to represent Cooperative Awareness Message (CAM, [ETSI EN 302 637-2](http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=37126)) and Decentralized Environment Notification Message (DENM, [ETSI EN 302 637-3](http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=37127)). CAM and DENM are built on top of Common Data Dictionary (CDD, [ETSI TS 102 894-2](http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=43353)).
+Basic Java classes to represent Cooperative Awareness Message (CAM, [ETSI EN 302 637-2](http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=37126)) and Decentralized Environment Notification Message (DENM, [ETSI EN 302 637-3](http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=37127)). CAM and DENM are built on top of Common Data Dictionary (CDD, [ETSI TS 102 894-2](http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=43353)). Classes are annoted with [asn1-datatypes](https://github.com/alexvoronov/geonetworking/tree/master/asn1-datatypes), so that [asn1-uper](https://github.com/alexvoronov/geonetworking/tree/master/asn1-uper) can pack the objects.
 
 ### Status
 
-CAM is complete (except for the getter methods), DENM has only the the basic things. Classes are annoted with [asn1-datatypes](https://github.com/alexvoronov/geonetworking/tree/master/asn1-datatypes), so that [asn1-uper](https://github.com/alexvoronov/geonetworking/tree/master/asn1-uper) can pack the objects. Usage examples for CAM and DENM are in [uppertester](https://github.com/alexvoronov/geonetworking/tree/master/uppertester).
+CAM is complete (except for the getter methods), DENM has only the the basic things.  Usage examples for CAM and DENM are in [uppertester](https://github.com/alexvoronov/geonetworking/tree/master/uppertester).
 
 
 ### Acknowledgements
