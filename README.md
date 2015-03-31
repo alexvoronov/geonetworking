@@ -1,4 +1,5 @@
-# ETSI ITS stack
+# ETSI ITS stack [![Build Status](https://travis-ci.org/alexvoronov/geonetworking.svg?branch=master)](https://travis-ci.org/alexvoronov/geonetworking) [![Coverage Status](https://coveralls.io/repos/alexvoronov/geonetworking/badge.svg)](https://coveralls.io/r/alexvoronov/geonetworking)
+
 
 A basic implementation of the [ETSI](http://en.wikipedia.org/wiki/ETSI) ITS stack including: [CAM-DENM](https://github.com/alexvoronov/geonetworking/tree/master/camdenm) / [ASN.1](https://github.com/alexvoronov/geonetworking/tree/master/asn1-uper) / [BTP / GeoNetworking](https://github.com/alexvoronov/geonetworking/tree/master/geonetworking). For lower layer (DataLinkLayer/AccessTechnologies) see [udp2eth](https://github.com/jandejongh/udp2eth) and [utoepy](https://github.com/alexvoronov/utoepy).
 
@@ -9,8 +10,7 @@ Sending CAM via Single Hop Broadcast and DENM via GeoBroadcast is supported. For
 Code here is very much work in progress, it was not thoroughly tested or verified. Even API is expected to change when usage patterns emerge, feedback is welcome.
 
 
-### Building, Testing and Running
-
+### Building, Testing and Running 
 [SBT](http://www.scala-sbt.org/) and [Maven](http://maven.apache.org/) are supported as a build tools. Since they are independent from each other, they might be out of sync sometime (please open an issue then). 
 
 Most IDEs work with Maven projects directly, e.g. Eclipse supports Maven through [M2Eclipse](http://www.eclipse.org/m2e/). If you use SBT, you can generate Eclipse project files with ```sbt eclipse```.
