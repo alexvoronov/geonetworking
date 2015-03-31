@@ -7,6 +7,7 @@
 target
 project/target
 project/project/target
+bin/
 
 # OS generated files
 .DS_Store

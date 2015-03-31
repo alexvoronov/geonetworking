@@ -1,7 +1,6 @@
 # ETSI ITS stack
 
-A basic implementation of the [ETSI](http://en.wikipedia.org/wiki/ETSI) ITS stack including: CAM-DENM / ASN.1 / BTP / GeoNetworking. See other README in the source tree.
-
+A basic implementation of the [ETSI](http://en.wikipedia.org/wiki/ETSI) ITS stack including: [CAM-DENM](https://github.com/alexvoronov/geonetworking/tree/master/camdenm) / [ASN.1](https://github.com/alexvoronov/geonetworking/tree/master/asn1-uper) / [BTP / GeoNetworking](https://github.com/alexvoronov/geonetworking/tree/master/geonetworking). For lower layer (DataLinkLayer/AccessTechnologies) see [udp2eth](https://github.com/jandejongh/udp2eth) and [utoepy](https://github.com/alexvoronov/utoepy).
 
 ### Status
 
@@ -16,6 +15,8 @@ Code here is very much work in progress, it was not thoroughly tested or verifie
 
 Most IDEs work with Maven projects directly, e.g. Eclipse supports Maven through [M2Eclipse](http://www.eclipse.org/m2e/). If you use SBT, you can generate Eclipse project files with ```sbt eclipse```.
 
+Since this is a multi-module setup, Maven flags for multiple projects become useful (`--projects`, `--also-make`, `--also-make-dependents`). See [Maven docs](https://maven.apache.org/guides/mini/guide-multiple-modules.html) for manual, and a [Sonatype blog post](http://blog.sonatype.com/2009/10/maven-tips-and-tricks-advanced-reactor-options/) for a nice tutorial introduction.
+
 Running: 
 
 ```
@@ -23,13 +24,6 @@ mvn clean install
 
 mvn --projects uppertester exec:java -Dexec.mainClass="net.gcdc.uppertester.ItsStation" -Dexec.args="--localPortForUdpLinkLayer 1237 --remoteAddressForUdpLinkLayer 192.168.159.102:1235 --upperTesterUdpPort 1600 --hasEthernetHeader"
 ```
-
-
-### Related implementations
-
-Implementation of Geonetworking was inspired by [DriveITS](https://github.com/Dimme/driveits). Another open-source implementation, now outdated, is [CarGeo6](http://www.cargeo6.org/).
-
-ASN.1 reflection-based encoder for CAM and DENM was insipred by [Gson](https://code.google.com/p/google-gson/).
 
 
 ### Acknowledgements
