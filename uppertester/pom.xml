@@ -4,11 +4,6 @@
 	<artifactId>uppertester</artifactId>
 	<name>Upper Tester for GeoNetworking</name>
 	<description>ETSI TR 103 099</description>
-	<properties>
-		<maven.compiler.source>1.7</maven.compiler.source>
-		<maven.compiler.target>1.7</maven.compiler.target>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 
 	<parent>
 		<groupId>net.gcdc</groupId>
@@ -20,23 +15,19 @@
 		<dependency>
 			<groupId>org.threeten</groupId>
 			<artifactId>threetenbp</artifactId>
-			<version>1.2</version>
-		</dependency>
+			</dependency>
 		<dependency>
 			<groupId>com.lexicalscope.jewelcli</groupId>
 			<artifactId>jewelcli</artifactId>
-			<version>0.8.9</version>
-		</dependency>
+			</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.12</version>
-		</dependency>
+			</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>1.1.2</version>
-		</dependency>
+			</dependency>
 		<dependency>
 			<groupId>net.gcdc</groupId>
 			<artifactId>asn1-uper</artifactId>

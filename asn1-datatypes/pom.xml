@@ -4,10 +4,10 @@
 	<artifactId>asn1-datatypes</artifactId>
 	<name>Datatypes for ASN.1</name>
 
-    <parent>
-        <groupId>net.gcdc</groupId>
-        <artifactId>parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-    </parent>
+	<parent>
+		<groupId>net.gcdc</groupId>
+		<artifactId>parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
 
 </project>
