@@ -29,13 +29,19 @@
 				<artifactId>coveralls-maven-plugin</artifactId>
 				<version>3.1.0</version>
 				<configuration>
-				    <!-- repoToken will be fetched automatically when built by Travis CI -->
+					<!-- repoToken will be fetched automatically when built by Travis CI -->
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.7.4.201502262128</version>
+				<configuration>
+					<excludes>
+						<exclude>net/gcdc/uppertester/**/*.class</exclude>
+						<exclude>net/gcdc/plugtestcms4/**/*.class</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<execution>
 						<id>prepare-agent</id>
