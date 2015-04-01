@@ -10,7 +10,7 @@ import org.threeten.bp.Instant;
 
 public class BeaconTest {
 
-    @Test(timeout=300)
+    @Test(timeout=3000)
     public void test() throws IOException, InterruptedException {
         DuplicatorLinkLayer d = new DuplicatorLinkLayer();
         LinkLayer l1 = d.get();

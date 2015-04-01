@@ -100,36 +100,44 @@ public class Parser {
     public static <T> T parse(ByteBuffer buffer, Class<T> classOfT) throws InstantiationException,
             IllegalAccessException {
         T obj = classOfT.newInstance();
+        logger.debug("parsing class {}", classOfT.getName());
         for (Field f : classOfT.getDeclaredFields()) {
+            logger.debug("field {}", f.getName());
+            if (isTestInstrumentation(f)) { logger.debug("skipping {}", f.getName()); continue; }
+            logger.debug("accepting {}", f.getName());
             f.setAccessible(true);
             if (f.getType().isAssignableFrom(int.class)) {
-                logger.info("integer!");
+                logger.debug("integer!");
                 Size sizeAnnotation = f.getAnnotation(Size.class);
                 f.set(obj, sizeAnnotation == null ? buffer.getInt() :
                         getCustomInt(buffer, sizeAnnotation.value()).intValue());
             } else if (f.getType().isAssignableFrom(long.class)) {
-                logger.info("long!");
+                logger.debug("long!");
                 Size sizeAnnotation = f.getAnnotation(Size.class);
                 f.set(obj, sizeAnnotation == null ? buffer.getLong() :
                         getCustomInt(buffer, sizeAnnotation.value()).longValue());
             } else if (f.getType().isAssignableFrom(byte.class)) {
-                logger.info("Byte!");
+                logger.debug("Byte!");
                 f.set(obj, buffer.get());
             } else if (f.getType().isAssignableFrom(short.class)) {
-                logger.info("Short!");
+                logger.debug("Short!");
                 f.set(obj, buffer.getShort());
             } else if (f.getType().isAssignableFrom(byte[].class)) {
-                logger.info("byte array!");
+                logger.debug("byte array!");
                 byte[] arr = new byte[buffer.limit() - buffer.position()];
                 buffer.get(arr);
                 f.set(obj, arr);
             } else {
-                logger.info("ELSE!" + f.getType());
+                logger.warn("ELSE!" + f.getType());
                 throw new UnsupportedOperationException("Type " + f.getType() +
                         " is not implemented yet.");
             }
         }
         return obj;
+    }
+
+    private static boolean isTestInstrumentation(Field f) {
+        return f.getName().startsWith("$");
     }
 
     private static BigInteger getCustomInt(ByteBuffer buffer, int size) {
@@ -151,6 +159,7 @@ public class Parser {
     public static <T> byte[] toBytes(T obj) throws IllegalArgumentException, IllegalAccessException {
         ByteBuffer buffer = ByteBuffer.allocate(65535);
         for (Field f : obj.getClass().getDeclaredFields()) {
+            if (isTestInstrumentation(f)) { continue; }
             f.setAccessible(true);
             if (f.getType().isAssignableFrom(int.class)) {
                 logger.info("integer!");
@@ -178,7 +187,7 @@ public class Parser {
                 logger.info("byte array!");
                 buffer.put((byte[]) f.get(obj));
             } else {
-                logger.info("ELSE!" + f.getType());
+                logger.info("ELSE! {}:{}", f.getName(), f.getType().getName());
                 throw new UnsupportedOperationException("Type " + f.getType() +
                         " is not implemented yet.");
             }

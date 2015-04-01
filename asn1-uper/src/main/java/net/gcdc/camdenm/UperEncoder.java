@@ -75,7 +75,8 @@ public class UperEncoder {
             }
             // All ordinary fields (fields within extension root).
             for (Field f : sorter.ordinaryFields) {
-                if (isMandatory(f) || f.get(obj) != null) {
+                if ((isMandatory(f) || f.get(obj) != null) && !isTestInstrumentation(f)) {
+                    logger.trace("Adding field : {}", f.getName());
                     bitlist.addAll(encodeAsList(f.get(obj)));
                 }
             }
@@ -271,6 +272,7 @@ public class UperEncoder {
 
         Asn1ContainerFieldSorter(Class<?> type) {
             for (Field f : type.getDeclaredFields()) {
+                if (isTestInstrumentation(f)) { continue; }
                 if (isExtension(f)) { extensionFields.add(f); }
                 else { ordinaryFields.add(f); }
             }
@@ -279,6 +281,10 @@ public class UperEncoder {
                 else { optionalOrdinaryFields.add(f); }
             }
         }
+    }
+
+    private static boolean isTestInstrumentation(Field f) {
+        return f.getName().startsWith("$");
     }
 
     public static List<Boolean> encodeConstrainedInt(

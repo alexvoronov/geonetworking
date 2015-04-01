@@ -19,7 +19,7 @@ import org.junit.Test;
 
 public class UdpDuplicatorTest {
 
-    @Test(timeout=1000)
+    @Test(timeout=3000)
     public void test() throws IOException, InterruptedException {
         UdpDuplicator d = new UdpDuplicator();
         final int duplicatorPort = 4001;

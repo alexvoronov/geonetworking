@@ -14,7 +14,7 @@ import org.threeten.bp.Instant;
 
 public class BasicSocketTestOverUdp {
 
-    @Test(timeout=2000)
+    @Test(timeout=3000)
     public void test() throws IOException, InterruptedException {
 
         int client1 = 4440;

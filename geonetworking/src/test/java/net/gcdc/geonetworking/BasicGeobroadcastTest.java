@@ -15,7 +15,7 @@ import org.threeten.bp.Instant;
 
 public class BasicGeobroadcastTest {
 
-    @Test(timeout=300)
+    @Test(timeout=3000)
     public void test() throws IOException, InterruptedException {
         final Position slottsberget   = new Position(57.702878, 11.927723);
         final Position damen          = new Position(57.703864, 11.945876);
