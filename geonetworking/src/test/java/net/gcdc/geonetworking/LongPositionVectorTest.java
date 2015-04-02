@@ -5,6 +5,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.nio.ByteBuffer;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
+
 import org.junit.Test;
 import org.threeten.bp.Instant;
 
@@ -49,4 +51,10 @@ public class LongPositionVectorTest {
         assertEquals("heading", v1.headingDegreesFromNorth(), v2.headingDegreesFromNorth(), 0.1);
         assertArrayEquals("binary", buffer.array(), v2.putTo(ByteBuffer.allocate(LongPositionVector.LENGTH)).array());
     }
+
+    @Test
+    public void test3() {
+        EqualsVerifier.forClass(LongPositionVector.class).verify();
+    }
+
 }

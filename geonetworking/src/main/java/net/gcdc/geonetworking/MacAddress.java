@@ -4,7 +4,13 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public class MacAddress {
+/** MAC address.
+ *
+ * The class is declared as final, just because there was no need for subclasses yet.
+ * If you remove final, make sure to take good care of {@link #equals(Object)} and
+ * {@link #hashCode()}.
+ */
+public final class MacAddress {
     @Override public String toString() {
         return "MacAddress[" + address + "]";
     }

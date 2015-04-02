@@ -2,7 +2,17 @@ package net.gcdc.geonetworking;
 
 import java.util.Arrays;
 
-public class GeonetData {
+/**
+ * Geonetworking Data to send and receive Geonetworking packets.
+ *
+ * The class contains both payload and information needed to populate all Geonetworking headers.
+ *
+ * The class is declared as final, just because there was no need for subclasses yet.
+ * If you remove final, make sure to take good care of {@link #equals(Object)} and
+ * {@link #hashCode()}, because in one possible implementation idea there was a plan to store
+ * GeonetData in a Set.
+ */
+public final class GeonetData {
 
     public final UpperProtocolType            protocol;
     public final Destination                  destination;

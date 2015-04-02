@@ -8,7 +8,7 @@ public abstract class Destination {
     public abstract Optional<Byte>   maxHopLimit();
     public abstract Optional<Byte>   remainingHopLimit();
 
-    public static class SingleHop extends Destination {
+    public static final class SingleHop extends Destination {
         private final Optional<Double> maxLifetimeSeconds;
 
         private SingleHop(Optional<Double> maxLifetimeSeconds) {
@@ -42,7 +42,7 @@ public abstract class Destination {
 
     }
 
-    public static class Geobroadcast extends Destination {
+    public static final class Geobroadcast extends Destination {
         @Override
         public int hashCode() {
             final int prime = 31;
@@ -164,7 +164,7 @@ public abstract class Destination {
         }
     }
 
-    public static class Beacon extends Destination {
+    public static final class Beacon extends Destination {
         private Beacon() {}
         @Override public DestinationType  typeAndSubtype()     { return DestinationType.BEACON; }
         @Override public Optional<Double> maxLifetimeSeconds() { return Optional.empty();       }

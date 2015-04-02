@@ -2,7 +2,7 @@ package net.gcdc.geonetworking;
 
 import java.nio.ByteBuffer;
 
-public class CommonHeader {
+public final class CommonHeader {
     private final UpperProtocolType nextHeader;
     private final DestinationType   typeAndSubtype;
     private final TrafficClass      trafficClass;

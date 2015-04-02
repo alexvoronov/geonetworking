@@ -5,6 +5,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.nio.ByteBuffer;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
+
 import org.junit.Test;
 
 public class CommonHeaderTest {
@@ -32,5 +34,10 @@ public class CommonHeaderTest {
         assertEquals(h1.payloadLength(), h2.payloadLength());
         assertEquals(h1.maximumHopLimit(), h2.maximumHopLimit());
     }
+
+    @Test public void test2() {
+        EqualsVerifier.forClass(CommonHeader.class).verify();;
+    }
+
 
 }

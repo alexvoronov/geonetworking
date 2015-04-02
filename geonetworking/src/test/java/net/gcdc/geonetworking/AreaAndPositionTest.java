@@ -3,10 +3,11 @@ package net.gcdc.geonetworking;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import nl.jqno.equalsverifier.EqualsVerifier;
 
 import org.junit.Test;
 
-public class AreaTest {
+public class AreaAndPositionTest {
 
     @Test
     public void test() {
@@ -53,6 +54,16 @@ public class AreaTest {
         Area aroundTeaterUpToKuggen = Area.circle(teater, 285);
         //assertTrue(aroundTeaterUpToKuggen.contains(kuggen));
         assertFalse(aroundTeaterUpToKuggen.contains(semcon));
+    }
+
+    @Test
+    public void test2() {
+        EqualsVerifier.forClass(Area.class).verify();
+    }
+
+    @Test
+    public void test3() {
+        EqualsVerifier.forClass(Position.class).verify();
     }
 
 }

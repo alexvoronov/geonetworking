@@ -19,10 +19,10 @@ import java.nio.ByteBuffer;
  *
  * 32 bit signed integer in [1/10 micro-degree] units.
  */
-public class Position {
+public final class Position {
     @Override
     public String toString() {
-        return "Pos[" + lattitudeDegrees + ", " + longitudeDegrees + "]";
+        return "Pos(" + lattitudeDegrees + ", " + longitudeDegrees + ")";
     }
 
     final static double MICRODEGREE = 1E-6;

@@ -93,4 +93,9 @@ public class Optional<T> {
     public static <A> Optional<A> empty() {
         return new Optional<A>(null, false);
     }
+
+    @Override public String toString() {
+        return isPresent ? "Optional(" + element + ")" : "Optional.empty";
+    }
+
 }

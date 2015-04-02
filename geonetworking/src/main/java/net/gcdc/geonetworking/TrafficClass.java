@@ -1,7 +1,13 @@
 package net.gcdc.geonetworking;
 
-
-public class TrafficClass {
+/**
+ * Traffic Class.
+ *
+ * The class is declared as final, just because there was no need for subclasses yet.
+ * If you remove final, make sure to take good care of {@link #equals(Object)} and
+ * {@link #hashCode()}.
+ */
+public final class TrafficClass {
 
     @Override
     public String toString() {

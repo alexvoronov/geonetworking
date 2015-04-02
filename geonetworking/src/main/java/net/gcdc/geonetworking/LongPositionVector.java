@@ -40,7 +40,7 @@ import org.threeten.bp.ZoneOffset;
  * Heading.
  * Later it has to be encoded as an unsigned units of 0.1 degree from North.
  */
-public class LongPositionVector {
+public final class LongPositionVector {
 
     @Override
     public String toString() {
