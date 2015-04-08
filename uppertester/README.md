@@ -1,21 +1,14 @@
 # Upper Tester Application for ITS CMS4 Plugtest
 
-This is an Upper Tester Application for [geonetworking](https://github.com/alexvoronov/geonetworking) library to participate in ETSI Plugtest on Intelligent Transportation Systems - Cooperative Mobility Services Event 4 ([ITS CMS4](http://www.etsi.org/news-events/events/846-plugtests-2015-itscms4)). Message set for this Upper Tester Application is defined in [ETSI TR 103 099](http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=42425) "Architecture of conformance validation framework".
+This is an Upper Tester Application for [geonetworking](https://github.com/alexvoronov/geonetworking/geonetworking) library to participate in ETSI Plugtest on Intelligent Transportation Systems - Cooperative Mobility Services Event 4 ([ITS CMS4](http://www.etsi.org/news-events/events/846-plugtests-2015-itscms4)). Message set for this Upper Tester Application is defined in [ETSI TR 103 099](http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=42425) "Architecture of conformance validation framework".
 
 ### Status
 
-This Upper Tester Application was successfully used to test the geonetworking library at the Plugtest. The next step would be to extract CAM and DENM messages from this upper tester into a stand-alone Cooperative ITS library, and extract ASN.1-related classes (annotations, encoder) into a standalone library too.
+This Upper Tester Application was successfully used to do Interoperability Testing and Conformance Testing of the geonetworking library at the Plugtest. There are no plans to develop it any further, except maybe for participation in another Plugtest, or for automated Conformance Testing after each build in spirit of Unit/Integration testing (this would require TTCN-3).
 
 ### Usage
-This is an Upper Tester Application for [geonetworking](https://github.com/alexvoronov/geonetworking) library. That library is not on Maven Central, so you have to install it in some repository you have access to. The easiest way is to install to your local repository (wherever Maven has it). Just download anywhere and run `mvn install`:
 
-```
-git clone https://github.com/alexvoronov/geonetworking.git
-cd geonetworking
-mvn clean install
-```
-
-Geonetworking library requires a separate Link Layer entity, you can use e.g. [utoepy](https://github.com/alexvoronov/utoepy).
+Geonetworking library requires a separate Link Layer entity, you can use e.g. [utoepy](https://github.com/alexvoronov/utoepy) or `udp2eth`.
 
 First, start `utoepy`:
 
