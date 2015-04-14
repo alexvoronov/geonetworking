@@ -24,7 +24,7 @@ public class UdpDuplicatorTest {
         UdpDuplicator d = new UdpDuplicator();
         final int duplicatorPort = 4001;
         final int clientPort = 4000;
-        d.add(duplicatorPort, new InetSocketAddress(InetAddress.getLocalHost(), clientPort));
+        d.add(duplicatorPort, new InetSocketAddress(InetAddress.getLoopbackAddress(), clientPort));
         final DatagramSocket socket = new DatagramSocket(clientPort);
         final byte[] data = new byte[] { 0x10, 0x13, 0x7F };
         final List<Throwable> exceptions = Collections.synchronizedList(new ArrayList<Throwable>());

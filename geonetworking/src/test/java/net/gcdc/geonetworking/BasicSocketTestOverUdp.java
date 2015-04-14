@@ -22,15 +22,15 @@ public class BasicSocketTestOverUdp {
         int client2 = 4450;
         int server2 = 4451;
         UdpDuplicator d = new UdpDuplicator();
-        d.add(server1, new InetSocketAddress(InetAddress.getLocalHost(), client1));
-        d.add(server2, new InetSocketAddress(InetAddress.getLocalHost(), client2));
+        d.add(server1, new InetSocketAddress(InetAddress.getLoopbackAddress(), client1));
+        d.add(server2, new InetSocketAddress(InetAddress.getLoopbackAddress(), client2));
 
         boolean hasEthernetHeader = false;
 
         LinkLayer l1 = new LinkLayerUdpToEthernet(client1,
-                new InetSocketAddress(InetAddress.getLocalHost(), server1), hasEthernetHeader);
+                new InetSocketAddress(InetAddress.getLoopbackAddress(), server1), hasEthernetHeader);
         LinkLayer l2 = new LinkLayerUdpToEthernet(client2,
-                new InetSocketAddress(InetAddress.getLocalHost(), server2), hasEthernetHeader);
+                new InetSocketAddress(InetAddress.getLoopbackAddress(), server2), hasEthernetHeader);
 
         StationConfig config1 = new StationConfig();
         StationConfig config2 = new StationConfig();
