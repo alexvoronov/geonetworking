@@ -44,7 +44,7 @@ public class UdpDuplicatorTest {
         });
         receiver.start();
         final DatagramPacket packet = new DatagramPacket(data, data.length,
-                new InetSocketAddress(InetAddress.getLocalHost(), duplicatorPort));
+                new InetSocketAddress(InetAddress.getLoopbackAddress(), duplicatorPort));
         socket.send(packet);
         socket.send(packet);
         receiver.join();
