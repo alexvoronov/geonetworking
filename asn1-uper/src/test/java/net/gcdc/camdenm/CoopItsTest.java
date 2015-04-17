@@ -101,6 +101,7 @@ import net.gcdc.camdenm.CoopIts.VehicleMass;
 import net.gcdc.camdenm.CoopIts.VehicleRole;
 import net.gcdc.camdenm.CoopIts.WMInumber;
 import net.gcdc.camdenm.CoopIts.WheelBaseVehicle;
+import net.gcdc.camdenm.CoopItsTest.TestSeq.CompanyName;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -671,6 +672,47 @@ public class CoopItsTest {
         byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(pdu));
         logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
         assertEquals("E300348B0E2C62C79328430B131E1DB3C3CBD0",
+                UperEncoder.toHexString(encoded));
+    }
+
+
+
+    /*
+     <pre>
+     TestSeq ::= SEQUENCE {
+     companyName     UTF8String (SIZE (1..200))}
+     </pre>
+     */
+    @Sequence
+    public static class TestSeq {
+        CompanyName companyName;
+
+        @Asn1AnonymousType
+        @SizeRange(minValue=1, maxValue=200)
+        @RestrictedString(CharacterRestriction.UTF8String)
+        public static class CompanyName extends Asn1String {
+            public CompanyName() { this(""); }
+            public CompanyName(String value) { super(value); }
+        }
+
+        public TestSeq() { this(new CompanyName()); }
+        public TestSeq(CompanyName companyName) {
+            this.companyName = companyName;
+        }
+    }
+
+    @Test public void Utf8StringTest4() throws IllegalArgumentException, IllegalAccessException {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 15; i++) {
+            sb.append("1234567890");
+        }
+        String string150 = sb.toString();
+        Object pdu = new TestSeq(
+                new CompanyName(string150)
+              );
+        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(pdu));
+        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        assertEquals("8096313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930",
                 UperEncoder.toHexString(encoded));
     }
 
