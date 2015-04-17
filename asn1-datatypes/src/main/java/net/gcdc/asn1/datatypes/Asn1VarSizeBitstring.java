@@ -1,4 +1,4 @@
-package net.gcdc.camdenm;
+package net.gcdc.asn1.datatypes;
 
 import java.util.AbstractList;
 import java.util.BitSet;

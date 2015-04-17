@@ -1,4 +1,4 @@
-package net.gcdc.camdenm;
+package net.gcdc.asn1.uper;
 
 import static org.junit.Assert.assertEquals;
 

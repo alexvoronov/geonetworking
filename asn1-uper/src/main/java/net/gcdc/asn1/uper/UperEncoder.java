@@ -1,4 +1,4 @@
-package net.gcdc.camdenm;
+package net.gcdc.asn1.uper;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
@@ -7,7 +7,25 @@ import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import net.gcdc.asn1.datatypes.Asn1Integer;
+import net.gcdc.asn1.datatypes.Asn1Optional;
+import net.gcdc.asn1.datatypes.Asn1String;
+import net.gcdc.asn1.datatypes.Asn1VarSizeBitstring;
+import net.gcdc.asn1.datatypes.Bitstring;
+import net.gcdc.asn1.datatypes.CharacterRestriction;
+import net.gcdc.asn1.datatypes.Choice;
+import net.gcdc.asn1.datatypes.FixedSize;
+import net.gcdc.asn1.datatypes.HasExtensionMarker;
+import net.gcdc.asn1.datatypes.IntRange;
+import net.gcdc.asn1.datatypes.IsExtension;
+import net.gcdc.asn1.datatypes.RestrictedString;
+import net.gcdc.asn1.datatypes.Sequence;
+import net.gcdc.asn1.datatypes.SizeRange;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +40,11 @@ public class UperEncoder {
     private final static Logger logger = LoggerFactory.getLogger(UperEncoder.class);
 
     private final static int NUM_16K = 16384;
+    @SuppressWarnings("unused")
     private final static int NUM_32K = 32768;
+    @SuppressWarnings("unused")
     private final static int NUM_48K = 49152;
+    @SuppressWarnings("unused")
     private final static int NUM_64K = 65536;
 
     public static <T> byte[] encode(T obj) throws IllegalArgumentException,
@@ -91,6 +112,7 @@ public class UperEncoder {
             if (hasExtensionMarker(type) && !sorter.extensionFields.isEmpty()) {
                 throw new UnsupportedOperationException("Extension fields are not implemented yet");
             }
+            sorter.revertAccess();
             return bitlist;
         } else if (type.getAnnotation(Choice.class) != null) {
             logger.debug("CHOICE");
@@ -358,20 +380,30 @@ public class UperEncoder {
     private static class Asn1ContainerFieldSorter {
         /** "Outside extension root" */
         List<Field> extensionFields = new ArrayList<>();
-        /** "within extension root" */
+        /** "Within extension root" */
         List<Field> ordinaryFields = new ArrayList<>();
         List<Field> mandatoryOrdinaryFields = new ArrayList<>();
         List<Field> optionalOrdinaryFields = new ArrayList<>();
 
+        Map<Field, Boolean> originalAccess = new HashMap<>();
+
         Asn1ContainerFieldSorter(Class<?> type) {
             for (Field f : type.getDeclaredFields()) {
                 if (isTestInstrumentation(f)) { continue; }
+                originalAccess.put(f, f.isAccessible());
+                f.setAccessible(true);
                 if (isExtension(f)) { extensionFields.add(f); }
                 else { ordinaryFields.add(f); }
             }
             for (Field f : ordinaryFields) {
                 if (isMandatory(f)) { mandatoryOrdinaryFields.add(f); }
                 else { optionalOrdinaryFields.add(f); }
+            }
+        }
+
+        public void revertAccess() {
+            for (Entry<Field, Boolean> entry : originalAccess.entrySet()) {
+                entry.getKey().setAccessible(entry.getValue());
             }
         }
     }

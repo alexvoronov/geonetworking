@@ -4,4 +4,4 @@
  * {@link RestrictedString}) are Type-only annotations and sometime require creating extra classes,
  * they can be extended to work as Field annotations too, but this will require modifications to the
  * Encoder. */
-package net.gcdc.camdenm;
+package net.gcdc.asn1.datatypes;

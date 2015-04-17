@@ -1,10 +1,18 @@
-package net.gcdc.camdenm;
+package net.gcdc.asn1.uper;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 
+import net.gcdc.asn1.datatypes.Asn1AnonymousType;
+import net.gcdc.asn1.datatypes.Asn1String;
+import net.gcdc.asn1.datatypes.CharacterRestriction;
+import net.gcdc.asn1.datatypes.RestrictedString;
+import net.gcdc.asn1.datatypes.Sequence;
+import net.gcdc.asn1.datatypes.SizeRange;
+import net.gcdc.asn1.uper.CoopItsTest.TestSeq.CompanyName;
+import net.gcdc.camdenm.CoopIts;
 import net.gcdc.camdenm.CoopIts.AccelerationControl;
 import net.gcdc.camdenm.CoopIts.ActionID;
 import net.gcdc.camdenm.CoopIts.AlacarteContainer;
@@ -42,6 +50,9 @@ import net.gcdc.camdenm.CoopIts.InformationQuality;
 import net.gcdc.camdenm.CoopIts.ItineraryPath;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
+import net.gcdc.camdenm.CoopIts.Cam;
+import net.gcdc.camdenm.CoopIts.Denm;
+import net.gcdc.camdenm.CoopIts.GenerationDeltaTime;
 import net.gcdc.camdenm.CoopIts.LanePosition;
 import net.gcdc.camdenm.CoopIts.Latitude;
 import net.gcdc.camdenm.CoopIts.LightBarSirenInUse;
@@ -101,7 +112,6 @@ import net.gcdc.camdenm.CoopIts.VehicleMass;
 import net.gcdc.camdenm.CoopIts.VehicleRole;
 import net.gcdc.camdenm.CoopIts.WMInumber;
 import net.gcdc.camdenm.CoopIts.WheelBaseVehicle;
-import net.gcdc.camdenm.CoopItsTest.TestSeq.CompanyName;
 
 import org.junit.Test;
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package net.gcdc.camdenm;
+package net.gcdc.asn1.datatypes;
 
 public abstract class Asn1Integer {
     @Override public String toString() {

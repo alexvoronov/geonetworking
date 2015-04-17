@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import net.gcdc.asn1.uper.UperEncoder;
 import net.gcdc.camdenm.CoopIts.AccelerationControl;
 import net.gcdc.camdenm.CoopIts.Altitude;
 import net.gcdc.camdenm.CoopIts.AltitudeConfidence;
@@ -64,7 +65,6 @@ import net.gcdc.camdenm.CoopIts.VehicleRole;
 import net.gcdc.camdenm.CoopIts.YawRate;
 import net.gcdc.camdenm.CoopIts.YawRateConfidence;
 import net.gcdc.camdenm.CoopIts.YawRateValue;
-import net.gcdc.camdenm.UperEncoder;
 import net.gcdc.geonetworking.Address;
 import net.gcdc.geonetworking.Area;
 import net.gcdc.geonetworking.BtpPacket;
