@@ -5,10 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.TYPE})
+@Target({ElementType.TYPE, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface SizeRange {
-    int minValue();
-    int maxValue();
-    boolean hasExtensionMarker() default false;
+public @interface RestrictedString {
+    CharacterRestriction value();
 }

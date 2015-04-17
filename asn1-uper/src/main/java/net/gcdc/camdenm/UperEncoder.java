@@ -2,6 +2,9 @@ package net.gcdc.camdenm;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,6 +21,11 @@ import org.slf4j.LoggerFactory;
 public class UperEncoder {
     private final static Logger logger = LoggerFactory.getLogger(UperEncoder.class);
 
+    private final static int NUM_16K = 16384;
+    private final static int NUM_32K = 32768;
+    private final static int NUM_48K = 49152;
+    private final static int NUM_64K = 65536;
+
     public static <T> byte[] encode(T obj) throws IllegalArgumentException,
     IllegalAccessException {
         return boolToBits(encodeAsList(obj));
@@ -27,7 +35,7 @@ public class UperEncoder {
     public static <T> List<Boolean> encodeAsList(T obj) throws IllegalArgumentException,
             IllegalAccessException {
         Class<?> type = obj.getClass();
-        if (type.isAssignableFrom(int.class)) {
+        if (obj instanceof Integer) {
             IntRange range = type.getAnnotation(IntRange.class);
             long lowerBound = range == null ? Integer.MIN_VALUE : range.minValue();
             long upperBound = range == null ? Integer.MAX_VALUE : range.maxValue();
@@ -35,7 +43,7 @@ public class UperEncoder {
             List<Boolean> result = encodeConstrainedInt((Integer) obj, lowerBound, upperBound, hasExtensionMarker);
             logger.debug("int({}): {}", obj, toBinary(result));
             return result;
-        } else if (type.isAssignableFrom(long.class)) {
+        } else if (obj instanceof Long) {
             IntRange range = type.getAnnotation(IntRange.class);
             long lowerBound = range == null ? Long.MIN_VALUE : range.minValue();
             long upperBound = range == null ? Long.MAX_VALUE : range.maxValue();
@@ -70,13 +78,13 @@ public class UperEncoder {
             }
             // Bitmask for optional fields.
             for (Field f : sorter.optionalOrdinaryFields) {
-                logger.debug("with optional field {}", f.get(obj) != null ? "present" : "absent" );
+                logger.debug("with optional field {} {}", f.getName(), f.get(obj) != null ? "present" : "absent" );
                 bitlist.add(f.get(obj) != null);  // null means the field is absent.
             }
             // All ordinary fields (fields within extension root).
             for (Field f : sorter.ordinaryFields) {
                 if ((isMandatory(f) || f.get(obj) != null) && !isTestInstrumentation(f)) {
-                    logger.trace("Adding field : {}", f.getName());
+                    logger.debug("Field : {}", f.getName());
                     bitlist.addAll(encodeAsList(f.get(obj)));
                 }
             }
@@ -212,24 +220,109 @@ public class UperEncoder {
             }
         } else if (obj instanceof List<?>) {
             logger.debug("SEQUENCE OF");
+            List<Boolean> bitlist = new ArrayList<>();
+            List<?> objAsList = (List<?>) obj;
             SizeRange sizeRange = type.getAnnotation(SizeRange.class);
             if (sizeRange == null) {
                 throw new UnsupportedOperationException("Sequence-of without size range is not implemented yet ");
             }
-            if (sizeRange.hasExtensionMarker()) {
-                throw new UnsupportedOperationException("Sequence-of with extension markers is not implemented yet ");
+            boolean outsideOfRange =  objAsList.size() < sizeRange.minValue() || sizeRange.maxValue() < objAsList.size();
+            if (outsideOfRange && !sizeRange.hasExtensionMarker()) {
+                throw new IllegalArgumentException("Out-of-range size for " + obj.getClass() + ", expected " +
+                        sizeRange.minValue() + ".." + sizeRange.maxValue() + ", got " + objAsList.size());
             }
-            List<Boolean> bitlist = new ArrayList<>();
-            List<?> objAsList = (List<?>) obj;
+            if (sizeRange.hasExtensionMarker()) {
+                bitlist.add(outsideOfRange);
+                logger.debug("With Extension Marker, {} of range ({} <= {} <= {})", (outsideOfRange?"outside":"inside"), sizeRange.minValue(), objAsList.size(), sizeRange.maxValue());
+                if (outsideOfRange) {
+                    throw new UnsupportedOperationException("Sequence-of size range extensions are not implemented yet, range " +
+                            sizeRange.minValue() + ".." + sizeRange.maxValue() + ", requested size " + objAsList.size());
+                }
+            }
             List<Boolean> sizeBits = encodeConstrainedInt(objAsList.size(), sizeRange.minValue(), sizeRange.maxValue());
             logger.debug("size {} : {}", objAsList.size(), toBinary(sizeBits));
+            for (Object o : objAsList) { logger.debug("  all elems of Seq Of: {}", o); }
             bitlist.addAll(sizeBits);
             for (Object elem : objAsList) {
                 bitlist.addAll(encodeAsList(elem));
             }
             return bitlist;
+        } else if (obj instanceof String || obj instanceof Asn1String) {
+            logger.debug("STRING {}", obj);
+            String string = (obj instanceof String) ? ((String) obj) : ((Asn1String) obj).value();
+            RestrictedString restrictionAnnotation = type.getAnnotation(RestrictedString.class);
+            if (restrictionAnnotation == null) {
+                throw new UnsupportedOperationException("Unrestricted character strings are not supported yet. All annotations: " + Arrays.asList(type.getAnnotations()));
+            }
+            CharacterRestriction restriction = restrictionAnnotation.value();
+            FixedSize fixedSize = type.getAnnotation(FixedSize.class);
+            SizeRange sizeRange = type.getAnnotation(SizeRange.class);
+            if (fixedSize != null && fixedSize.value() != string.length()) {
+                throw new IllegalArgumentException("Bad string length, expected " + fixedSize.value() + ", got " + string.length());
+            }
+            if (sizeRange != null && (string.length() < sizeRange.minValue() || sizeRange.maxValue() < string.length())) {
+                throw new IllegalArgumentException("Bad string length, expected " + sizeRange.minValue() + ".." + sizeRange.maxValue() + ", got " + string.length());
+            }
+            if (restriction == CharacterRestriction.UTF8String) {  // UTF8 length varies, so no sizes.
+                List<Boolean> bitlist = new ArrayList<>();
+                List<Boolean> stringEncoding = new ArrayList<>();
+                for (char c : string.toCharArray()) {
+                    stringEncoding.addAll(encodeChar(c, restriction));
+                }
+                if (stringEncoding.size() % 8 != 0) {
+                    throw new AssertionError("utf8 encoding resulted not in multiple of 8 bits");
+                }
+                int numOctets = stringEncoding.size() / 8;
+                List<Boolean> lengthEncoding = encodeLengthDeterminant(numOctets);
+                bitlist.addAll(lengthEncoding);
+                bitlist.addAll(stringEncoding);
+                logger.debug("UTF8String {}, length det {} ({}) bits {}", string, stringEncoding.size(), toBinary(lengthEncoding), toBinary(stringEncoding));
+                return bitlist;
+            } else if (fixedSize != null) {
+                if (fixedSize.value() != string.length()) {
+                    throw new IllegalArgumentException("String length does not match constraints");
+                }
+                List<Boolean> bitlist = new ArrayList<>();
+                for (int i = 0; i < fixedSize.value(); i++) {
+                    bitlist.addAll(encodeChar(string.charAt(i), restriction));
+                }
+                logger.debug("STRING {}: {}", obj.getClass().getName(), toBinary(bitlist));
+                return bitlist;
+            } else if (sizeRange != null) {
+                List<Boolean> lengthBits = encodeConstrainedInt(string.length(), sizeRange.minValue(), sizeRange.maxValue());
+                List<Boolean> valuebits = new ArrayList<>();
+                for (int i = 0; i < string.length(); i++) {
+                    valuebits.addAll(encodeChar(string.charAt(i), restriction));
+                }
+                logger.debug("STRING {} size {}: {}", obj.getClass().getName(), toBinary(lengthBits), toBinary(valuebits));
+                List<Boolean> result = new ArrayList<>();
+                result.addAll(lengthBits);
+                result.addAll(valuebits);
+                return result;
+            } else {
+                throw new IllegalArgumentException("Both SizeRange and FixedSize are null");
+            }
         } else {
             throw new UnsupportedOperationException("Can't encode type " + obj.getClass());
+        }
+    }
+
+    public static List<Boolean> encodeChar(char c, CharacterRestriction restriction) {
+        switch (restriction) {
+            case IA5String:
+                return encodeConstrainedInt(
+                        StandardCharsets.US_ASCII.encode(CharBuffer.wrap(new char[] {c})).get() & 0xff,
+                        0,
+                        127);
+            case UTF8String:
+                List<Boolean> bitlist = new ArrayList<>();
+                ByteBuffer buffer = StandardCharsets.UTF_8.encode(CharBuffer.wrap(new char[] {c}));
+                for (int i = 0; i < buffer.limit(); i++) {
+                    bitlist.addAll(encodeConstrainedInt(buffer.get() & 0xff, 0, 255));
+                }
+                return bitlist;
+            default:
+                throw new UnsupportedOperationException("String type " + restriction + " is not supported yet");
         }
     }
 
@@ -287,6 +380,30 @@ public class UperEncoder {
         return f.getName().startsWith("$");
     }
 
+    public static List<Boolean> encodeLengthDeterminant(int n) {
+        final List<Boolean> bitlist = new ArrayList<>();
+        if (n < 128) {
+            bitlist.add(false);
+            bitlist.addAll(encodeConstrainedInt(n, 0, 127));
+            logger.debug("Length determinant {}: {}", n, toBinary(bitlist));
+            if (bitlist.size() != 8) {
+                throw new AssertionError("length determinant encoded not as 8 bits");
+            }
+            return bitlist;
+        } else if (n < NUM_16K) {
+            bitlist.add(true);
+            bitlist.add(false);
+            bitlist.addAll(encodeConstrainedInt(n, 0, NUM_16K-1));
+            logger.debug("Length determinant {}: {}", n, toBinary(bitlist));
+            if (bitlist.size() != 16) {
+                throw new AssertionError("length determinant encoded not as 16 bits");
+            }
+            return bitlist;
+        } else {
+            throw new UnsupportedOperationException("Length greater than 16K is not supported yet.");
+        }
+    }
+
     public static List<Boolean> encodeConstrainedInt(
             final long value,
             final long lowerBound,
@@ -301,11 +418,17 @@ public class UperEncoder {
         if (upperBound < lowerBound) {
             throw new IllegalArgumentException("Lower bound " + lowerBound + " is larger that upper bound " + upperBound);
         }
+        if (!hasExtensionMarker && (value < lowerBound || value > upperBound)) {
+            throw new IllegalArgumentException("Value " + value + " is outside of fixed range " +
+                    lowerBound + ".." + upperBound);
+        }
         final long range = upperBound - lowerBound + 1;
         final List<Boolean> bitlist = new ArrayList<>();
         if (hasExtensionMarker) {
-            bitlist.add(value < lowerBound || value > upperBound);
-            if (value < lowerBound || value > upperBound) {
+            boolean outsideOfRange = value < lowerBound || value > upperBound;
+            logger.debug("With extension marker, {} extension range", outsideOfRange? "outside":"within");
+            bitlist.add(outsideOfRange);
+            if (outsideOfRange) {
                 throw new UnsupportedOperationException("INT extensions are not supported yet");
             }
         }
@@ -314,13 +437,15 @@ public class UperEncoder {
         for (int i = big.bitLength() - 1; i >= 0; i--) {
             bitlist.add(big.testBit(i));
         }
-        int requiredLength = BigInteger.valueOf(range - 1).bitLength();
+        int requiredLength = BigInteger.valueOf(range - 1).bitLength() + (hasExtensionMarker ? 1 : 0);
         logger.trace("val {} ({}..{}) required length: {}, resulting len: {}, maxval: {}",
                 value, lowerBound, upperBound, requiredLength, paddedTo(requiredLength, bitlist).size(), toBinary( BigInteger.valueOf(range).toByteArray()));
         return paddedTo(requiredLength, bitlist);
     }
 
     private static List<Boolean> paddedTo(int length, List<Boolean> bitlist) {
+        if (length < bitlist.size()) { throw new IllegalArgumentException(
+                "List is longer then desired length, " + bitlist.size() + " > " + length); }
         Boolean[] buffer = new Boolean[length - bitlist.size()];
         Arrays.fill(buffer, false);
         List<Boolean> result = new ArrayList<>(length);

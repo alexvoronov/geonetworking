@@ -10,10 +10,10 @@ Datatypes are enough to handle [camdenm](https://github.com/alexvoronov/geonetwo
 ### Other ASN.1 tools
 ITU-T have a [list of ASN.1 tools](http://www.itu.int/en/ITU-T/asn1/Pages/Tools.aspx).
 
-### Acknowledgements
+### Acknowledgments
 This implementation was partly developed within [i-GAME](http://gcdc.net/i-game) project that has received funding from the European Union's Seventh Framework Programme for research, technological development and demonstration under grant agreement no [612035](http://cordis.europa.eu/project/rcn/110506_en.html).
 
-Use of annotations and reflection was insipred by [Gson](https://code.google.com/p/google-gson/).
+Use of annotations and reflection was inspired by [Gson](https://code.google.com/p/google-gson/).
 
 ### License
 

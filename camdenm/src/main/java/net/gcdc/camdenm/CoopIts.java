@@ -1187,8 +1187,10 @@ public class CoopIts {
 
         public ClosedLanes() { this(new DrivingLaneStatus()); }
         public ClosedLanes(DrivingLaneStatus drivingLaneStatus) { this(null, drivingLaneStatus); }
-        public ClosedLanes(HardShoulderStatus hardShoulderStatus,
-                DrivingLaneStatus drivingLaneStatus) {
+        public ClosedLanes(
+                HardShoulderStatus hardShoulderStatus,
+                DrivingLaneStatus drivingLaneStatus
+                ) {
             this.hardShoulderStatus = hardShoulderStatus;
             this.drivingLaneStatus = drivingLaneStatus;
         }
@@ -1202,6 +1204,7 @@ public class CoopIts {
         private final int value;
         public int value() { return value; }
         private HardShoulderStatus(int value) { this.value = value; }
+        public static HardShoulderStatus defaultValue() { return vailableForStopping; }
     }
 
     @Bitstring
@@ -1412,9 +1415,9 @@ public class CoopIts {
     @Sequence
     public static class DecentralizedEnvironmentalNotificationMessage {
         ManagementContainer management;
-        @Asn1Optional Object situation;
-        @Asn1Optional Object location;
-        @Asn1Optional Object alacarte;
+        @Asn1Optional SituationContainer situation;
+        @Asn1Optional LocationContainer location;
+        @Asn1Optional AlacarteContainer alacarte;
 
         public DecentralizedEnvironmentalNotificationMessage() { this(new ManagementContainer()); }
 
@@ -1422,10 +1425,11 @@ public class CoopIts {
             this(management, null, null, null);
         }
 
-        public DecentralizedEnvironmentalNotificationMessage(ManagementContainer management,
-                Object situation,
-                Object location,
-                Object alacarte) {
+        public DecentralizedEnvironmentalNotificationMessage(
+                ManagementContainer management,
+                SituationContainer situation,
+                LocationContainer location,
+                AlacarteContainer alacarte) {
             this.management = management;
             this.situation = situation;
             this.location = location;
@@ -1447,7 +1451,7 @@ public class CoopIts {
         @Asn1Optional TransmissionInterval transmissionInterval;
         StationType stationType;
 
-        protected ManagementContainer() {
+        public ManagementContainer() {
             this.actionID = new ActionID();
             this.detectionTime = new TimestampIts();
             this.referenceTime = new TimestampIts();
@@ -1455,28 +1459,72 @@ public class CoopIts {
             this.stationType = new StationType();
         }
 
+        public ManagementContainer(
+                ActionID actionID,
+                TimestampIts detectionTime,
+                TimestampIts referenceTime,
+                Termination termination,
+                ReferencePosition eventPosition,
+                RelevanceDistance relevanceDistance,
+                RelevanceTrafficDirection relevanceTrafficDirection,
+                ValidityDuration validityDuration,
+                TransmissionInterval transmissionInterval,
+                StationType stationType
+                ) {
+            this.actionID = actionID;
+            this.detectionTime = detectionTime;
+            this.referenceTime = referenceTime;
+            this.termination = termination;
+            this.eventPosition = eventPosition;
+            this.relevanceDistance = relevanceDistance;
+            this.relevanceTrafficDirection = relevanceTrafficDirection;
+            this.validityDuration = validityDuration;
+            this.transmissionInterval = transmissionInterval;
+            this.stationType = stationType;
+        }
+
+        private ManagementContainer(Builder builder) {
+            this(
+                    builder.actionID,
+                    builder.detectionTime,
+                    builder.referenceTime,
+                    builder.termination,
+                    builder.eventPosition,
+                    builder.relevanceDistance,
+                    builder.relevanceTrafficDirection,
+                    builder.validityDuration,
+                    builder.transmissionInterval,
+                    builder.stationType);
+        }
+
         public static Builder builder() { return new Builder(); }
 
         public static class Builder {
-            private ManagementContainer val = new ManagementContainer();
-            private boolean created = false;
-            private void checkCreated() {
-                if (created) { throw new IllegalStateException("Already created"); }
-            }
-            public ManagementContainer create() { created = true; return val; }
+            ActionID actionID;
+            TimestampIts detectionTime;
+            TimestampIts referenceTime;
+            Termination termination;
+            ReferencePosition eventPosition;
+            RelevanceDistance relevanceDistance;
+            RelevanceTrafficDirection relevanceTrafficDirection;
+            ValidityDuration validityDuration;
+            TransmissionInterval transmissionInterval;
+            StationType stationType;
+
+            public ManagementContainer create() { return new ManagementContainer(this); }
 
             private Builder() { }
 
-            public Builder actionID(ActionID actionID) { checkCreated(); val.actionID = actionID; return this; }
-            public Builder detectionTime(TimestampIts detectionTime) { checkCreated(); val.detectionTime = detectionTime; return this; }
-            public Builder referenceTime(TimestampIts referenceTime) { checkCreated(); val.referenceTime = referenceTime; return this; }
-            public Builder termination(Termination termination) { checkCreated(); val.termination = termination; return this; }
-            public Builder eventPosition(ReferencePosition eventPosition) { checkCreated(); val.eventPosition = eventPosition; return this; }
-            public Builder relevanceDistance(RelevanceDistance relevanceDistance) { checkCreated(); val.relevanceDistance = relevanceDistance; return this; }
-            public Builder relevanceTrafficDirection(RelevanceTrafficDirection relevanceTrafficDirection) { checkCreated(); val.relevanceTrafficDirection = relevanceTrafficDirection; return this; }
-            public Builder validityDuration(ValidityDuration validityDuration) { checkCreated(); val.validityDuration = validityDuration; return this; }
-            public Builder transmissionInterval(TransmissionInterval transmissionInterval) { checkCreated(); val.transmissionInterval = transmissionInterval; return this; }
-            public Builder stationType(StationType stationType) { checkCreated(); val.stationType = stationType; return this; }
+            public Builder actionID                  (ActionID                  actionID)                  { this.actionID                  = actionID;                  return this; }
+            public Builder detectionTime             (TimestampIts              detectionTime)             { this.detectionTime             = detectionTime;             return this; }
+            public Builder referenceTime             (TimestampIts              referenceTime)             { this.referenceTime             = referenceTime;             return this; }
+            public Builder termination               (Termination               termination)               { this.termination               = termination;               return this; }
+            public Builder eventPosition             (ReferencePosition         eventPosition)             { this.eventPosition             = eventPosition;             return this; }
+            public Builder relevanceDistance         (RelevanceDistance         relevanceDistance)         { this.relevanceDistance         = relevanceDistance;         return this; }
+            public Builder relevanceTrafficDirection (RelevanceTrafficDirection relevanceTrafficDirection) { this.relevanceTrafficDirection = relevanceTrafficDirection; return this; }
+            public Builder validityDuration          (ValidityDuration          validityDuration)          { this.validityDuration          = validityDuration;          return this; }
+            public Builder transmissionInterval      (TransmissionInterval      transmissionInterval)      { this.transmissionInterval      = transmissionInterval;      return this; }
+            public Builder stationType               (StationType               stationType)               { this.stationType               = stationType;               return this; }
         }
     }
 
@@ -1507,6 +1555,7 @@ public class CoopIts {
         private final int value;
         public int value() { return value; }
         private RelevanceDistance(int value) { this.value = value; }
+        public static RelevanceDistance defaultValue() { return lessThan50m; }
     }
 
     public static enum RelevanceTrafficDirection {
@@ -1518,6 +1567,7 @@ public class CoopIts {
         private final int value;
         public int value() { return value; }
         private RelevanceTrafficDirection(int value) { this.value = value; }
+        public static RelevanceTrafficDirection defaultValue() { return allTrafficDirections; }
     }
 
     @IntRange(minValue = 0, maxValue = 65535)
@@ -1553,5 +1603,554 @@ public class CoopIts {
         private final int value;
         public int value() { return value; }
         private Termination(int value) { this.value = value; }
+        public static Termination defaultValue() { return isCancellation; }
+    }
+
+    @Sequence
+    @HasExtensionMarker
+    public static class SituationContainer {
+        InformationQuality informationQuality;
+        CauseCode eventType;
+        @Asn1Optional CauseCode linkedCause;
+        @Asn1Optional EventHistory eventHistory;
+
+        public SituationContainer() { this(new InformationQuality(), new CauseCode()); }
+        public SituationContainer(InformationQuality informationQuality, CauseCode eventType) {
+            this(informationQuality, eventType, null, null);
+        }
+        public SituationContainer(
+                InformationQuality informationQuality,
+                CauseCode eventType,
+                CauseCode linkedCause,
+                EventHistory eventHistory
+                ) {
+            this.informationQuality = informationQuality;
+            this.eventType = eventType;
+            this.linkedCause = linkedCause;
+            this.eventHistory = eventHistory;
+        }
+    }
+
+    @IntRange(minValue = 0, maxValue = 7)
+    public static class InformationQuality extends Asn1Integer {
+        public static final int unavailable = 0;
+        public static final int lowest = 1;
+        public static final int highest = 7;
+
+        public InformationQuality() { this(unavailable); }
+        public InformationQuality(int value) { super(value); }
+    }
+
+    @SizeRange(minValue = 1, maxValue = 23)
+    public static class EventHistory extends Asn1SequenceOf<EventPoint> {
+        public EventHistory(EventPoint... coll) {
+            super(Arrays.asList(coll));
+        }
+    }
+
+    @Sequence
+    public static class EventPoint {
+        DeltaReferencePosition eventPosition;
+        @Asn1Optional PathDeltaTime eventDeltaTime;
+        InformationQuality informationQuality;
+
+        public EventPoint() { this(new DeltaReferencePosition(), new InformationQuality()); }
+        public EventPoint(DeltaReferencePosition eventPosition,
+                InformationQuality informationQuality) {
+            this(eventPosition, null, informationQuality); }
+        public EventPoint(DeltaReferencePosition eventPosition,
+            PathDeltaTime eventDeltaTime,
+            InformationQuality informationQuality) {
+            this.eventPosition = eventPosition;
+            this.eventDeltaTime = eventDeltaTime;
+            this.informationQuality = informationQuality;
+        }
+    }
+
+    @Sequence
+    @HasExtensionMarker
+    public static class LocationContainer {
+        @Asn1Optional Speed eventSpeed;
+        @Asn1Optional Heading eventPositionHeading;
+        Traces traces;
+        @Asn1Optional RoadType roadType;
+
+        public LocationContainer() { this(new Traces()); }
+        public LocationContainer(Traces traces) { this(null, null, traces, null); }
+        public LocationContainer(
+                Speed eventSpeed,
+                Heading eventPositionHeading,
+                Traces traces,
+                RoadType roadType
+                ) {
+            this.eventSpeed = eventSpeed;
+            this.eventPositionHeading = eventPositionHeading;
+            this.traces = traces;
+            this.roadType = roadType;
+        }
+    }
+
+    @SizeRange(minValue = 1, maxValue = 7)
+    public static class Traces extends Asn1SequenceOf<PathHistory> {
+        public Traces(PathHistory... coll) {
+            super(Arrays.asList(coll));
+        }
+    }
+
+    public static enum RoadType {
+        urban_NoStructuralSeparationToOppositeLanes(0),
+        urban_WithStructuralSeparationToOppositeLanes(1),
+        nonUrban_NoStructuralSeparationToOppositeLanes(2),
+        nonUrban_WithStructuralSeparationToOppositeLanes(3);
+
+        private final int value;
+        public int value() { return value; }
+        private RoadType(int value) { this.value = value; }
+        public static RoadType defaultValue() { return urban_NoStructuralSeparationToOppositeLanes; }
+    }
+
+    @Sequence
+    @HasExtensionMarker
+    public static class AlacarteContainer {
+        @Asn1Optional LanePosition lanePosition;
+        @Asn1Optional ImpactReductionContainer impactReduction;
+        @Asn1Optional Temperature externalTemperature;
+        @Asn1Optional RoadWorksContainerExtended roadWorks;
+        @Asn1Optional PositioningSolutionType positioningSolution;
+        @Asn1Optional StationaryVehicleContainer stationaryVehicle;
+
+        public AlacarteContainer() { this(null, null, null, null, null, null); }
+        public AlacarteContainer(
+                LanePosition lanePosition,
+                ImpactReductionContainer impactReduction,
+                Temperature externalTemperature,
+                RoadWorksContainerExtended roadWorks,
+                PositioningSolutionType positioningSolution,
+                StationaryVehicleContainer stationaryVehicle
+                ) {
+            this.lanePosition = lanePosition;
+            this.impactReduction = impactReduction;
+            this.externalTemperature = externalTemperature;
+            this.roadWorks = roadWorks;
+            this.positioningSolution = positioningSolution;
+            this.stationaryVehicle = stationaryVehicle;
+        }
+    }
+
+    @Sequence
+    public static class ImpactReductionContainer {
+        HeightLonCarr heightLonCarrLeft;
+        HeightLonCarr heightLonCarrRight;
+        PosLonCarr posLonCarrLeft;
+        PosLonCarr posLonCarrRight;
+        PositionOfPillars positionOfPillars;
+        PosCentMass posCentMass;
+        WheelBaseVehicle wheelBaseVehicle;
+        TurningRadius turningRadius;
+        PosFrontAx posFrontAx;
+        PositionOfOccupants positionOfOccupants;
+        VehicleMass vehicleMass;
+        RequestResponseIndication requestResponseIndication;
+
+        public ImpactReductionContainer() {
+            this(
+                    new HeightLonCarr(),
+                    new HeightLonCarr(),
+                    new PosLonCarr(),
+                    new PosLonCarr(),
+                    new PositionOfPillars(),
+                    new PosCentMass(),
+                    new WheelBaseVehicle(),
+                    new TurningRadius(),
+                    new PosFrontAx(),
+                    new PositionOfOccupants(),
+                    new VehicleMass(),
+                    RequestResponseIndication.defaultValue());
+        }
+
+        // This constructor should be changed to a Builder.
+        public ImpactReductionContainer(
+                HeightLonCarr heightLonCarrLeft,
+                HeightLonCarr heightLonCarrRight,
+                PosLonCarr posLonCarrLeft,
+                PosLonCarr posLonCarrRight,
+                PositionOfPillars positionOfPillars,
+                PosCentMass posCentMass,
+                WheelBaseVehicle wheelBaseVehicle,
+                TurningRadius turningRadius,
+                PosFrontAx posFrontAx,
+                PositionOfOccupants positionOfOccupants,
+                VehicleMass vehicleMass,
+                RequestResponseIndication requestResponseIndication
+                ) {
+            this.heightLonCarrLeft = heightLonCarrLeft;
+            this.heightLonCarrRight = heightLonCarrRight;
+            this.posLonCarrLeft = posLonCarrLeft;
+            this.posLonCarrRight = posLonCarrRight;
+            this.positionOfPillars = positionOfPillars;
+            this.posCentMass = posCentMass;
+            this.wheelBaseVehicle = wheelBaseVehicle;
+            this.turningRadius = turningRadius;
+            this.posFrontAx = posFrontAx;
+            this.positionOfOccupants = positionOfOccupants;
+            this.vehicleMass = vehicleMass;
+            this.requestResponseIndication = requestResponseIndication;
+        }
+    }
+
+
+    @IntRange(minValue = 1, maxValue = 100)
+    public static class HeightLonCarr extends Asn1Integer {
+        public static final int oneCentimeter = 1;
+        public static final int unavailable = 100;
+
+        public HeightLonCarr() { this(unavailable); }
+        public HeightLonCarr(int value) { super(value); }
+    }
+
+    @IntRange(minValue = 1, maxValue = 127)
+    public static class PosLonCarr extends Asn1Integer {
+        public static final int oneCentimeter = 1;
+        public static final int unavailable = 127;
+
+        public PosLonCarr() { this(unavailable); }
+        public PosLonCarr(int value) { super(value); }
+    }
+
+    @IntRange(minValue = -60, maxValue = 67)
+    public static class Temperature extends Asn1Integer {
+        public static final int equalOrSmallerThanMinus60Deg = -60;
+        public static final int oneDegreeCelsius = 1;
+        public static final int equalOrGreaterThan67Deg = 67;
+
+        public Temperature() { this(27); }
+        public Temperature(int value) { super(value); }
+    }
+
+    @Sequence
+    public static class RoadWorksContainerExtended {
+        @Asn1Optional LightBarSirenInUse lightBarSirenInUse;
+        @Asn1Optional ClosedLanes closedLanes;
+        @Asn1Optional RestrictedTypes restriction;
+        @Asn1Optional SpeedLimit speedLimit;
+        @Asn1Optional CauseCode incidentIndication;
+        @Asn1Optional ItineraryPath recommendedPath;
+        @Asn1Optional DeltaReferencePosition startingPointSpeedLimit;
+        @Asn1Optional TrafficRule trafficFlowRule;
+        @Asn1Optional ReferenceDenms referenceDenms;
+
+        public RoadWorksContainerExtended() { this(null, null, null, null, null, null, null, null, null); }
+
+        // This constructor should be changed to a Builder.
+        public RoadWorksContainerExtended(
+                LightBarSirenInUse lightBarSirenInUse,
+                ClosedLanes closedLanes,
+                RestrictedTypes restriction,
+                SpeedLimit speedLimit,
+                CauseCode incidentIndication,
+                ItineraryPath recommendedPath,
+                DeltaReferencePosition startingPointSpeedLimit,
+                TrafficRule trafficFlowRule,
+                ReferenceDenms referenceDenms
+                ) {
+            this.lightBarSirenInUse = lightBarSirenInUse;
+            this.closedLanes = closedLanes;
+            this.restriction = restriction;
+            this.speedLimit = speedLimit;
+            this.incidentIndication = incidentIndication;
+            this.recommendedPath = recommendedPath;
+            this.startingPointSpeedLimit = startingPointSpeedLimit;
+            this.trafficFlowRule = trafficFlowRule;
+            this.referenceDenms = referenceDenms;
+        }
+    }
+
+    @SizeRange(minValue = 1, maxValue = 40)
+    public static class ItineraryPath extends Asn1SequenceOf<ReferencePosition> {
+        public ItineraryPath(ReferencePosition... coll) {
+            super(Arrays.asList(coll));
+        }
+    }
+
+    @SizeRange(minValue = 1, maxValue = 3, hasExtensionMarker = true)
+    public static class RestrictedTypes extends Asn1SequenceOf<StationType> {
+        public RestrictedTypes(StationType... coll) {
+            super(Arrays.asList(coll));
+        }
+    }
+
+    @IntRange(minValue = 1, maxValue = 30)
+    public static class PosPillar extends Asn1Integer {
+        public static final int tenCentimeters = 1;
+        public static final int unavailable = 30;
+
+        public PosPillar() { this(unavailable); }
+        public PosPillar(int value) { super(value); }
+    }
+
+    @IntRange(minValue = 1, maxValue = 63)
+    public static class PosCentMass extends Asn1Integer {
+        public static final int tenCentimeters = 1;
+        public static final int unavailable = 63;
+
+        public PosCentMass() { this(unavailable); }
+        public PosCentMass(int value) { super(value); }
+    }
+
+    @IntRange(minValue = 1, maxValue = 127)
+    public static class WheelBaseVehicle extends Asn1Integer {
+        public static final int tenCentimeters = 1;
+        public static final int unavailable = 127;
+
+        public WheelBaseVehicle() { this(unavailable); }
+        public WheelBaseVehicle(int value) { super(value); }
+    }
+
+    @IntRange(minValue = 1, maxValue = 255)
+    public static class TurningRadius extends Asn1Integer {
+        public static final int point4Meters = 1;
+        public static final int unavailable = 255;
+
+        public TurningRadius() { this(unavailable); }
+        public TurningRadius(int value) { super(value); }
+    }
+
+    @IntRange(minValue = 1, maxValue = 20)
+    public static class PosFrontAx extends Asn1Integer {
+        public static final int tenCentimeters = 1;
+        public static final int unavailable = 20;
+
+        public PosFrontAx() { this(unavailable); }
+        public PosFrontAx(int value) { super(value); }
+    }
+
+    @IntRange(minValue = 1, maxValue = 1024)
+    public static class VehicleMass extends Asn1Integer {
+        public static final int hundredKg = 1;
+        public static final int unavailable = 1024;
+
+        public VehicleMass() { this(unavailable); }
+        public VehicleMass(int value) { super(value); }
+    }
+
+    @Bitstring
+    @FixedSize(20)
+    public static class PositionOfOccupants {
+        boolean row1LeftOccupied;  // Bit (0)
+        boolean row1RightOccupied;  // Bit (1)
+        boolean row1MidOccupied;  // Bit (2)
+        boolean row1NotDetectable;  // Bit (3)
+        boolean row1NotPresent;  // Bit (4)
+        boolean row2LeftOccupied;  // Bit (5)
+        boolean row2RightOccupied;  // Bit (6)
+        boolean row2MidOccupied;  // Bit (7)
+        boolean row2NotDetectable;  // Bit (8)
+        boolean row2NotPresent;  // Bit (9)
+        boolean row3LeftOccupied;  // Bit (10)
+        boolean row3RightOccupied;  // Bit (11)
+        boolean row3MidOccupied;  // Bit (12)
+        boolean row3NotDetectable;  // Bit (13)
+        boolean row3NotPresent;  // Bit (14)
+        boolean row4LeftOccupied;  // Bit (15)
+        boolean row4RightOccupied;  // Bit (16)
+        boolean row4MidOccupied;  // Bit (17)
+        boolean row4NotDetectable;  // Bit (18)
+        boolean row4NotPresent;  // Bit (19)
+    }
+
+    public static enum RequestResponseIndication {
+        request(0),
+        response(1);
+
+        private final int value;
+        public int value() { return value; }
+        public static RequestResponseIndication defaultValue() { return request; }
+        private RequestResponseIndication(int value) { this.value = value; }
+    }
+
+
+    @SizeRange(minValue = 1, maxValue = 3, hasExtensionMarker = true)
+    public static class PositionOfPillars extends Asn1SequenceOf<PosPillar> {
+        public PositionOfPillars(PosPillar... coll) {
+            super(Arrays.asList(coll));
+        }
+    }
+
+    @SizeRange(minValue = 1, maxValue = 8, hasExtensionMarker = true)
+    public static class ReferenceDenms extends Asn1SequenceOf<ActionID> {
+        public ReferenceDenms(ActionID... coll) {
+            super(Arrays.asList(coll));
+        }
+    }
+
+    @HasExtensionMarker
+    public static enum PositioningSolutionType {
+        noPositioningSolution(0),
+        sGNSS(1),
+        dGNSS(2),
+        sGNSSplusDR(3),
+        dGNSSplusDR(4),
+        dR(5);
+
+        private final int value;
+        public int value() { return value; }
+        private PositioningSolutionType(int value) { this.value = value; }
+    }
+
+    @Sequence
+    public static class StationaryVehicleContainer {
+        @Asn1Optional StationarySince stationarySince;
+        @Asn1Optional CauseCode stationaryCause;
+        @Asn1Optional DangerousGoodsExtended carryingDangerousGoods;
+        @Asn1Optional NumberOfOccupants numberOfOccupants;
+        @Asn1Optional VehicleIdentification vehicleIdentification;
+        @Asn1Optional EnergyStorageType energyStorageType;
+
+        public StationaryVehicleContainer() { this(null, null, null, null, null, null); }
+        public StationaryVehicleContainer(
+                StationarySince stationarySince,
+                CauseCode stationaryCause,
+                DangerousGoodsExtended carryingDangerousGoods,
+                NumberOfOccupants numberOfOccupants,
+                VehicleIdentification vehicleIdentification,
+                EnergyStorageType energyStorageType
+                ) {
+            this.stationarySince = stationarySince;
+            this.stationaryCause = stationaryCause;
+            this.carryingDangerousGoods = carryingDangerousGoods;
+            this.numberOfOccupants = numberOfOccupants;
+            this.vehicleIdentification = vehicleIdentification;
+            this.energyStorageType = energyStorageType;
+        }
+    }
+
+    public static enum StationarySince {
+        lessThan1Minute(0),
+        lessThan2Minutes(1),
+        lessThan15Minutes(2),
+        equalOrGreater15Minutes(3);
+
+        private final int value;
+        public int value() { return value; }
+        private StationarySince(int value) { this.value = value; }
+        public static StationarySince defaultValue() { return lessThan1Minute; }
+    }
+
+    @IntRange(minValue = 0, maxValue = 127)
+    public static class NumberOfOccupants extends Asn1Integer {
+        public static final int oneOccupant = 1;
+        public static final int unavailable = 127;
+
+        public NumberOfOccupants() { this(unavailable); }
+        public NumberOfOccupants(int value) { super(value); }
+    }
+
+    @Sequence
+    @HasExtensionMarker
+    public static class VehicleIdentification {
+        @Asn1Optional WMInumber wMInumber;
+        @Asn1Optional VDS vDS;
+        public VehicleIdentification() { this(null, null); }
+        public VehicleIdentification(
+                WMInumber wMInumber,
+                VDS vDS) {
+            this.wMInumber = wMInumber;
+            this.vDS = vDS;
+        }
+    }
+
+    @SizeRange(minValue = 1, maxValue = 3)
+    @RestrictedString(CharacterRestriction.IA5String)
+    public static class WMInumber extends Asn1String {
+        public WMInumber() { this(""); }
+        public WMInumber(String value) { super(value); }
+    }
+
+    @RestrictedString(CharacterRestriction.IA5String)
+    @FixedSize(6)
+    public static class VDS extends Asn1String {
+        public VDS() { this(""); }
+        public VDS(String value) { super(value); }
+    }
+
+    @Bitstring
+    @FixedSize(7)
+    public static class EnergyStorageType {
+        boolean hydrogenStorage;  // Bit 0
+        boolean electricEnergyStorage;  // Bit 1
+        boolean liquidPropaneGas;  // Bit 2
+        boolean compressedNaturalGas;  // Bit 3
+        boolean diesel;  // Bit 4
+        boolean gasoline;  // Bit 5
+        boolean ammonia;  // Bit 6
+    }
+
+    @Sequence
+    public static class DangerousGoodsExtended {
+
+        DangerousGoodsBasic dangerousGoodsType;
+        UnNumber unNumber;
+        boolean elevatedTemperature;
+        boolean tunnelsRestricted;
+        boolean limitedQuantity;
+        @Asn1Optional EmergencyActionCode emergencyActionCode;
+        @Asn1Optional PhoneNumber phoneNumber;
+        @Asn1Optional CompanyName companyName;
+
+        @Asn1AnonymousType
+        @IntRange(minValue = 0, maxValue = 9999)
+        public static class UnNumber extends Asn1Integer {
+            public UnNumber() { this(0); }
+            public UnNumber(int value) { super(value); }
+        }
+
+        @Asn1AnonymousType
+        @SizeRange(minValue=1, maxValue=24)
+        @RestrictedString(CharacterRestriction.IA5String)
+        public static class EmergencyActionCode extends Asn1String {
+            public EmergencyActionCode() { this(""); }
+            public EmergencyActionCode(String value) { super(value); }
+        }
+
+        @Asn1AnonymousType
+        @SizeRange(minValue=1, maxValue=24)
+        @RestrictedString(CharacterRestriction.IA5String)
+        public static class PhoneNumber extends Asn1String {
+            public PhoneNumber() { this(""); }
+            public PhoneNumber(String value) { super(value); }
+        }
+
+        @Asn1AnonymousType
+        @SizeRange(minValue=1, maxValue=24)
+        @RestrictedString(CharacterRestriction.UTF8String)
+        public static class CompanyName extends Asn1String {
+            public CompanyName() { this(""); }
+            public CompanyName(String value) { super(value); }
+        }
+
+
+        public DangerousGoodsExtended() {
+            this(DangerousGoodsBasic.defaultValue(), 0, false, false, false, null, null, null);
+        }
+
+        public DangerousGoodsExtended(
+                DangerousGoodsBasic dangerousGoodsType,
+                int unNumber,
+                boolean elevatedTemperature,
+                boolean tunnelsRestricted,
+                boolean limitedQuantity,
+                String emergencyActionCode,
+                String phoneNumber,
+                String companyName
+                ) {
+            this.dangerousGoodsType = dangerousGoodsType;
+            this.unNumber = new UnNumber(unNumber);
+            this.elevatedTemperature = elevatedTemperature;
+            this.tunnelsRestricted = tunnelsRestricted;
+            this.limitedQuantity = limitedQuantity;
+            this.emergencyActionCode = new EmergencyActionCode(emergencyActionCode);
+            this.phoneNumber = new PhoneNumber(phoneNumber);
+            this.companyName = new CompanyName(companyName);
+        }
     }
 }

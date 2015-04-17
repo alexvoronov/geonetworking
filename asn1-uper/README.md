@@ -7,10 +7,10 @@ ASN.1 Encoder for Unaligned Packed Encoding Rules (UPER, ITU-T Recommendation [X
 Encoder can handle [camdenm](https://github.com/alexvoronov/geonetworking/tree/master/camdenm). There is no decoder yet.
 
 
-### Acknowledgements
+### Acknowledgments
 This implementation was partly developed within [i-GAME](http://gcdc.net/i-game) project that has received funding from the European Union's Seventh Framework Programme for research, technological development and demonstration under grant agreement no [612035](http://cordis.europa.eu/project/rcn/110506_en.html).
 
-Use of reflection was insipred by [Gson](https://code.google.com/p/google-gson/).
+Use of reflection was inspired by [Gson](https://code.google.com/p/google-gson/).
 
 Excellent OSS Nokalva [ASN.1 Playground](http://asn1-playground.oss.com/) was used to catch a few errors in the encoder results.
 

@@ -4,7 +4,7 @@ Basic Java classes to represent Cooperative Awareness Message (CAM, [ETSI EN 302
 
 ### Status
 
-CAM is complete (except for the getter methods), DENM has only the the basic things.  Usage examples for CAM and DENM are in [uppertester](https://github.com/alexvoronov/geonetworking/tree/master/uppertester).
+CAM and DENM are complete (except for the getter methods). Usage examples for CAM and DENM are in [uppertester](https://github.com/alexvoronov/geonetworking/tree/master/uppertester).
 
 
 ### Acknowledgements
