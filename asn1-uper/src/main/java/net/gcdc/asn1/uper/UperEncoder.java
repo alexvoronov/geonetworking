@@ -1,16 +1,22 @@
 package net.gcdc.asn1.uper;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 
 import net.gcdc.asn1.datatypes.Asn1Integer;
 import net.gcdc.asn1.datatypes.Asn1Optional;
@@ -47,37 +53,54 @@ public class UperEncoder {
     @SuppressWarnings("unused")
     private final static int NUM_64K = 65536;
 
+    private static final Map<Class<?>, IntRange> DEFAULT_RANGE;
+
+    static {
+        DEFAULT_RANGE = new HashMap<>();
+        DEFAULT_RANGE.put(  short.class, newRange(  Short.MIN_VALUE,   Short.MAX_VALUE, false));
+        DEFAULT_RANGE.put(  Short.class, newRange(  Short.MIN_VALUE,   Short.MAX_VALUE, false));
+        DEFAULT_RANGE.put(    int.class, newRange(Integer.MIN_VALUE, Integer.MAX_VALUE, false));
+        DEFAULT_RANGE.put(Integer.class, newRange(Integer.MIN_VALUE, Integer.MAX_VALUE, false));
+        DEFAULT_RANGE.put(   long.class, newRange(   Long.MIN_VALUE,    Long.MAX_VALUE, false));
+        DEFAULT_RANGE.put(   Long.class, newRange(   Long.MIN_VALUE,    Long.MAX_VALUE, false));
+
+        // Asn1Integer have max range of Long. Bigger ranges will require Asn1BigInteger.
+        DEFAULT_RANGE.put(Asn1Integer.class, newRange(Long.MIN_VALUE, Long.MAX_VALUE, false));
+    }
+
+    private static IntRange newRange(final long minValue, final long maxValue, final boolean hasExtensionMarker) {
+        return new IntRange() {
+            @Override public Class<? extends Annotation> annotationType() { return IntRange.class; }
+            @Override public long minValue() { return minValue; }
+            @Override public long maxValue() { return maxValue; }
+            @Override public boolean hasExtensionMarker() { return hasExtensionMarker; }
+        };
+    }
+
     public static <T> byte[] encode(T obj) throws IllegalArgumentException,
     IllegalAccessException {
         return boolToBits(encodeAsList(obj));
     }
 
+    public static <T> T decode(byte[] bytes, Class<T> classOfT) throws InstantiationException,
+            IllegalAccessException {
+        Queue<Boolean> bitQueue = queueFromBinary(toBinary(bytes));
+        logger.debug("Decoding {} from {}", classOfT.getName(), toBinary(bitQueue));
+        T result = decode(bitQueue, classOfT);
+        if (bitQueue.size() > 7) { throw new IllegalArgumentException("Can't fully decode "
+                + classOfT.getName() + ", remaining bits: " + bitQueue); }
+        return result;
+        // throw new IllegalArgumentException("Can't decode " + classOfT.getName() + " because of "
+        // + e);
+    }
 
     public static <T> List<Boolean> encodeAsList(T obj) throws IllegalArgumentException,
             IllegalAccessException {
         Class<?> type = obj.getClass();
-        if (obj instanceof Integer) {
+        if (obj instanceof Asn1Integer || obj instanceof Long || obj instanceof Integer || obj instanceof Short) {
             IntRange range = type.getAnnotation(IntRange.class);
-            long lowerBound = range == null ? Integer.MIN_VALUE : range.minValue();
-            long upperBound = range == null ? Integer.MAX_VALUE : range.maxValue();
-            boolean hasExtensionMarker = range == null ? false : range.hasExtensionMarker();
-            List<Boolean> result = encodeConstrainedInt((Integer) obj, lowerBound, upperBound, hasExtensionMarker);
-            logger.debug("int({}): {}", obj, toBinary(result));
-            return result;
-        } else if (obj instanceof Long) {
-            IntRange range = type.getAnnotation(IntRange.class);
-            long lowerBound = range == null ? Long.MIN_VALUE : range.minValue();
-            long upperBound = range == null ? Long.MAX_VALUE : range.maxValue();
-            boolean hasExtensionMarker = range == null ? false : range.hasExtensionMarker();
-            List<Boolean> result = encodeConstrainedInt((Long) obj, lowerBound, upperBound, hasExtensionMarker);
-            logger.debug("long({}): {}", obj, toBinary(result));
-            return result;
-        } else if (obj instanceof Asn1Integer) {
-            IntRange range = type.getAnnotation(IntRange.class);
-            long lowerBound = range == null ? Long.MIN_VALUE : range.minValue();
-            long upperBound = range == null ? Long.MAX_VALUE : range.maxValue();
-            boolean hasExtensionMarker = range == null ? false : range.hasExtensionMarker();
-            List<Boolean> result = encodeConstrainedInt(((Asn1Integer) obj).value(), lowerBound, upperBound, hasExtensionMarker);
+            if (range == null) { range = DEFAULT_RANGE.get(obj); }
+            List<Boolean> result = encodeConstrainedInt(((Asn1Integer) obj).value(), range.minValue(), range.maxValue(), range.hasExtensionMarker());
             logger.debug("INT({}): {}", obj, toBinary(result));
             return result;
         } else if (obj instanceof Byte) {
@@ -329,6 +352,103 @@ public class UperEncoder {
         }
     }
 
+    public static <T> T decode(Queue<Boolean> bitlist, Class<T> classOfT) throws InstantiationException, IllegalAccessException {
+        logger.debug("Decoding {} from remaining bits ({}): {}", classOfT.getName(), bitlist.size(), toBinary(bitlist));
+        if (Asn1Integer.class.isAssignableFrom(classOfT)) {
+            IntRange intRange = classOfT.getAnnotation(IntRange.class);
+            if (intRange == null) { intRange = DEFAULT_RANGE.get(classOfT); }
+            logger.debug("Integer, range {}..{}", intRange.minValue(), intRange.maxValue());
+            long value = decodeConstraainedInt(bitlist, intRange);
+            Constructor<T> constructor = null;
+            Class<?>[] numericTypes = new Class<?> [] {long.class, int.class, short.class};
+            for (Class<?> t : numericTypes) {
+                try {
+                    constructor = classOfT.getConstructor(t);
+                } catch (NoSuchMethodException e) {
+                    // ignore
+                } catch (SecurityException e) {
+                    throw new IllegalArgumentException("can't access constructor of " + classOfT.getName() + ": " + e);
+                }
+            }
+            if (constructor == null) {
+                throw new IllegalArgumentException("can't find any numeric constructor for " + classOfT.getName() + ", all constructors " + Arrays.asList(classOfT.getConstructors()));
+            }
+                try {
+                    Class<?> typeOfConstructorArgument = constructor.getParameterTypes()[0];
+                    logger.debug("constructor type is {}", typeOfConstructorArgument.getName());
+                    if (typeOfConstructorArgument.isAssignableFrom(long.class)) {
+                        return constructor.newInstance(value);
+                    } else if  (typeOfConstructorArgument.isAssignableFrom(int.class)) {
+                        return constructor.newInstance((int)value);
+                    } else if  (typeOfConstructorArgument.isAssignableFrom(short.class)) {
+                        return constructor.newInstance((short)value);
+                    } else {
+                        throw new IllegalArgumentException("unrecognized constructor argument " + typeOfConstructorArgument.getName());
+                    }
+                } catch (IllegalArgumentException | InvocationTargetException e1) {
+                    throw new IllegalArgumentException("failed to invoke constructor of " + classOfT.getName() + ": " + e1);
+                }
+           // }
+        } else if (classOfT.getAnnotation(Sequence.class) != null) {
+            T result = classOfT.newInstance();
+            Asn1ContainerFieldSorter sorter = new Asn1ContainerFieldSorter(classOfT);
+            if (hasExtensionMarker(classOfT)) {
+                logger.debug("with extension marker");
+                boolean extensionPresent = bitlist.poll();
+                //bitlist.add(!sorter.extensionFields.isEmpty());
+            }
+            // Bitmask for optional fields.
+            Queue<Boolean> optionalFieldsMask = new ArrayDeque<Boolean>(sorter.optionalOrdinaryFields.size());
+            for (Field f : sorter.optionalOrdinaryFields) {
+                logger.debug("optional field {}", f);
+                optionalFieldsMask.add(bitlist.poll());
+            }
+            // All ordinary fields (fields within extension root).
+            for (Field f : sorter.ordinaryFields) {
+                if (!isTestInstrumentation(f) && (isMandatory(f) || (isOptional(f) && optionalFieldsMask.poll()))) {
+                    logger.debug("Field : {}", f.getName());
+                    f.set(result, decode(bitlist, f.getType()));
+                }
+            }
+            if (hasExtensionMarker(classOfT) && !sorter.extensionFields.isEmpty()) {
+                throw new UnsupportedOperationException("Extension fields are not implemented yet");
+            }
+            sorter.revertAccess();
+            return result;
+        } else {
+            throw new IllegalArgumentException("can't decode class " + classOfT.getName() + ", annotations: " + Arrays.asList(classOfT.getAnnotations()));
+        }
+    }
+
+
+    private static long decodeConstraainedInt(Queue<Boolean> bitqueue, IntRange intRange) {
+        long lowerBound = intRange.minValue();
+        long upperBound = intRange.maxValue();
+        boolean hasExtensionMarker = intRange.hasExtensionMarker();
+        if (upperBound < lowerBound) {
+            throw new IllegalArgumentException("Lower bound " + lowerBound + " is larger that upper bound " + upperBound);
+        }
+        if (hasExtensionMarker) {
+            boolean extensionBit = bitqueue.poll();
+            if (extensionBit) {
+                throw new UnsupportedOperationException("int extension are not supported yet");
+            }
+        }
+        final long range = upperBound - lowerBound + 1;
+        if (range == 1) { return lowerBound; }
+        int bitlength = BigInteger.valueOf(range-1).bitLength();
+        logger.debug("This int will require {} bits, available {}", bitlength, bitqueue.size());
+        List<Boolean> relevantBits = new ArrayList<>();
+        for (int i = 0; i < bitlength; i++) {
+            if (bitqueue.isEmpty()) {
+                throw new IllegalArgumentException("Reached end of input bitlist");
+            }
+            relevantBits.add(bitqueue.poll());
+        }
+        final BigInteger big = new BigInteger(+1, fromBinaryString(toBinary(relevantBits)));  // This is very inefficient, I know.
+        return lowerBound + big.longValue();
+    }
+
     public static List<Boolean> encodeChar(char c, CharacterRestriction restriction) {
         switch (restriction) {
             case IA5String:
@@ -374,7 +494,11 @@ public class UperEncoder {
     }
 
     private static boolean isMandatory(Field f) {
-        return f.getAnnotation(Asn1Optional.class) == null;
+        return !isOptional(f);
+    }
+
+    private static boolean isOptional(Field f) {
+        return f.getAnnotation(Asn1Optional.class) != null;
     }
 
     private static class Asn1ContainerFieldSorter {
@@ -507,9 +631,11 @@ public class UperEncoder {
         return data;
     }
 
-    public static String toBinary(List<Boolean> bitlist) {
+    public static String toBinary(Collection<Boolean> bitlist) {
         StringBuilder sb = new StringBuilder(bitlist.size());
-        for (Boolean b : bitlist) { sb.append(b ? "1" : "0"); }
+        for (Boolean b : bitlist) {
+            sb.append(b ? "1" : "0");
+        }
         return sb.toString();
     }
 
@@ -529,6 +655,17 @@ public class UperEncoder {
                 result[i / Byte.SIZE] = (byte) (result[i / Byte.SIZE] | (0x80 >>> (i % Byte.SIZE)));
             else if (c != '0')
                 throw new IllegalArgumentException();
+        return result;
+    }
+
+    private static ArrayDeque<Boolean> queueFromBinary(String s) {
+        ArrayDeque<Boolean> result = new ArrayDeque<>(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) != '1' && s.charAt(i) != '0') {
+                throw new IllegalArgumentException("bad character in 'binary' string " + s.charAt(i));
+            }
+            result.add(s.charAt(i) == '1');
+        }
         return result;
     }
 }

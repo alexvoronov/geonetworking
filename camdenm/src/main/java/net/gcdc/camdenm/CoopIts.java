@@ -65,6 +65,7 @@ public class CoopIts {
             public static final int currentVersion = 1;
             public ProtocolVersion() { this(currentVersion); }
             public ProtocolVersion(int value) { super(value); }
+            public ProtocolVersion(long value) { super(value); }
         }
 
         @Asn1AnonymousType
