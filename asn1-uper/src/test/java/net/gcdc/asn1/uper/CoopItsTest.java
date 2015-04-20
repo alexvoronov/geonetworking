@@ -121,22 +121,22 @@ public class CoopItsTest {
         //List<Boolean> bitlist = Arrays.asList(true, false);
         //byte[] bytes = UperEncoder.boolToBits(Arrays.asList(true, false));
 
-        assertArrayEquals(new byte[] { 127 }, UperEncoder.boolToBits(Arrays.asList(false, true, true, true, true, true, true, true)));
-        assertArrayEquals(new byte[] { 2 }, UperEncoder.boolToBits(Arrays.asList(false, false, false, false, false, false, true, false)));
-        assertArrayEquals(new byte[] { 127, 2 }, UperEncoder.boolToBits(Arrays.asList(false, true, true, true, true, true, true, true, false, false, false, false, false, false, true, false)));
-        assertArrayEquals(new byte[] { 32 }, UperEncoder.boolToBits(Arrays.asList(false, false, true)));
+        assertArrayEquals(new byte[] { 127 }, UperEncoder.bytesFromCollection(Arrays.asList(false, true, true, true, true, true, true, true)));
+        assertArrayEquals(new byte[] { 2 }, UperEncoder.bytesFromCollection(Arrays.asList(false, false, false, false, false, false, true, false)));
+        assertArrayEquals(new byte[] { 127, 2 }, UperEncoder.bytesFromCollection(Arrays.asList(false, true, true, true, true, true, true, true, false, false, false, false, false, false, true, false)));
+        assertArrayEquals(new byte[] { 32 }, UperEncoder.bytesFromCollection(Arrays.asList(false, false, true)));
     }
 
     @Test public void test2() throws IllegalArgumentException, IllegalAccessException {
         CoopIts.Cam cam = new CoopIts.Cam();
 
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(cam));
+        byte[] encoded = UperEncoder.encode(cam);
 
         logger.debug("data: {}", encoded);
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
-        logger.debug("data bin: {}", UperEncoder.toBinary(encoded));
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
+        logger.debug("data bin: {}", UperEncoder.binaryStringFromBytes(encoded));
         assertEquals("0102000000000064000D693A403AD274803FFFFFFC23B7743E00E11FDFFFFEBFE9ED0737530F5FFFB0",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void test3() throws IllegalArgumentException, IllegalAccessException {
@@ -167,10 +167,10 @@ public class CoopItsTest {
                                                         .create())
                                                     .create()))));
 
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(cam));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        byte[] encoded = UperEncoder.encode(cam);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("01020000000000640006B49D272D693A41BFFFFFFC23B7743E40E11FDFFFFEBFE9ED0737530F5FFFB090",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void test4() throws IllegalArgumentException, IllegalAccessException {
@@ -207,11 +207,11 @@ public class CoopItsTest {
                                                                 new PathPoint(),
                                                                 new PathPoint()))),
                                         null)));
-        logger.debug("data hex: {}", UperEncoder.toHexString(UperEncoder.boolToBits(UperEncoder.encodeAsList(cam))));
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(cam));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(UperEncoder.encode(cam)));
+        byte[] encoded = UperEncoder.encode(cam);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("01020000000000644006B49D272D693A41BFFFFFFC23B7743E40E11FDFFFFEBFE9ED0737530F5FFFB09000013FFFFFFFFF1CE3FFFFFFFFF1CE00",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void test5() throws IllegalArgumentException, IllegalAccessException {
@@ -255,11 +255,11 @@ public class CoopItsTest {
                                                                 new PtActivationData(
                                                                         (byte) 0x0a,
                                                                         (byte) 0xff)))))));
-        logger.debug("data hex: {}", UperEncoder.toHexString(UperEncoder.boolToBits(UperEncoder.encodeAsList(cam))));
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(cam));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(UperEncoder.encode(cam)));
+        byte[] encoded = UperEncoder.encode(cam);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("01020000000000646006B49D272D693A41BFFFFFFC23B7743E40E11FDFFFFEBFE9ED0737530F5FFFB09000013FFFFFFFFF1CE3FFFFFFFFF1CE060010AFF0",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void test6() throws IllegalArgumentException, IllegalAccessException {
@@ -306,20 +306,20 @@ public class CoopItsTest {
                                                                     .outermostLaneClosed(true)
                                                                     .create()
                                                         ))))));
-        logger.debug("data hex: {}", UperEncoder.toHexString(UperEncoder.boolToBits(UperEncoder.encodeAsList(cam))));
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(cam));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(UperEncoder.encode(cam)));
+        byte[] encoded = UperEncoder.encode(cam);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("01020000000000646006B49D272D693A41BFFFFFFC23B7743E40E11FDFFFFEBFE9ED0737530F5FFFB09000013FFFFFFFFF1CE3FFFFFFFFF1CE1A0AA8",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void basicDenmTest() throws IllegalArgumentException, IllegalAccessException {
         CoopIts.Denm denm = new CoopIts.Denm();
-        logger.debug("data hex: {}", UperEncoder.toHexString(UperEncoder.boolToBits(UperEncoder.encodeAsList(denm))));
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(denm));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(UperEncoder.encode(denm)));
+        byte[] encoded = UperEncoder.encode(denm);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("010100000000010000000000000000000000000000000006B49D201D693A401FFFFFFE11DBBA1F012C0000",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void sequenceOfSizeExtensionTest() throws IllegalArgumentException, IllegalAccessException {
@@ -352,11 +352,11 @@ public class CoopItsTest {
             )
           )
         );
-        logger.debug("data hex: {}", UperEncoder.toHexString(UperEncoder.boolToBits(UperEncoder.encodeAsList(denm))));
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(denm));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(UperEncoder.encode(denm)));
+        byte[] encoded = UperEncoder.encode(denm);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("010100000000210000000000000000000000000000000006B49D201D693A401FFFFFFE11DBBA1F012C000420102020",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
 
@@ -389,11 +389,11 @@ public class CoopItsTest {
             )
           )
         );
-        logger.debug("data hex: {}", UperEncoder.toHexString(UperEncoder.boolToBits(UperEncoder.encodeAsList(denm))));
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(denm));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(UperEncoder.encode(denm)));
+        byte[] encoded = UperEncoder.encode(denm);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("010100000000210000000000000000000000000000000006B49D201D693A401FFFFFFE11DBBA1F012C0004200060",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void DenmTestLong() throws IllegalArgumentException, IllegalAccessException {
@@ -511,10 +511,10 @@ public class CoopItsTest {
           )
         );
 //        logger.debug("data hex: {}", UperEncoder.toHexString(UperEncoder.boolToBits(UperEncoder.encodeAsList(denm))));
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(denm));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        byte[] encoded = UperEncoder.encode(denm);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("010100000000EF80000029079380000091B160000253A26B5A4E900EB49D200FFFFFFF08EDDD0F828A120738436241A86BE0FFFFFFFFFE39C01A2670EDB1B84242166EE4D1878F0A0031DFFFFFFFFF8E7017FFFFFFFFE39C1F9E3C7FBF0EFDFBFA600001FFABFFC63900CEE241A06B49D201D693A401FFFFFFE11DBBA1FFFFFFFFFFC73840000000000000E58680",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void DenmTestString() throws IllegalArgumentException, IllegalAccessException {
@@ -635,10 +635,10 @@ public class CoopItsTest {
           )
         );
 //        logger.debug("data hex: {}", UperEncoder.toHexString(UperEncoder.boolToBits(UperEncoder.encodeAsList(denm))));
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(denm));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        byte[] encoded = UperEncoder.encode(denm);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("010100000000EF80000029079380000091B160000253A26B5A4E900EB49D200FFFFFFF08EDDD0F828A120738436241A86BE0FFFFFFFFFE39C01A2670EDB1B84242166EE4D1878F0A0031DFFFFFFFFF8E7017FFFFFFFFE39C1F9E3C7FBF0EFDFBFA600001FFABFFC63900CEE241A06B49D201D693A401FFFFFFE11DBBA1FFFFFFFFFFC73840000000000000E786BB0F3C9EBC63830A1800",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void StringTest() throws IllegalArgumentException, IllegalAccessException {
@@ -646,40 +646,40 @@ public class CoopItsTest {
                 new WMInumber("asd"),
                 new VDS("zxcABC")
               );
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(pdu));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("761E793D78C7061430",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void Utf8StringTest() throws IllegalArgumentException, IllegalAccessException {
         Object pdu = new DangerousGoodsExtended(
                 DangerousGoodsBasic.explosives4, 13, false, false, true, "abc", "cde", "zxc"
               );
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(pdu));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("E300348B0E2C62C793281BD3C318",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void Utf8StringTest2() throws IllegalArgumentException, IllegalAccessException {
         Object pdu = new DangerousGoodsExtended(
                 DangerousGoodsBasic.explosives4, 13, false, false, true, "abc", "cde", "a"
               );
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(pdu));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("E300348B0E2C62C793280B08",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void Utf8StringTest3() throws IllegalArgumentException, IllegalAccessException {
         Object pdu = new DangerousGoodsExtended(
                 DangerousGoodsBasic.explosives4, 13, false, false, true, "abc", "cde", "abcöxyz"
               );
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(pdu));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("E300348B0E2C62C79328430B131E1DB3C3CBD0",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
 
@@ -717,10 +717,10 @@ public class CoopItsTest {
         Object pdu = new TestSeq(
                 new CompanyName(string150)
               );
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(pdu));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("8096313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
     }
 
     @Test public void testFail() throws IllegalArgumentException, IllegalAccessException {

@@ -16,17 +16,17 @@ public class UperEncoderDecodeTest {
 
     @Test public void decodeTest1() throws IllegalArgumentException, IllegalAccessException, InstantiationException {
         Object pdu = new ItsPduHeader(new ProtocolVersion(13), new MessageId(15), new StationID(17));
-        byte[] encoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(pdu));
-        logger.debug("data hex: {}", UperEncoder.toHexString(encoded));
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("0D0F00000011",
-                UperEncoder.toHexString(encoded));
+                UperEncoder.hexStringFromBytes(encoded));
 
         ItsPduHeader decoded = UperEncoder.decode(encoded, ItsPduHeader.class);
         logger.debug("decoded: {}", decoded);
-        byte[] reencoded = UperEncoder.boolToBits(UperEncoder.encodeAsList(decoded));
-        logger.debug("data hex: {}", UperEncoder.toHexString(reencoded));
+        byte[] reencoded = UperEncoder.encode(decoded);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(reencoded));
         assertEquals("0D0F00000011",
-                UperEncoder.toHexString(reencoded));
+                UperEncoder.hexStringFromBytes(reencoded));
 
     }
     @Test public void test() {
