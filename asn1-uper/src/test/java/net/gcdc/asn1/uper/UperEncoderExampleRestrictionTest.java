@@ -5,19 +5,25 @@ import static org.junit.Assert.assertEquals;
 import java.math.BigInteger;
 import java.util.Arrays;
 
+import net.gcdc.asn1.datatypes.Alphabet;
+import net.gcdc.asn1.datatypes.AlphabetBuilder;
 import net.gcdc.asn1.datatypes.Asn1BigInteger;
 import net.gcdc.asn1.datatypes.Asn1Optional;
 import net.gcdc.asn1.datatypes.Asn1SequenceOf;
 import net.gcdc.asn1.datatypes.Asn1String;
 import net.gcdc.asn1.datatypes.CharacterRestriction;
+import net.gcdc.asn1.datatypes.FixedSize;
 import net.gcdc.asn1.datatypes.RestrictedString;
 import net.gcdc.asn1.datatypes.Sequence;
+import net.gcdc.asn1.datatypes.SizeRange;
+import net.gcdc.asn1.uper.UperEncoderExampleRestrictionTest.Date.DateAlphabet;
+import net.gcdc.asn1.uper.UperEncoderExampleRestrictionTest.NameString.NameStringAlphabet;
 
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UperEncoderExampleTest {
+public class UperEncoderExampleRestrictionTest {
     private final static Logger logger = LoggerFactory.getLogger(UperEncoder.class);
 
     /**
@@ -37,13 +43,15 @@ ChildInformation ::= SET {
   dateOfBirth [0] Date}
 
 Name ::= [APPLICATION 1] IMPLICIT SEQUENCE {
-  givenName VisibleString,
-  initial VisibleString,
-  familyName VisibleString }
+  givenName NameString,
+  initial NameString (SIZE(1)),
+  familyName NameString }
 
 EmployeeNumber ::= [APPLICATION 2] IMPLICIT INTEGER
 
-Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
+Date ::= [APPLICATION 3] IMPLICIT VisibleString (FROM("0".."9") ^ SIZE(8)) -- YYYYMMDD
+
+NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64))
      </pre>
      */
     @Sequence
@@ -79,18 +87,29 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
 
     @Sequence
     public static class Name {
-        @RestrictedString(CharacterRestriction.VisibleString)
-        String givenName;
-        @RestrictedString(CharacterRestriction.VisibleString)
-        String initial;
-        @RestrictedString(CharacterRestriction.VisibleString)
-        String familyName;
+        NameString givenName;
+        @FixedSize(1)
+        NameString initial;
+        NameString familyName;
 
-        public Name() { this("", "", ""); }
-        public Name(String givenName, String initial, String familyName) {
+        public Name() { this(new NameString(), new NameString(), new NameString()); }
+        public Name(NameString givenName, NameString initial, NameString familyName) {
             this.givenName = givenName;
             this.initial = initial;
             this.familyName = familyName;
+        }
+    }
+
+    //"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-."
+    @RestrictedString(value = CharacterRestriction.VisibleString, alphabet = NameStringAlphabet.class)
+    @SizeRange(minValue = 1, maxValue = 64)
+    public static class NameString extends Asn1String {
+        public NameString() { this(""); }
+        public NameString(String value) { super(value); }
+
+        public static class NameStringAlphabet implements Alphabet {
+            private final static String chars = new AlphabetBuilder().withRange('a', 'z').withRange('A','Z').withChars("-.").chars();
+            @Override public String chars() { return chars; }
         }
     }
 
@@ -101,10 +120,15 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
         public EmployeeNumber(BigInteger value) { super(value); }
     }
 
-    @RestrictedString(CharacterRestriction.VisibleString)
+    @RestrictedString(value = CharacterRestriction.VisibleString, alphabet = DateAlphabet.class)
+    @FixedSize(8)
     public static class Date extends Asn1String {
         public Date() { this(""); }
         public Date(String value) { super(value); }
+        public static class DateAlphabet implements Alphabet {
+            private final static String chars = new AlphabetBuilder().withRange('0', '9').chars();
+            @Override public String chars() { return chars; }
+        }
     }
 
     @Sequence
@@ -125,31 +149,32 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
 
         PersonenelRecord record = new PersonenelRecord(
           new Name(
-            "John",
-            "P",
-            "Smith"
+            new NameString("John"),
+            new NameString("P"),
+            new NameString("Smith")
           ),
           new EmployeeNumber(51),
           "Director",
           new Date("19710917"),
           new Name(
-            "Mary",
-            "T",
-            "Smith"),
+            new NameString("Mary"),
+            new NameString("T"),
+            new NameString("Smith")
+          ),
           new Asn1SequenceOf<ChildInformation>(Arrays.asList(
             new ChildInformation(
               new Name(
-                "Ralph",
-                "T",
-                "Smith"
+                new NameString("Ralph"),
+                new NameString("T"),
+                new NameString("Smith")
               ),
               new Date("19571111")
             ),
             new ChildInformation(
               new Name(
-                "Susan",
-                "B",
-                "Jones"
+                new NameString("Susan"),
+                new NameString("B"),
+                new NameString("Jones")
               ),
               new Date("19590717")
             )
@@ -159,7 +184,7 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
 
         byte[] encoded = UperEncoder.encode(record);
         logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
-        assertEquals("824ADFA3700D005A7B74F4D0026611134F2CB8FA6FE410C5CB762C1CB16E09370F2F20350169EDD3D340102D2C3B386801A80B4F6E9E9A0218B96ADD8B162C4169F5E787700C20595BF765E610C5CB572C1BB16E",
+        assertEquals("865D51D2888A5125F180998444D3CB2E3E9BF90CB8848B867396E8A88A5125F181089B93D71AA2294497C632AE222222985CE521885D54C170CAC838B8",
                 UperEncoder.hexStringFromBytes(encoded));
     }
 

@@ -6,9 +6,13 @@ Java annotations to augment Java classes with information from [ASN.1](http://en
 
 Datatypes are enough to handle [camdenm](https://github.com/alexvoronov/geonetworking/tree/master/camdenm). There is no compiler yet, so Java classes and annotations have to be created and added manually.
 
-### Example
+### Examples
 
-Here's how an example from the Appendix of the UPER standard would be encoded in Java.
+
+
+Here's how two examples from the Appendix of the UPER standard would be encoded in Java.
+
+#### Example 1: Without restrictions or extension markers
 
 ASN.1:
 
@@ -149,6 +153,177 @@ PersonenelRecord record = new PersonenelRecord(
     )
   ))
 );
+```
+
+
+
+#### Example 2: With Restrictions, no extension markers
+
+ASN.1:
+
+```asn1
+PersonnelRecord ::= [APPLICATION 0] IMPLICIT SET {
+  name Name,
+  title [0] VisibleString,
+  number EmployeeNumber,
+  dateOfHire [1] Date,
+  nameOfSpouse [2] Name,
+  children [3] IMPLICIT
+    SEQUENCE OF ChildInformation DEFAULT {} }
+
+ChildInformation ::= SET {
+  name Name,
+  dateOfBirth [0] Date}
+
+Name ::= [APPLICATION 1] IMPLICIT SEQUENCE {
+  givenName NameString,
+  initial NameString (SIZE(1)),
+  familyName NameString }
+
+EmployeeNumber ::= [APPLICATION 2] IMPLICIT INTEGER
+
+Date ::= [APPLICATION 3] IMPLICIT VisibleString (FROM("0".."9") ^ SIZE(8)) -- YYYYMMDD
+
+NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64))
+```
+
+Java classes:
+
+```java
+@Sequence
+public static class PersonenelRecord {
+
+    Name name;
+    
+    EmployeeNumber number;
+    
+    @RestrictedString(CharacterRestriction.VisibleString)
+    String title;
+    
+    Date dateOfHire;
+    
+    Name nameOfSpouse;
+    
+    @Asn1Optional Asn1SequenceOf<ChildInformation> children = new Asn1SequenceOf<ChildInformation>();
+
+    public PersonenelRecord() {
+        this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new Asn1SequenceOf<ChildInformation>());
+    }
+
+    public PersonenelRecord(
+            Name name,
+            EmployeeNumber number,
+            String title,
+            Date dateOfHire,
+            Name nameOfSpouse,
+            Asn1SequenceOf<ChildInformation> children
+            ) {
+        this.name = name;
+        this.number = number;
+        this.title = title;
+        this.dateOfHire = dateOfHire;
+        this.nameOfSpouse = nameOfSpouse;
+        this.children = children;
+    }
+}
+
+@Sequence
+public static class Name {
+    NameString givenName;
+    @FixedSize(1)
+    NameString initial;
+    NameString familyName;
+
+    public Name() { this(new NameString(), new NameString(), new NameString()); }
+    public Name(NameString givenName, NameString initial, NameString familyName) {
+        this.givenName = givenName;
+        this.initial = initial;
+        this.familyName = familyName;
+    }
+}
+
+@RestrictedString(value = CharacterRestriction.VisibleString, alphabet = NameStringAlphabet.class)
+@SizeRange(minValue = 1, maxValue = 64)
+public static class NameString extends Asn1String {
+    public NameString() { this(""); }
+    public NameString(String value) { super(value); }
+
+    public static class NameStringAlphabet implements Alphabet {
+        private final static String chars = new AlphabetBuilder().withRange('a', 'z').withRange('A','Z').withChars("-.").chars();
+        @Override public String chars() { return chars; }
+    }
+}
+
+@Sequence
+public static class EmployeeNumber extends Asn1BigInteger {
+    public EmployeeNumber() { this(0); }
+    public EmployeeNumber(long value) { this(BigInteger.valueOf(value)); }
+    public EmployeeNumber(BigInteger value) { super(value); }
+}
+
+@RestrictedString(value = CharacterRestriction.VisibleString, alphabet = DateAlphabet.class)
+@FixedSize(8)
+public static class Date extends Asn1String {
+    public Date() { this(""); }
+    public Date(String value) { super(value); }
+
+    public static class DateAlphabet implements Alphabet {
+        private final static String chars = new AlphabetBuilder().withRange('0', '9').chars();
+        @Override public String chars() { return chars; }
+    }
+}
+
+@Sequence
+public static class ChildInformation {
+    Name name;
+    Date dateOfBirth;
+
+    public ChildInformation() { this(new Name(), new Date()); }
+    public ChildInformation(Name name, Date dateOfBirth) {
+        this.name = name;
+        this.dateOfBirth = dateOfBirth;
+    }
+}
+```
+
+And example object instantiation:
+
+```java
+
+PersonenelRecord record = new PersonenelRecord(
+  new Name(
+    new NameString("John"),
+    new NameString("P"),
+    new NameString("Smith")
+  ),
+  new EmployeeNumber(51),
+  "Director",
+  new Date("19710917"),
+  new Name(
+    new NameString("Mary"),
+    new NameString("T"),
+    new NameString("Smith")
+  ),
+  new Asn1SequenceOf<ChildInformation>(Arrays.asList(
+    new ChildInformation(
+      new Name(
+        new NameString("Ralph"),
+        new NameString("T"),
+        new NameString("Smith")
+      ),
+      new Date("19571111")
+    ),
+    new ChildInformation(
+      new Name(
+        new NameString("Susan"),
+        new NameString("B"),
+        new NameString("Jones")
+      ),
+      new Date("19590717")
+    )
+  ))
+);
+
 ```
 
 

@@ -26,6 +26,7 @@ import net.gcdc.asn1.datatypes.Asn1VarSizeBitstring;
 import net.gcdc.asn1.datatypes.Bitstring;
 import net.gcdc.asn1.datatypes.CharacterRestriction;
 import net.gcdc.asn1.datatypes.Choice;
+import net.gcdc.asn1.datatypes.DefaultAlphabet;
 import net.gcdc.asn1.datatypes.FixedSize;
 import net.gcdc.asn1.datatypes.HasExtensionMarker;
 import net.gcdc.asn1.datatypes.IntRange;
@@ -41,6 +42,10 @@ import org.slf4j.LoggerFactory;
  * A "quick-and-dirty" implementation of ASN.1 encoder for UPER (Unaligned Packed Encoding Rules).
  *
  * @see ITU-T Recommendation <a href="http://www.itu.int/ITU-T/recommendations/rec.aspx?rec=x.691">X.691</a>
+ *
+ * TODO: refactoring, refactoring, refactoring. Clean up the mess, unify converters, replace all
+ * Collection<Boolean> with byte-array-based BitBuffer. Also cover the rest of unsupported cases,
+ * and write unit tests for them.
  *
  */
 public class UperEncoder {
@@ -97,7 +102,9 @@ public class UperEncoder {
         }
 
         public <T extends Annotation> T getAnnotation(Class<T> classOfT) {
-            return (T) annotations.get(classOfT);
+            @SuppressWarnings("unchecked")  // Annotations were added with value T for key classOfT.
+            T result = (T) annotations.get(classOfT);
+            return result;
         }
     }
 
@@ -105,7 +112,7 @@ public class UperEncoder {
             IllegalAccessException {
         ListBitBuffer bitQueue = bitBufferFromBinaryString(binaryStringFromBytes(bytes));
         //logger.debug("Decoding {} from {}", classOfT.getName(), toBinary(bitQueue));
-        T result = decode(bitQueue, classOfT);
+        T result = decode(bitQueue, classOfT, new Annotation[] {});
         if (bitQueue.size() > 7) { throw new IllegalArgumentException("Can't fully decode "
                 + classOfT.getName() + ", remaining bits: " + bitQueue); }
         return result;
@@ -339,7 +346,6 @@ public class UperEncoder {
             if (restrictionAnnotation == null) {
                 throw new UnsupportedOperationException("Unrestricted character strings are not supported yet. All annotations: " + Arrays.asList(type.getAnnotations()));
             }
-            CharacterRestriction restriction = restrictionAnnotation.value();
             FixedSize fixedSize = annotations.getAnnotation(FixedSize.class);
             SizeRange sizeRange = annotations.getAnnotation(SizeRange.class);
             if (fixedSize != null && fixedSize.value() != string.length()) {
@@ -348,11 +354,11 @@ public class UperEncoder {
             if (sizeRange != null && (string.length() < sizeRange.minValue() || sizeRange.maxValue() < string.length())) {
                 throw new IllegalArgumentException("Bad string length, expected " + sizeRange.minValue() + ".." + sizeRange.maxValue() + ", got " + string.length());
             }
-            if (restriction == CharacterRestriction.UTF8String) {  // UTF8 length varies, so no sizes.
+            if (restrictionAnnotation.value() == CharacterRestriction.UTF8String) {  // UTF8 length varies, so no sizes.
                 List<Boolean> bitlist = new ArrayList<>();
                 List<Boolean> stringEncoding = new ArrayList<>();
                 for (char c : string.toCharArray()) {
-                    stringEncoding.addAll(encodeChar(c, restriction));
+                    stringEncoding.addAll(encodeChar(c, restrictionAnnotation));
                 }
                 if (stringEncoding.size() % 8 != 0) {
                     throw new AssertionError("utf8 encoding resulted not in multiple of 8 bits");
@@ -369,7 +375,7 @@ public class UperEncoder {
                 }
                 List<Boolean> bitlist = new ArrayList<>();
                 for (int i = 0; i < fixedSize.value(); i++) {
-                    bitlist.addAll(encodeChar(string.charAt(i), restriction));
+                    bitlist.addAll(encodeChar(string.charAt(i), restrictionAnnotation));
                 }
                 logger.debug("STRING {}: {}", obj.getClass().getName(), binaryStringFromCollection(bitlist));
                 return bitlist;
@@ -377,7 +383,7 @@ public class UperEncoder {
                 List<Boolean> lengthBits = encodeConstrainedInt(string.length(), sizeRange.minValue(), sizeRange.maxValue());
                 List<Boolean> valuebits = new ArrayList<>();
                 for (int i = 0; i < string.length(); i++) {
-                    valuebits.addAll(encodeChar(string.charAt(i), restriction));
+                    valuebits.addAll(encodeChar(string.charAt(i), restrictionAnnotation));
                 }
                 logger.debug("STRING {} size {}: {}", obj.getClass().getName(), binaryStringFromCollection(lengthBits), binaryStringFromCollection(valuebits));
                 List<Boolean> result = new ArrayList<>();
@@ -388,7 +394,7 @@ public class UperEncoder {
                 List<Boolean> lengthBits = encodeLengthDeterminant(string.length());
                 List<Boolean> valuebits = new ArrayList<>();
                 for (int i = 0; i < string.length(); i++) {
-                    valuebits.addAll(encodeChar(string.charAt(i), restriction));
+                    valuebits.addAll(encodeChar(string.charAt(i), restrictionAnnotation));
                 }
                 logger.debug("STRING {} size {}: {}", obj.getClass().getName(), binaryStringFromCollection(lengthBits), binaryStringFromCollection(valuebits));
                 List<Boolean> result = new ArrayList<>();
@@ -401,10 +407,11 @@ public class UperEncoder {
         }
     }
 
-    public static <T> T decode(ListBitBuffer bitlist, Class<T> classOfT) throws InstantiationException, IllegalAccessException {
+    public static <T> T decode(ListBitBuffer bitlist, Class<T> classOfT, Annotation[] extraAnnotations) throws InstantiationException, IllegalAccessException {
         logger.debug("Decoding {} from remaining bits ({}): {}", classOfT.getName(), bitlist.size());//, toBinary(bitlist));
+        AnnotationStore annotations = new AnnotationStore(classOfT.getAnnotations(), extraAnnotations);
         if (Asn1Integer.class.isAssignableFrom(classOfT)) {
-            IntRange intRange = classOfT.getAnnotation(IntRange.class);
+            IntRange intRange = annotations.getAnnotation(IntRange.class);
             if (intRange == null) { intRange = DEFAULT_RANGE.get(classOfT); }
             logger.debug("Integer, range {}..{}", intRange.minValue(), intRange.maxValue());
             long value = decodeConstraainedInt(bitlist, intRange);
@@ -455,7 +462,7 @@ public class UperEncoder {
             for (Field f : sorter.ordinaryFields) {
                 if (!isTestInstrumentation(f) && (isMandatory(f) || (isOptional(f) && optionalFieldsMask.pop()))) {
                     logger.debug("Field : {}", f.getName());
-                    f.set(result, decode(bitlist, f.getType()));
+                    f.set(result, decode(bitlist, f.getType(), f.getAnnotations()));
                 }
             }
             if (hasExtensionMarker(classOfT) && !sorter.extensionFields.isEmpty()) {
@@ -464,7 +471,7 @@ public class UperEncoder {
             sorter.revertAccess();
             return result;
         } else if (classOfT.getAnnotation(Choice.class) != null) {
-            return null;
+            throw new UnsupportedOperationException("Choice is not implemented yet");
         } else {
             throw new IllegalArgumentException("can't decode class " + classOfT.getName() + ", annotations: " + Arrays.asList(classOfT.getAnnotations()));
         }
@@ -497,14 +504,20 @@ public class UperEncoder {
         return lowerBound + big.longValue();
     }
 
-    public static List<Boolean> encodeChar(char c, CharacterRestriction restriction) {
-        switch (restriction) {
-            case IA5String:  //
+    public static List<Boolean> encodeChar(char c, RestrictedString restriction) {
+        switch (restriction.value()) {
+            case IA5String:
+                if (restriction.alphabet() != DefaultAlphabet.class) {
+                    throw new UnsupportedOperationException("alphabet for IA5String is not supported yet.");
+                }
                 return encodeConstrainedInt(
                         StandardCharsets.US_ASCII.encode(CharBuffer.wrap(new char[] {c})).get() & 0xff,
                         0,
                         127);
             case UTF8String:
+                if (restriction.alphabet() != DefaultAlphabet.class) {
+                    throw new UnsupportedOperationException("alphabet for UTF8 is not supported yet.");
+                }
                 List<Boolean> bitlist = new ArrayList<>();
                 ByteBuffer buffer = StandardCharsets.UTF_8.encode(CharBuffer.wrap(new char[] {c}));
                 for (int i = 0; i < buffer.limit(); i++) {
@@ -513,10 +526,36 @@ public class UperEncoder {
                 return bitlist;
             case VisibleString:
             case ISO646String:
-                return encodeConstrainedInt(
-                        StandardCharsets.US_ASCII.encode(CharBuffer.wrap(new char[] {c})).get() & 0xff,
-                        0,
-                        126);
+                if (restriction.alphabet() != DefaultAlphabet.class) {
+                    char[] chars;
+                    try {
+                        chars = restriction.alphabet().newInstance().chars().toCharArray();
+                    } catch (InstantiationException | IllegalAccessException e) {
+                        throw new IllegalArgumentException("Uninstantinatable alphabet");
+                    }
+                    if (BigInteger.valueOf(chars.length-1).bitLength() < BigInteger.valueOf(126).bitLength()) {
+                        Arrays.sort(chars);
+                        String strAlphabet = new String(chars);
+                        int index = strAlphabet.indexOf(c);
+                        if (index < 0) {
+                            throw new IllegalArgumentException("can't find character " + c + " in alphabet " + strAlphabet);
+                        }
+                        return encodeConstrainedInt(
+                                index,
+                                0,
+                                chars.length - 1);
+                    } else {
+                        return encodeConstrainedInt(
+                                StandardCharsets.US_ASCII.encode(CharBuffer.wrap(new char[] {c})).get() & 0xff,
+                                0,
+                                126);
+                    }
+                } else {
+                    return encodeConstrainedInt(
+                            StandardCharsets.US_ASCII.encode(CharBuffer.wrap(new char[] {c})).get() & 0xff,
+                            0,
+                            126);
+                }
             default:
                 throw new UnsupportedOperationException("String type " + restriction + " is not supported yet");
         }
