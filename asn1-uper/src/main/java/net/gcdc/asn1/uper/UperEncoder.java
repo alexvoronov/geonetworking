@@ -83,9 +83,12 @@ public class UperEncoder {
         };
     }
 
-    public static <T> byte[] encode(T obj) throws IllegalArgumentException,
-    IllegalAccessException {
-        return bytesFromCollection(encodeAsList(obj, new Annotation[] {}));
+    public static <T> byte[] encode(T obj) {
+        try {
+            return bytesFromCollection(encodeAsList(obj, new Annotation[] {}));
+        } catch (IllegalArgumentException | IllegalAccessException e) {
+            throw new IllegalArgumentException("Can't encode " + obj.getClass().getName() + ": " + e, e);
+        }
     }
 
     public static class AnnotationStore {
@@ -108,13 +111,17 @@ public class UperEncoder {
         }
     }
 
-    public static <T> T decode(byte[] bytes, Class<T> classOfT) throws InstantiationException,
-            IllegalAccessException {
+    public static <T> T decode(byte[] bytes, Class<T> classOfT) {
         ListBitBuffer bitQueue = bitBufferFromBinaryString(binaryStringFromBytes(bytes));
         //logger.debug("Decoding {} from {}", classOfT.getName(), toBinary(bitQueue));
-        T result = decode(bitQueue, classOfT, new Annotation[] {});
+        T result;
+        try {
+            result = decode(bitQueue, classOfT, new Annotation[] {});
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalArgumentException("Can't decode " + classOfT.getName() + ": " + e, e);
+        }
         if (bitQueue.size() > 7) { throw new IllegalArgumentException("Can't fully decode "
-                + classOfT.getName() + ", remaining bits: " + bitQueue); }
+                + classOfT.getName() + ", got (" + result.getClass().getName() + "): " + result + "; remaining " + bitQueue.size() + "  bits: " + bitQueue); }
         return result;
         // throw new IllegalArgumentException("Can't decode " + classOfT.getName() + " because of "
         // + e);
@@ -156,7 +163,7 @@ public class UperEncoder {
             logger.debug("SEQUENCE {}", type.getName());
             List<Boolean> bitlist = new ArrayList<>();
             Asn1ContainerFieldSorter sorter = new Asn1ContainerFieldSorter(type);
-            if (hasExtensionMarker(type)) {
+            if (hasExtensionMarker(annotations)) {
                 logger.debug("with extension marker");
                 bitlist.add(!sorter.extensionFields.isEmpty());
             }
@@ -172,7 +179,7 @@ public class UperEncoder {
                     bitlist.addAll(encodeAsList(f.get(obj), f.getAnnotations()));
                 }
             }
-            if (hasExtensionMarker(type) && !sorter.extensionFields.isEmpty()) {
+            if (hasExtensionMarker(annotations) && !sorter.extensionFields.isEmpty()) {
                 throw new UnsupportedOperationException("Extension fields are not implemented yet");
             }
             sorter.revertAccess();
@@ -195,7 +202,7 @@ public class UperEncoder {
                 currentIndex++;
             }
             if (nonNullFieldValue != null) {
-                if (hasExtensionMarker(type)) {
+                if (hasExtensionMarker(annotations)) {
                     boolean extensionBit = false;
                     logger.debug("with extension marker, set to {}", extensionBit);
                     bitlist.add(extensionBit);
@@ -206,7 +213,7 @@ public class UperEncoder {
                 }
                 bitlist.addAll(encodeAsList(nonNullFieldValue, nonNullField.getAnnotations()));
                 return bitlist;
-            } else if (hasExtensionMarker(type)) {
+            } else if (hasExtensionMarker(annotations)) {
                 currentIndex = 0;
                 for (Field f : sorter.extensionFields) {
                     if (f.get(obj) != null) {
@@ -228,7 +235,7 @@ public class UperEncoder {
                 throw new IllegalArgumentException("Not Extension and All ordinary fields of Choice are null");
             }
         } else if (type.isEnum()) {
-            if (!hasExtensionMarker(type)) {
+            if (!hasExtensionMarker(annotations)) {
                 List<?> values = Arrays.asList(type.getEnumConstants());
                 int index = values.indexOf(obj);
                 List<Boolean> result = encodeConstrainedInt(index, 0, values.size() - 1);
@@ -256,7 +263,7 @@ public class UperEncoder {
                 }
             }
         } else if (annotations.getAnnotation(Bitstring.class) != null && !(obj instanceof Asn1VarSizeBitstring)) {
-            if(hasExtensionMarker(type)) {
+            if(hasExtensionMarker(annotations)) {
                 throw new UnsupportedOperationException("Bitstring with extensions is not implemented yet");
             }
             FixedSize size = type.getAnnotation(FixedSize.class);
@@ -276,7 +283,7 @@ public class UperEncoder {
                 throw new UnsupportedOperationException("Bitstrings of variable size are not implemented yet");
             }
         } else if (annotations.getAnnotation(Bitstring.class) != null && (obj instanceof Asn1VarSizeBitstring)) {
-            if(hasExtensionMarker(type)) {
+            if(hasExtensionMarker(annotations)) {
                 throw new UnsupportedOperationException("Bitstring with extensions is not implemented yet");
             }
             Asn1VarSizeBitstring bitstring = (Asn1VarSizeBitstring) obj;
@@ -408,13 +415,14 @@ public class UperEncoder {
     }
 
     public static <T> T decode(ListBitBuffer bitlist, Class<T> classOfT, Annotation[] extraAnnotations) throws InstantiationException, IllegalAccessException {
-        logger.debug("Decoding {} from remaining bits ({}): {}", classOfT.getName(), bitlist.size());//, toBinary(bitlist));
+        logger.debug("Decoding {} from remaining bits {}", classOfT.getName(), bitlist.size());//, toBinary(bitlist));
         AnnotationStore annotations = new AnnotationStore(classOfT.getAnnotations(), extraAnnotations);
         if (Asn1Integer.class.isAssignableFrom(classOfT)) {
             IntRange intRange = annotations.getAnnotation(IntRange.class);
             if (intRange == null) { intRange = DEFAULT_RANGE.get(classOfT); }
             logger.debug("Integer, range {}..{}", intRange.minValue(), intRange.maxValue());
             long value = decodeConstraainedInt(bitlist, intRange);
+            logger.debug("decoded as {}", value);
             Constructor<T> constructor = null;
             Class<?>[] numericTypes = new Class<?> [] {long.class, int.class, short.class};
             for (Class<?> t : numericTypes) {
@@ -431,12 +439,11 @@ public class UperEncoder {
             }
                 try {
                     Class<?> typeOfConstructorArgument = constructor.getParameterTypes()[0];
-                    logger.debug("constructor type is {}", typeOfConstructorArgument.getName());
                     if (typeOfConstructorArgument.isAssignableFrom(long.class)) {
                         return constructor.newInstance(value);
-                    } else if  (typeOfConstructorArgument.isAssignableFrom(int.class)) {
+                    } else if (typeOfConstructorArgument.isAssignableFrom(int.class)) {
                         return constructor.newInstance((int)value);
-                    } else if  (typeOfConstructorArgument.isAssignableFrom(short.class)) {
+                    } else if (typeOfConstructorArgument.isAssignableFrom(short.class)) {
                         return constructor.newInstance((short)value);
                     } else {
                         throw new IllegalArgumentException("unrecognized constructor argument " + typeOfConstructorArgument.getName());
@@ -445,18 +452,22 @@ public class UperEncoder {
                     throw new IllegalArgumentException("failed to invoke constructor of " + classOfT.getName() + ": " + e1);
                 }
            // }
-        } else if (classOfT.getAnnotation(Sequence.class) != null) {
-            T result = classOfT.newInstance();
+        } else if (annotations.getAnnotation(Sequence.class) != null) {
+            logger.debug("Sequence");
+            T result = instantiate(classOfT);
             Asn1ContainerFieldSorter sorter = new Asn1ContainerFieldSorter(classOfT);
-            if (hasExtensionMarker(classOfT)) {
+            if (hasExtensionMarker(annotations)) {
                 logger.debug("with extension marker");
                 boolean extensionPresent = bitlist.get();
+                if (extensionPresent) {
+                    throw new UnsupportedOperationException("sequence extension is not supported yet");
+                }
             }
             // Bitmask for optional fields.
             Deque<Boolean> optionalFieldsMask = new ArrayDeque<>(sorter.optionalOrdinaryFields.size());
             for (Field f : sorter.optionalOrdinaryFields) {
-                logger.debug("optional field {}", f);
                 optionalFieldsMask.add(bitlist.get());
+                logger.debug("with optional field {} {}", f.getName(), optionalFieldsMask.getLast() ? "present" : "absent");
             }
             // All ordinary fields (fields within extension root).
             for (Field f : sorter.ordinaryFields) {
@@ -465,16 +476,92 @@ public class UperEncoder {
                     f.set(result, decode(bitlist, f.getType(), f.getAnnotations()));
                 }
             }
-            if (hasExtensionMarker(classOfT) && !sorter.extensionFields.isEmpty()) {
+            if (hasExtensionMarker(annotations) && !sorter.extensionFields.isEmpty()) {
                 throw new UnsupportedOperationException("Extension fields are not implemented yet");
             }
             sorter.revertAccess();
             return result;
-        } else if (classOfT.getAnnotation(Choice.class) != null) {
-            throw new UnsupportedOperationException("Choice is not implemented yet");
+        } else if (annotations.getAnnotation(Choice.class) != null) {
+            logger.debug("Choice");
+            T result = instantiate(classOfT);
+            Asn1ContainerFieldSorter sorter = new Asn1ContainerFieldSorter(classOfT);
+            if (hasExtensionMarker(annotations)) {
+                logger.debug("with extension marker");
+                boolean extensionPresent = bitlist.get();
+                if (extensionPresent) {
+                    throw new UnsupportedOperationException("choice extension is not implemented yet");
+                } else {
+                    // We already consumed the bit, keep processing as if there were no extension.
+                }
+            }
+            int index = (int) decodeConstraainedInt(bitlist, newRange(0, sorter.ordinaryFields.size() - 1, false));
+            Field f = sorter.ordinaryFields.get(index);
+            Object fieldValue = decode(bitlist, f.getType(), f.getAnnotations());
+            f.set(result, fieldValue);
+            return result;
+        } else if (classOfT.isEnum()) {
+            logger.debug("Enum");
+            if (hasExtensionMarker(annotations)) {
+                logger.debug("with extension marker");
+                boolean extensionPresent = bitlist.get();
+                if (extensionPresent) {
+                    throw new UnsupportedOperationException("choice extension is not implemented yet");
+                } else {
+                    // We already consumed the bit, keep processing as if there were no extension.
+                }
+            }
+            T[] enumValues = classOfT.getEnumConstants();
+            int index = (int) decodeConstraainedInt(bitlist, newRange(0, enumValues.length - 1, false));
+            if (index > enumValues.length - 1) {
+                throw new IllegalArgumentException("decoded enum index " + index + " is larger then number of elements (0.." + enumValues.length + ") in " + classOfT.getName());
+            }
+            T value = enumValues[index];
+            return value;
+        } else if (annotations.getAnnotation(Bitstring.class) != null && !Asn1VarSizeBitstring.class.isAssignableFrom(classOfT)) {
+            logger.debug("Bitlist(fixed-size, all-named)");
+            FixedSize fixedSize = annotations.getAnnotation(FixedSize.class);
+            if (fixedSize == null) {
+                throw new UnsupportedOperationException("bitstrings of non-fixed size that do not extend Asn1VarSizeBitstring are not supported yet");
+            }
+            Asn1ContainerFieldSorter sorter = new Asn1ContainerFieldSorter(classOfT);
+            if (fixedSize.value() != sorter.ordinaryFields.size()) {
+                throw new IllegalArgumentException("Fixed size annotation " + fixedSize.value() + " does not match the number of fields " + sorter.ordinaryFields.size()  + " in " + classOfT.getName());
+            }
+            if (hasExtensionMarker(annotations)) {
+                boolean extensionPresent = bitlist.get();
+                if (extensionPresent) {
+                    throw new UnsupportedOperationException("extensions in fixed-size bitlist are not supported yet");
+                }
+            }
+            T result = instantiate(classOfT);
+            for (Field f : sorter.ordinaryFields) {
+                boolean value = bitlist.get();
+                logger.debug("Field {} set to {}", f.getName(), value);
+                f.set(result, value);
+            }
+            return result;
         } else {
             throw new IllegalArgumentException("can't decode class " + classOfT.getName() + ", annotations: " + Arrays.asList(classOfT.getAnnotations()));
         }
+    }
+
+    private static <T> T instantiate(Class<T> classOfT) {
+        Constructor<T> constructor;
+        try {
+            constructor = classOfT.getDeclaredConstructor();
+        } catch (NoSuchMethodException | SecurityException e) {
+            throw new IllegalArgumentException("Can't get default no-argument constructor for " + classOfT.getName(), e);
+        }
+        boolean constructorIsAccessible = constructor.isAccessible();
+        constructor.setAccessible(true);
+        T result;
+        try {
+            result = constructor.newInstance();
+        } catch (IllegalArgumentException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+            throw new IllegalArgumentException("Can't instantiate " + classOfT.getName(), e);
+        }
+        constructor.setAccessible(constructorIsAccessible);
+        return result;
     }
 
 
@@ -486,22 +573,27 @@ public class UperEncoder {
             throw new IllegalArgumentException("Lower bound " + lowerBound + " is larger that upper bound " + upperBound);
         }
         if (hasExtensionMarker) {
-            boolean extensionBit = bitqueue.get();
-            if (extensionBit) {
+            boolean extensionIsActive = bitqueue.get();
+            if (extensionIsActive) {
                 throw new UnsupportedOperationException("int extension are not supported yet");
             }
         }
         final long range = upperBound - lowerBound + 1;
         if (range == 1) { return lowerBound; }
         int bitlength = BigInteger.valueOf(range-1).bitLength();
-        logger.debug("This int will require {} bits, available {}", bitlength, bitqueue.limit());
+        logger.trace("This int will require {} bits, available {}", bitlength, bitqueue.limit());
         List<Boolean> relevantBits = new ArrayList<>();
         for (int i = 0; i < bitlength; i++) {
             //if (bitqueue.isEmpty()) { throw new IllegalArgumentException("Reached end of input bitlist"); }
             relevantBits.add(bitqueue.get());
         }
-        final BigInteger big = new BigInteger(+1, bytesFromBinaryString(binaryStringFromCollection(relevantBits)));  // This is very inefficient, I know.
-        return lowerBound + big.longValue();
+        final BigInteger big = new BigInteger(binaryStringFromCollection(relevantBits), 2);  // This is very inefficient, I know.
+        final long result = lowerBound + big.longValue();
+        logger.debug("bits {} decoded as {} plus lower bound {} give {}", binaryStringFromCollection(relevantBits), big.longValue(), lowerBound, result);
+        if ((result < intRange.minValue() || intRange.maxValue() < result) && !intRange.hasExtensionMarker()) {
+            throw new AssertionError("Decoded value " + result + " is outside of range (" + intRange.minValue() + ".." + intRange.maxValue() + ")");
+        }
+        return result;
     }
 
     public static List<Boolean> encodeChar(char c, RestrictedString restriction) {
@@ -578,8 +670,8 @@ public class UperEncoder {
         return result;
     }
 
-    private static boolean hasExtensionMarker(Class<?> type) {
-        return type.getAnnotation(HasExtensionMarker.class) != null;
+    private static boolean hasExtensionMarker(AnnotationStore annotations) {
+        return annotations.getAnnotation(HasExtensionMarker.class) != null;
     }
 
     private static boolean isExtension(Field f) {

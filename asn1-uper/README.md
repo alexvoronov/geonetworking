@@ -2,9 +2,9 @@
 
 ASN.1 Encoder for Unaligned Packed Encoding Rules (UPER, ITU-T Recommendation [X.691](http://www.itu.int/rec/T-REC-X.691/en) | ISO/IEC 8825-2). Encoder encodes objects of classes annotated with [asn1-datatypes](https://github.com/alexvoronov/geonetworking/tree/master/asn1-datatypes).
 
-### Status
 
-Encoder can handle [camdenm](https://github.com/alexvoronov/geonetworking/tree/master/camdenm). There is no decoder yet.
+### Status
+Encoder can handle [camdenm](https://github.com/alexvoronov/geonetworking/tree/master/camdenm). Decoder is in progress, at the moment it can handle parts of camdenm.
 
 
 ### Acknowledgments
@@ -16,5 +16,4 @@ Excellent OSS Nokalva [ASN.1 Playground](http://asn1-playground.oss.com/) was us
 
 
 ### License
-
 This code is released under the business-friendly Apache 2.0 license.

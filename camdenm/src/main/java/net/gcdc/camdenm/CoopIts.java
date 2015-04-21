@@ -885,6 +885,11 @@ public class CoopIts {
     @HasExtensionMarker
     public static class RSUContainerHighFrequency {
         @Asn1Optional ProtectedCommunicationZonesRSU protectedCommunicationZonesRSU;
+
+        public RSUContainerHighFrequency() { this(null); }
+        public RSUContainerHighFrequency(ProtectedCommunicationZonesRSU protectedCommunicationZonesRSU) {
+            this.protectedCommunicationZonesRSU = protectedCommunicationZonesRSU;
+        }
     }
 
     @SizeRange(minValue = 0, maxValue = 40)

@@ -5,6 +5,10 @@ import java.util.Deque;
 
 public class ListBitBuffer implements BitBuffer {
 
+    @Override public String toString() {
+        return UperEncoder.binaryStringFromCollection(deque);
+    }
+
     private final Deque<Boolean> deque = new ArrayDeque<>();
 
     @Override public boolean get() {
@@ -28,4 +32,6 @@ public class ListBitBuffer implements BitBuffer {
     public static ListBitBuffer empty() {
         return new ListBitBuffer();
     }
+
+
 }
