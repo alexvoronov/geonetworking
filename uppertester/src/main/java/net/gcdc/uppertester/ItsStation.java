@@ -219,7 +219,7 @@ public class ItsStation implements AutoCloseable {
             try {
                 BtpPacket packet = BtpPacket.singleHop(UperEncoder.encode(cam), PORT_CAM, CAM_LIFETIME_SECONDS);
                 btpSocket.send(packet);
-            } catch (IllegalArgumentException | IllegalAccessException e) {
+            } catch (IllegalArgumentException | UnsupportedOperationException e) {
                 logger.error("Failed to encode CAM", e);
             } catch (IOException e) {
                 logger.error("Failed to send CAM", e);
@@ -236,7 +236,7 @@ public class ItsStation implements AutoCloseable {
             logger.info("sending DENM as BTP packet {} ", packet);
             btpSocket.send(packet);
             logger.debug("btp packet sent with no exception ", packet);
-        } catch (IllegalArgumentException | IllegalAccessException e) {
+        } catch (IllegalArgumentException | UnsupportedOperationException e) {
             logger.error("Failed to encode DENM", e);
         } catch (IOException e) {
             logger.error("Failed to send DENM", e);
