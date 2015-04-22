@@ -45,7 +45,7 @@ public class CoopIts {
 
         public Cam() { this(new ItsPduHeader(new MessageId(MessageId.cam)), new CoopAwareness()); }
 
-        @Override public String toString() { return "{header " + header + ", cam " + cam + "}"; }
+        @Override public String toString() { return "CAM(" + header + ", " + cam + ")"; }
     }
 
     @Sequence
@@ -55,8 +55,8 @@ public class CoopIts {
         StationID stationID;
 
         @Override public String toString() {
-            return "{protocolVersion " + protocolVersion + ", messageID " + messageID +
-                    ", stationID " + stationID + "}";
+            return "Header(protocolVersion " + protocolVersion + ", messageID " + messageID +
+                    ", stationID " + stationID + ")";
         }
 
         @Asn1AnonymousType
@@ -104,6 +104,10 @@ public class CoopIts {
 
     @Sequence
     public static class CoopAwareness {
+        @Override public String toString() {
+            return "CoopAwareness(generationDeltaTime=" + generationDeltaTime + ", "
+                    + camParameters + ")";
+        }
         GenerationDeltaTime generationDeltaTime;
         CamParameters camParameters;
 
@@ -125,6 +129,12 @@ public class CoopIts {
     @Sequence
     @HasExtensionMarker
     public static class CamParameters {
+        @Override public String toString() {
+            return "CamParameters(Basic: " + basicContainer + ", HF: "
+                    + highFrequencyContainer + ", LF: " + lowFrequencyContainer
+                    + ", Special: " + specialVehicleContainer + ")";
+        }
+
         BasicContainer basicContainer;
         HighFrequencyContainer highFrequencyContainer;
         @Asn1Optional LowFrequencyContainer lowFrequencyContainer;
@@ -167,6 +177,11 @@ public class CoopIts {
     @Choice
     @HasExtensionMarker
     public static class HighFrequencyContainer {
+        @Override public String toString() {
+            return "HighFrequencyContainer[CHOICE](Basic: "
+                    + basicVehicleContainerHighFrequency + ", RSU: "
+                    + rsuContainerHighFrequency + ")";
+        }
         BasicVehicleContainerHighFrequency basicVehicleContainerHighFrequency;
         RSUContainerHighFrequency rsuContainerHighFrequency;
 

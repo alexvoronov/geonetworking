@@ -485,6 +485,9 @@ public class UperEncoder {
             logger.debug("Choice");
             T result = instantiate(classOfT);
             Asn1ContainerFieldSorter sorter = new Asn1ContainerFieldSorter(classOfT);
+            for (Field f : sorter.allFields) {
+                f.set(result, null);  // Reset all fields, since default constructor initializes one.
+            }
             if (hasExtensionMarker(annotations)) {
                 logger.debug("with extension marker");
                 boolean extensionPresent = bitlist.get();
@@ -693,6 +696,7 @@ public class UperEncoder {
         List<Field> ordinaryFields = new ArrayList<>();
         List<Field> mandatoryOrdinaryFields = new ArrayList<>();
         List<Field> optionalOrdinaryFields = new ArrayList<>();
+        List<Field> allFields = new ArrayList<>();  // Excluding test instrumentation.
 
         Map<Field, Boolean> originalAccess = new HashMap<>();
 
@@ -703,6 +707,7 @@ public class UperEncoder {
                 f.setAccessible(true);
                 if (isExtension(f)) { extensionFields.add(f); }
                 else { ordinaryFields.add(f); }
+                allFields.add(f);
             }
             for (Field f : ordinaryFields) {
                 if (isMandatory(f)) { mandatoryOrdinaryFields.add(f); }

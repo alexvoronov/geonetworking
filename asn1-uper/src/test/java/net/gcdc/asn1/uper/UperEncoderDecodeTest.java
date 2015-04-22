@@ -113,15 +113,15 @@ public class UperEncoderDecodeTest {
                             new RSUContainerHighFrequency(null)
                             ))));
         byte[] encoded = UperEncoder.encode(pdu);
-        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
+        logger.debug("encodedChoice2 data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         String expectedHex = "010200000000006400B6B49D272D693A41A05405405430D95E80";
         assertEquals("encoded hex not equal", expectedHex,
                 UperEncoder.hexStringFromBytes(encoded));
 
         Cam decoded = UperEncoder.decode(encoded, Cam.class);
-        logger.debug("decoded: {}", decoded);
+        logger.debug("(test) decoded object: {}", decoded);
         byte[] reencoded = UperEncoder.encode(decoded);
-        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(reencoded));
+        logger.debug("reencodedChoice2 data hex: {}", UperEncoder.hexStringFromBytes(reencoded));
         assertEquals("reencoded hex not equal", expectedHex,
                 UperEncoder.hexStringFromBytes(reencoded));
     }
