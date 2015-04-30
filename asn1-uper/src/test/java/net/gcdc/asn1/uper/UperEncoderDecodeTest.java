@@ -1,5 +1,6 @@
 package net.gcdc.asn1.uper;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import net.gcdc.camdenm.CoopIts;
 import net.gcdc.camdenm.CoopIts.AccelerationControl;
@@ -11,6 +12,7 @@ import net.gcdc.camdenm.CoopIts.BasicVehicleContainerHighFrequency;
 import net.gcdc.camdenm.CoopIts.Cam;
 import net.gcdc.camdenm.CoopIts.CamParameters;
 import net.gcdc.camdenm.CoopIts.CoopAwareness;
+import net.gcdc.camdenm.CoopIts.DrivingLaneStatus;
 import net.gcdc.camdenm.CoopIts.HeadingValue;
 import net.gcdc.camdenm.CoopIts.HighFrequencyContainer;
 //import static org.junit.Assert.fail;
@@ -20,6 +22,9 @@ import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
 import net.gcdc.camdenm.CoopIts.Latitude;
 import net.gcdc.camdenm.CoopIts.Longitude;
 import net.gcdc.camdenm.CoopIts.PosConfidenceEllipse;
+import net.gcdc.camdenm.CoopIts.PosPillar;
+import net.gcdc.camdenm.CoopIts.PositionOfPillars;
+import net.gcdc.camdenm.CoopIts.PtActivationData;
 import net.gcdc.camdenm.CoopIts.RSUContainerHighFrequency;
 import net.gcdc.camdenm.CoopIts.ReferencePosition;
 import net.gcdc.camdenm.CoopIts.SemiAxisLength;
@@ -124,6 +129,49 @@ public class UperEncoderDecodeTest {
         logger.debug("reencodedChoice2 data hex: {}", UperEncoder.hexStringFromBytes(reencoded));
         assertEquals("reencoded hex not equal", expectedHex,
                 UperEncoder.hexStringFromBytes(reencoded));
+    }
+
+    @Test public void bitstringTest1() {
+        Object pdu = DrivingLaneStatus.builder().outermostLaneClosed(true).setBit(3, true).create();
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("encoded bitstring data hex: {}", UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, DrivingLaneStatus.class);
+        byte[] reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
+    }
+
+    /**
+     * <pre>
+PosPillar ::= INTEGER {tenCentimeters(1), unavailable(30)} (1..30)
+PositionOfPillars ::= SEQUENCE (SIZE(1..3, ...)) OF PosPillar
+     *  </pre
+     */
+    @Test public void seqofTest1() {
+        byte[] encoded = null;
+        byte[] reencoded = null;
+        Object pdu = new PositionOfPillars(new PosPillar(8));
+        encoded = UperEncoder.encode(pdu);
+        logger.debug("encoded seq-of data hex: {}", UperEncoder.hexStringFromBytes(encoded));
+        String expectedHex = "07";
+        assertEquals("encoded hex not equal", expectedHex, UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, PositionOfPillars.class);
+        reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
+    }
+
+    @Test public void octetTest() {
+//        Object pdu = new PtActivationData(new byte[] {42, 43, 44, (byte)150, -10});
+        Object pdu = new PtActivationData(new byte[] {0x2A, 0x2B, (byte)0x96, (byte)0xFF});
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("encoded octetstring data hex: {}", UperEncoder.hexStringFromBytes(encoded));
+        String expectedHex = "19515CB7F8";
+        assertEquals("encoded hex not equal", expectedHex, UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, PtActivationData.class);
+        byte[] reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
     }
 
     @Test public void test() {

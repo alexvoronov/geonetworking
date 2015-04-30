@@ -25,6 +25,10 @@ public class Asn1VarSizeBitstring extends AbstractList<Boolean> {
         }
     }
 
+    public Asn1VarSizeBitstring(BitSet bitset) {
+        backing = (BitSet) bitset.clone();
+    }
+
     protected void setBit(int bitIndex, boolean value) {
         backing.set(bitIndex, value);
     }

@@ -21,6 +21,10 @@
 			<artifactId>camdenm</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>net.jodah</groupId>
+			<artifactId>typetools</artifactId>
+		</dependency>
 	</dependencies>
 
 </project>

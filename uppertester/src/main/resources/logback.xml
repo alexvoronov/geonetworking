@@ -8,7 +8,7 @@
     </encoder>
   </appender>
 
-  <logger name="net.gcdc.camdenm.UperEncoder" level="INFO" />
+  <logger name="net.gcdc.asn1.uper.UperEncoder" level="INFO" />
 
   <root level="debug">
     <appender-ref ref="STDOUT" />

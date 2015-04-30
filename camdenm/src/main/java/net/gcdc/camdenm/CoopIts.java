@@ -2,6 +2,7 @@ package net.gcdc.camdenm;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 
 import net.gcdc.asn1.datatypes.Asn1AnonymousType;
@@ -1261,49 +1262,40 @@ public class CoopIts {
 
         protected DrivingLaneStatus() { super(new ArrayList<Boolean>()); }
 
+        protected DrivingLaneStatus(Builder builder) { super(builder.bitset); }
+
         public static Builder builder() { return new Builder(); }
 
         public static class Builder {
             private static final int minSize = Builder.class.getDeclaringClass().getAnnotation(SizeRange.class).minValue();
             private static final int maxSize = Builder.class.getDeclaringClass().getAnnotation(SizeRange.class).maxValue();
-            private final DrivingLaneStatus val;
-            private boolean created = false;
-            private void checkCreated() {
-                if (created) { throw new IllegalStateException("Already created"); }
-            }
+            BitSet bitset = new BitSet();
             public DrivingLaneStatus create() {
-                if (val.size() < 1) {
-                    throw new IllegalStateException("Too few elements: have " + val.size() +
+                if (bitset.size() < minSize) {
+                    throw new IllegalStateException("Too few elements: have " + bitset.size() +
                             ", min needed " + minSize);
                 }
-                created = true;
-                return val;
+                return new DrivingLaneStatus(this);
             }
 
-            private Builder() {
-                val = new DrivingLaneStatus();
-            }
+            private Builder() { }
 
             public Builder setBit(int bitIndex, boolean value) {
                 if (bitIndex >= maxSize) {
                     throw new IllegalArgumentException("Index " + bitIndex + " is out of range 0.."
                             + (maxSize - 1) + " for " + Builder.class.getDeclaringClass());
                 }
-                checkCreated();
-                val.setBit(bitIndex, value);
+                bitset.set(bitIndex, value);
                 return this;
             }
 
             public Builder outermostLaneClosed(boolean outermostLaneClosed) {
-                setBit(1, outermostLaneClosed);
-                return this;
+                return setBit(1, outermostLaneClosed);
             }
             public Builder secondLaneFromOutsideClosed(boolean secondLaneFromOutsideClosed) {
-                setBit(2, secondLaneFromOutsideClosed);
-                return this;
+                return setBit(2, secondLaneFromOutsideClosed);
             }
         }
-
     }
 
     @Sequence
@@ -2008,6 +2000,9 @@ public class CoopIts {
 
     @SizeRange(minValue = 1, maxValue = 3, hasExtensionMarker = true)
     public static class PositionOfPillars extends Asn1SequenceOf<PosPillar> {
+        public PositionOfPillars(Collection<PosPillar> coll) {
+            super(coll);
+        }
         public PositionOfPillars(PosPillar... coll) {
             super(Arrays.asList(coll));
         }

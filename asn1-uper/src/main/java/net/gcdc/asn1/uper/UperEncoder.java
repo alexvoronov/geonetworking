@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -34,6 +35,8 @@ import net.gcdc.asn1.datatypes.IsExtension;
 import net.gcdc.asn1.datatypes.RestrictedString;
 import net.gcdc.asn1.datatypes.Sequence;
 import net.gcdc.asn1.datatypes.SizeRange;
+import net.jodah.typetools.TypeResolver;
+import net.jodah.typetools.TypeResolver.Unknown;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +72,7 @@ public class UperEncoder {
         DEFAULT_RANGE.put(Integer.class, newRange(Integer.MIN_VALUE, Integer.MAX_VALUE, false));
         DEFAULT_RANGE.put(   long.class, newRange(   Long.MIN_VALUE,    Long.MAX_VALUE, false));
         DEFAULT_RANGE.put(   Long.class, newRange(   Long.MIN_VALUE,    Long.MAX_VALUE, false));
+        // Byte is not part of this, since we treat byte as unsigned byte, while the rest we treat as it is.
 
         // Asn1Integer have max range of Long. Bigger ranges require Asn1BigInteger.
         DEFAULT_RANGE.put(Asn1Integer.class, newRange(Long.MIN_VALUE, Long.MAX_VALUE, false));
@@ -81,6 +85,10 @@ public class UperEncoder {
             @Override public long maxValue() { return maxValue; }
             @Override public boolean hasExtensionMarker() { return hasExtensionMarker; }
         };
+    }
+
+    private static IntRange intRangeFromSizeRange(SizeRange sizeRange) {
+        return newRange(sizeRange.minValue(), sizeRange.maxValue(), sizeRange.hasExtensionMarker());
     }
 
     public static <T> byte[] encode(T obj) {
@@ -108,6 +116,10 @@ public class UperEncoder {
             @SuppressWarnings("unchecked")  // Annotations were added with value T for key classOfT.
             T result = (T) annotations.get(classOfT);
             return result;
+        }
+
+        public Collection<Annotation> getAnnotations() {
+            return annotations.values();
         }
     }
 
@@ -437,21 +449,22 @@ public class UperEncoder {
             if (constructor == null) {
                 throw new IllegalArgumentException("can't find any numeric constructor for " + classOfT.getName() + ", all constructors: " + Arrays.asList(classOfT.getConstructors()));
             }
-                try {
-                    Class<?> typeOfConstructorArgument = constructor.getParameterTypes()[0];
-                    if (typeOfConstructorArgument.isAssignableFrom(long.class)) {
-                        return constructor.newInstance(value);
-                    } else if (typeOfConstructorArgument.isAssignableFrom(int.class)) {
-                        return constructor.newInstance((int)value);
-                    } else if (typeOfConstructorArgument.isAssignableFrom(short.class)) {
-                        return constructor.newInstance((short)value);
-                    } else {
-                        throw new IllegalArgumentException("unrecognized constructor argument " + typeOfConstructorArgument.getName());
-                    }
-                } catch (IllegalArgumentException | InvocationTargetException e1) {
-                    throw new IllegalArgumentException("failed to invoke constructor of " + classOfT.getName() + ": " + e1);
+            try {
+                Class<?> typeOfConstructorArgument = constructor.getParameterTypes()[0];
+                if (typeOfConstructorArgument.isAssignableFrom(long.class)) {
+                    return constructor.newInstance(value);
+                } else if (typeOfConstructorArgument.isAssignableFrom(int.class)) {
+                    return constructor.newInstance((int)value);
+                } else if (typeOfConstructorArgument.isAssignableFrom(short.class)) {
+                    return constructor.newInstance((short)value);
+                } else {
+                    throw new IllegalArgumentException("unrecognized constructor argument " + typeOfConstructorArgument.getName());
                 }
-           // }
+            } catch (IllegalArgumentException | InvocationTargetException e1) {
+                throw new IllegalArgumentException("failed to invoke constructor of " + classOfT.getName() + ": " + e1);
+            }
+        } else if (Byte.class.isAssignableFrom(classOfT) || byte.class.isAssignableFrom(classOfT)) {
+            return (T) new Byte((byte) decodeConstraainedInt(bitlist, newRange(0, 255, false)));
         } else if (annotations.getAnnotation(Sequence.class) != null) {
             logger.debug("Sequence");
             T result = instantiate(classOfT);
@@ -543,23 +556,99 @@ public class UperEncoder {
                 f.set(result, value);
             }
             return result;
+        } else if (annotations.getAnnotation(Bitstring.class) != null && Asn1VarSizeBitstring.class.isAssignableFrom(classOfT)) {
+            logger.debug("Bitlist(var-size)");
+            FixedSize fixedSize = annotations.getAnnotation(FixedSize.class);
+            SizeRange sizeRange = annotations.getAnnotation(SizeRange.class);
+            // We use reflection here to access protected method of Asn1VarSizeBitstring.
+            // Alternative would be to mandate BitSet constructors for all subclasses of Asn1VarSizeBitstring.
+            Method setBitMethod;
+            try {
+                setBitMethod = Asn1VarSizeBitstring.class.getDeclaredMethod("setBit", int.class, boolean.class);
+                setBitMethod.setAccessible(true);
+            } catch (SecurityException | NoSuchMethodException e) {
+                throw new AssertionError("Can't find/access setBit " + e);
+            }
+            long size = (fixedSize != null) ? fixedSize.value() :
+                (sizeRange != null) ? decodeConstraainedInt(bitlist, intRangeFromSizeRange(sizeRange)) :
+                    badSize(classOfT);
+            T result = instantiate(classOfT);
+            for (int i = 0; i < size; i++) {
+                try {
+                    setBitMethod.invoke(result, i, bitlist.get());
+                } catch (IllegalArgumentException | InvocationTargetException e) {
+                    throw new IllegalArgumentException("Can't invoke setBit");
+                }
+            }
+            return result;
+        } else if (List.class.isAssignableFrom(classOfT)) {
+            logger.debug("SEQUENCE OF for {}", classOfT);
+            SizeRange sizeRange = annotations.getAnnotation(SizeRange.class);
+            if (sizeRange == null) {
+                throw new UnsupportedOperationException("Sequence-of without size range is not supported yet, all annotations of " + classOfT.getName() + ": " + annotations.getAnnotations());
+            }
+            long size = decodeConstraainedInt(bitlist, intRangeFromSizeRange(sizeRange));
+            Collection<Object> coll = new ArrayList<Object>((int) size);
+            for (int i = 0; i < size; i++) {
+                Class<?>[] typeArgs = TypeResolver.resolveRawArguments(List.class, classOfT);
+                Class<?> classOfElements = typeArgs[0];
+                if (classOfElements == Unknown.class) {
+                    throw new IllegalArgumentException("Can't resolve type of elements for " + classOfT.getName());
+                }
+                coll.add(decode(bitlist, classOfElements, new Annotation[] {}));
+            }
+            T result = instantiate(classOfT, coll);
+            return result;
         } else {
             throw new IllegalArgumentException("can't decode class " + classOfT.getName() + ", annotations: " + Arrays.asList(classOfT.getAnnotations()));
         }
     }
 
-    private static <T> T instantiate(Class<T> classOfT) {
-        Constructor<T> constructor;
-        try {
-            constructor = classOfT.getDeclaredConstructor();
-        } catch (NoSuchMethodException | SecurityException e) {
-            throw new IllegalArgumentException("Can't get default no-argument constructor for " + classOfT.getName(), e);
+    /** Special function that only throws an exception to be used in ternary (a?b:c) expression. */
+    private static <T> long badSize(Class<T> classOfT) {
+        throw new IllegalArgumentException("both size range and fixed size are null for " + classOfT.getName());
+    }
+
+    private static <T> Constructor<T> findConsturctor(Class<T> classOfT, Object... parameters) {
+        @SuppressWarnings("unchecked")
+        Constructor<T>[] declaredConstructors = (Constructor<T>[]) classOfT.getDeclaredConstructors();
+        for (Constructor<T> c : declaredConstructors) {
+            Class<?>[] parameterTypes = c.getParameterTypes();
+            if (parameterTypes.length == parameters.length) {
+                boolean constructorIsOk = true;
+                for (int i = 0; i < parameters.length; i++) {
+                    if (!parameterTypes[i].isAssignableFrom(parameters[i].getClass())) {
+                        constructorIsOk = false;
+                        break;
+                    }
+                }
+                if (constructorIsOk) {
+                    return c;
+                }
+            }
         }
+        Class<?>[] parameterTypes = new Class<?>[parameters.length];
+        for (int i = 0; i < parameters.length; i++) {
+            parameterTypes[i] = parameters[i].getClass();
+        }
+        throw new IllegalArgumentException("Can't get the " + parameters.length +
+                "-argument constructor for parameter(s) " + parameters + " (" + Arrays.asList(parameters) +
+                ") of type(s) " + Arrays.asList(parameterTypes) + " for class " + classOfT.getName() +
+                ", all constructors: " + Arrays.asList(classOfT.getDeclaredConstructors()));
+    }
+
+    /** Instantiate a given class T using given parameters. */
+    private static <T> T instantiate(Class<T> classOfT, Object... parameters) {
+        Class<?>[] parameterTypes = new Class<?>[parameters.length];
+        for (int i = 0; i < parameters.length; i++) {
+            parameterTypes[i] = parameters[i].getClass();
+        }
+        Constructor<T> constructor = findConsturctor(classOfT, parameters);
         boolean constructorIsAccessible = constructor.isAccessible();
         constructor.setAccessible(true);
         T result;
         try {
-            result = constructor.newInstance();
+            result = constructor.newInstance(parameters);
         } catch (IllegalArgumentException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new IllegalArgumentException("Can't instantiate " + classOfT.getName(), e);
         }
@@ -624,9 +713,9 @@ public class UperEncoder {
                 if (restriction.alphabet() != DefaultAlphabet.class) {
                     char[] chars;
                     try {
-                        chars = restriction.alphabet().newInstance().chars().toCharArray();
-                    } catch (InstantiationException | IllegalAccessException e) {
-                        throw new IllegalArgumentException("Uninstantinatable alphabet");
+                        chars = instantiate(restriction.alphabet()).chars().toCharArray();
+                    } catch (IllegalArgumentException e) {
+                        throw new IllegalArgumentException("Uninstantinatable alphabet" + restriction.alphabet().getName());
                     }
                     if (BigInteger.valueOf(chars.length-1).bitLength() < BigInteger.valueOf(126).bitLength()) {
                         Arrays.sort(chars);
