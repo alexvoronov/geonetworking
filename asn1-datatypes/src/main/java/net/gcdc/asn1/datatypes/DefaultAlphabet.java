@@ -1,9 +1,8 @@
 package net.gcdc.asn1.datatypes;
 
-public class DefaultAlphabet implements Alphabet {
+public class DefaultAlphabet extends Alphabet {
 
-    @Override public String chars() {
-        return "";
+    public DefaultAlphabet() {
+        super("");
     }
-
 }

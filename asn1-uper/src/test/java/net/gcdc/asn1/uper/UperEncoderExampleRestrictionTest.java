@@ -107,9 +107,12 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64))
         public NameString() { this(""); }
         public NameString(String value) { super(value); }
 
-        public static class NameStringAlphabet implements Alphabet {
-            private final static String chars = new AlphabetBuilder().withRange('a', 'z').withRange('A','Z').withChars("-.").chars();
-            @Override public String chars() { return chars; }
+        public static class NameStringAlphabet extends Alphabet {
+            private final static String chars =
+                    new AlphabetBuilder().withRange('a', 'z').withRange('A','Z').withChars("-.").chars();
+            public NameStringAlphabet() {
+                super(chars);
+            }
         }
     }
 
@@ -124,9 +127,11 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64))
     public static class Date extends Asn1String {
         public Date() { this(""); }
         public Date(String value) { super(value); }
-        public static class DateAlphabet implements Alphabet {
+        public static class DateAlphabet extends Alphabet {
             private final static String chars = new AlphabetBuilder().withRange('0', '9').chars();
-            @Override public String chars() { return chars; }
+            public DateAlphabet() {
+                super(chars);
+            }
         }
     }
 
