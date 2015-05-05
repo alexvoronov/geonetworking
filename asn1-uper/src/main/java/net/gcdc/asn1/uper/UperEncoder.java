@@ -155,10 +155,11 @@ public class UperEncoder {
                 throw new UnsupportedOperationException("Asn1 BigInteger with range is not supported yet");
             }
             byte[] array = ((Asn1BigInteger)obj).value().toByteArray();
-            List<Boolean> result = new ArrayList<>();
-            Collection<Boolean> lengthBits = encodeLengthDeterminant(array.length);
-            result.addAll(lengthBits);
+            int lengthInOctets = array.length;
+            Collection<Boolean> lengthBits = encodeLengthDeterminant(lengthInOctets);
             Collection<Boolean> valueBits = collectionFromBinaryString(binaryStringFromBytes(array));
+            List<Boolean> result = new ArrayList<>();
+            result.addAll(lengthBits);
             result.addAll(valueBits);
             logger.debug("Big Int({}): len {}, val {}", obj, binaryStringFromCollection(lengthBits), binaryStringFromCollection(valueBits));
             return result;
@@ -374,7 +375,6 @@ public class UperEncoder {
                 throw new IllegalArgumentException("Bad string length, expected " + sizeRange.minValue() + ".." + sizeRange.maxValue() + ", got " + string.length());
             }
             if (restrictionAnnotation.value() == CharacterRestriction.UTF8String) {  // UTF8 length varies, so no sizes.
-                List<Boolean> bitlist = new ArrayList<>();
                 List<Boolean> stringEncoding = new ArrayList<>();
                 for (char c : string.toCharArray()) {
                     stringEncoding.addAll(encodeChar(c, restrictionAnnotation));
@@ -384,9 +384,10 @@ public class UperEncoder {
                 }
                 int numOctets = stringEncoding.size() / 8;
                 List<Boolean> lengthEncoding = encodeLengthDeterminant(numOctets);
+                List<Boolean> bitlist = new ArrayList<>();
                 bitlist.addAll(lengthEncoding);
                 bitlist.addAll(stringEncoding);
-                logger.debug("UTF8String {}, length det {} ({}) bits {}", string, stringEncoding.size(), binaryStringFromCollection(lengthEncoding), binaryStringFromCollection(stringEncoding));
+                logger.debug("UTF8String {}, encoded length {} octets (length det bits {}), hex string: {}", string, numOctets, binaryStringFromCollection(lengthEncoding), hexStringFromBytes(bytesFromCollection(stringEncoding)));
                 return bitlist;
             } else if (fixedSize != null) {
                 if (fixedSize.value() != string.length()) {
@@ -429,11 +430,19 @@ public class UperEncoder {
     public static <T> T decode(ListBitBuffer bitlist, Class<T> classOfT, Annotation[] extraAnnotations) throws InstantiationException, IllegalAccessException {
         logger.debug("Decoding {} from remaining bits {}", classOfT.getName(), bitlist.size());//, toBinary(bitlist));
         AnnotationStore annotations = new AnnotationStore(classOfT.getAnnotations(), extraAnnotations);
-        if (Asn1Integer.class.isAssignableFrom(classOfT)) {
+        if (Asn1Integer.class.isAssignableFrom(classOfT) |
+                   Long.class.isAssignableFrom(classOfT) |
+                   long.class.isAssignableFrom(classOfT) |
+                Integer.class.isAssignableFrom(classOfT) |
+                    int.class.isAssignableFrom(classOfT) |
+                  Short.class.isAssignableFrom(classOfT) |
+                  short.class.isAssignableFrom(classOfT)
+                ) {
+            logger.debug("INTEGER");
             IntRange intRange = annotations.getAnnotation(IntRange.class);
             if (intRange == null) { intRange = DEFAULT_RANGE.get(classOfT); }
             logger.debug("Integer, range {}..{}", intRange.minValue(), intRange.maxValue());
-            long value = decodeConstraainedInt(bitlist, intRange);
+            long value = decodeConstrainedInt(bitlist, intRange);
             logger.debug("decoded as {}", value);
             Constructor<T> constructor = null;
             Class<?>[] numericTypes = new Class<?> [] {long.class, int.class, short.class};
@@ -463,10 +472,28 @@ public class UperEncoder {
             } catch (IllegalArgumentException | InvocationTargetException e1) {
                 throw new IllegalArgumentException("failed to invoke constructor of " + classOfT.getName() + ": " + e1);
             }
+        } else if (Asn1BigInteger.class.isAssignableFrom(classOfT)) {
+            logger.debug("BIG INT");
+            IntRange intRange = annotations.getAnnotation(IntRange.class);
+            if (intRange != null) {
+                throw new UnsupportedOperationException("Big int with range is not supported yet");
+            }
+            int lengthInOctets = (int) decodeLengthDeterminant(bitlist);
+            List<Boolean> valueBits = new ArrayList<Boolean>(lengthInOctets * 8);
+            for (int i = 0; i < lengthInOctets * 8; i++) {
+                valueBits.add(bitlist.get());
+            }
+            BigInteger resultValue = new BigInteger(binaryStringFromCollection(valueBits), 2);
+            logger.debug("big int Decoded as {}", resultValue);
+            return instantiate(classOfT, resultValue);
         } else if (Byte.class.isAssignableFrom(classOfT) || byte.class.isAssignableFrom(classOfT)) {
-            return (T) new Byte((byte) decodeConstraainedInt(bitlist, newRange(0, 255, false)));
+            logger.debug("BYTE");
+            return (T) new Byte((byte) decodeConstrainedInt(bitlist, newRange(0, 255, false)));
+        } else if (Boolean.class.isAssignableFrom(classOfT) || boolean.class.isAssignableFrom(classOfT)) {
+            logger.debug("BOOL");
+            return (T) new Boolean(bitlist.get());
         } else if (annotations.getAnnotation(Sequence.class) != null) {
-            logger.debug("Sequence");
+            logger.debug("SEQUENCE");
             T result = instantiate(classOfT);
             Asn1ContainerFieldSorter sorter = new Asn1ContainerFieldSorter(classOfT);
             if (hasExtensionMarker(annotations)) {
@@ -495,7 +522,7 @@ public class UperEncoder {
             sorter.revertAccess();
             return result;
         } else if (annotations.getAnnotation(Choice.class) != null) {
-            logger.debug("Choice");
+            logger.debug("CHOICE");
             T result = instantiate(classOfT);
             Asn1ContainerFieldSorter sorter = new Asn1ContainerFieldSorter(classOfT);
             for (Field f : sorter.allFields) {
@@ -510,13 +537,13 @@ public class UperEncoder {
                     // We already consumed the bit, keep processing as if there were no extension.
                 }
             }
-            int index = (int) decodeConstraainedInt(bitlist, newRange(0, sorter.ordinaryFields.size() - 1, false));
+            int index = (int) decodeConstrainedInt(bitlist, newRange(0, sorter.ordinaryFields.size() - 1, false));
             Field f = sorter.ordinaryFields.get(index);
             Object fieldValue = decode(bitlist, f.getType(), f.getAnnotations());
             f.set(result, fieldValue);
             return result;
         } else if (classOfT.isEnum()) {
-            logger.debug("Enum");
+            logger.debug("ENUM");
             if (hasExtensionMarker(annotations)) {
                 logger.debug("with extension marker");
                 boolean extensionPresent = bitlist.get();
@@ -527,7 +554,7 @@ public class UperEncoder {
                 }
             }
             T[] enumValues = classOfT.getEnumConstants();
-            int index = (int) decodeConstraainedInt(bitlist, newRange(0, enumValues.length - 1, false));
+            int index = (int) decodeConstrainedInt(bitlist, newRange(0, enumValues.length - 1, false));
             if (index > enumValues.length - 1) {
                 throw new IllegalArgumentException("decoded enum index " + index + " is larger then number of elements (0.." + enumValues.length + ") in " + classOfT.getName());
             }
@@ -570,7 +597,7 @@ public class UperEncoder {
                 throw new AssertionError("Can't find/access setBit " + e);
             }
             long size = (fixedSize != null) ? fixedSize.value() :
-                (sizeRange != null) ? decodeConstraainedInt(bitlist, intRangeFromSizeRange(sizeRange)) :
+                (sizeRange != null) ? decodeConstrainedInt(bitlist, intRangeFromSizeRange(sizeRange)) :
                     badSize(classOfT);
             T result = instantiate(classOfT);
             for (int i = 0; i < size; i++) {
@@ -584,10 +611,8 @@ public class UperEncoder {
         } else if (List.class.isAssignableFrom(classOfT)) {
             logger.debug("SEQUENCE OF for {}", classOfT);
             SizeRange sizeRange = annotations.getAnnotation(SizeRange.class);
-            if (sizeRange == null) {
-                throw new UnsupportedOperationException("Sequence-of without size range is not supported yet, all annotations of " + classOfT.getName() + ": " + annotations.getAnnotations());
-            }
-            long size = decodeConstraainedInt(bitlist, intRangeFromSizeRange(sizeRange));
+            long size = (sizeRange != null) ? decodeConstrainedInt(bitlist, intRangeFromSizeRange(sizeRange)) :
+                decodeLengthDeterminant(bitlist);
             Collection<Object> coll = new ArrayList<Object>((int) size);
             for (int i = 0; i < size; i++) {
                 Class<?>[] typeArgs = TypeResolver.resolveRawArguments(List.class, classOfT);
@@ -599,6 +624,38 @@ public class UperEncoder {
             }
             T result = instantiate(classOfT, coll);
             return result;
+        } else if (String.class.isAssignableFrom(classOfT) || Asn1String.class.isAssignableFrom(classOfT)) {
+            logger.debug("String");
+            RestrictedString restrictionAnnotation = annotations.getAnnotation(RestrictedString.class);
+            if (restrictionAnnotation == null) {
+                throw new UnsupportedOperationException("Unrestricted character strings are not supported yet. All annotations: " + Arrays.asList(classOfT.getAnnotations()));
+            }
+            if (restrictionAnnotation.value() == CharacterRestriction.UTF8String) {
+                long numOctets = decodeLengthDeterminant(bitlist);
+                List<Boolean> content = new ArrayList<Boolean>();
+                for (int i = 0; i < numOctets * 8; i++) {
+                    content.add(bitlist.get());
+                }
+                byte[] contentBytes = bytesFromCollection(content);
+                String resultStr = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(contentBytes)).toString();
+                T result = instantiate(classOfT, resultStr);
+                return result;
+            } else {
+                FixedSize fixedSize = annotations.getAnnotation(FixedSize.class);
+                SizeRange sizeRange = annotations.getAnnotation(SizeRange.class);
+                long numChars = (fixedSize != null) ? fixedSize.value() :
+                    (sizeRange != null) ? decodeConstrainedInt(bitlist, intRangeFromSizeRange(sizeRange)) :
+                        decodeLengthDeterminant(bitlist);
+                logger.debug("non-utf8, numchars: {}", numChars);
+                StringBuilder stringBuilder = new StringBuilder((int) numChars);
+                for (int c = 0; c < numChars; c++) {
+                    stringBuilder.append(decodeRestrictedChar(bitlist, restrictionAnnotation));
+                }
+                String resultStr = stringBuilder.toString();
+                logger.debug("Decoded as {}", resultStr);
+                T result = instantiate(classOfT, resultStr);
+                return result;
+            }
         } else {
             throw new IllegalArgumentException("can't decode class " + classOfT.getName() + ", annotations: " + Arrays.asList(classOfT.getAnnotations()));
         }
@@ -657,7 +714,7 @@ public class UperEncoder {
     }
 
 
-    private static long decodeConstraainedInt(BitBuffer bitqueue, IntRange intRange) {
+    private static long decodeConstrainedInt(BitBuffer bitqueue, IntRange intRange) {
         long lowerBound = intRange.minValue();
         long upperBound = intRange.maxValue();
         boolean hasExtensionMarker = intRange.hasExtensionMarker();
@@ -745,6 +802,62 @@ public class UperEncoder {
         }
     }
 
+    private static String decodeRestrictedChar(BitBuffer bitqueue, RestrictedString restrictionAnnotation) {
+        switch (restrictionAnnotation.value()) {
+            case IA5String: {
+                if (restrictionAnnotation.alphabet() != DefaultAlphabet.class) {
+                    throw new UnsupportedOperationException("alphabet for IA5String is not supported yet.");
+                }
+                byte charByte = (byte) decodeConstrainedInt(bitqueue, newRange(0, 127, false));
+                byte[] bytes = new byte[] {charByte};
+                String result = StandardCharsets.US_ASCII.decode(ByteBuffer.wrap(bytes)).toString();
+                if (result.length() != 1) {
+                    throw new AssertionError("decoded more than one char (" + result + ")");
+                }
+                return result;
+            }
+            case VisibleString:
+            case ISO646String: {
+                if (restrictionAnnotation.alphabet() != DefaultAlphabet.class) {
+                    char[] chars;
+                    try {
+                        chars = instantiate(restrictionAnnotation.alphabet()).chars().toCharArray();
+                    } catch (IllegalArgumentException e) {
+                        throw new IllegalArgumentException("Uninstantinatable alphabet" + restrictionAnnotation.alphabet().getName());
+                    }
+                    if (BigInteger.valueOf(chars.length-1).bitLength() < BigInteger.valueOf(126).bitLength()) {
+                        Arrays.sort(chars);
+                        int index = (byte) decodeConstrainedInt(bitqueue, newRange(0, chars.length - 1, false));
+                        String strAlphabet = new String(chars);
+                        char c = strAlphabet.charAt(index);
+                        String result = new String(""+c);
+                        return result;
+                    } else {  // Encode normally
+                        byte charByte = (byte) decodeConstrainedInt(bitqueue, newRange(0, 126, false));
+                        byte[] bytes = new byte[] {charByte};
+                        String result = StandardCharsets.US_ASCII.decode(ByteBuffer.wrap(bytes)).toString();
+                        if (result.length() != 1) {
+                            throw new AssertionError("decoded more than one char (" + result + ")");
+                        }
+                        return result;
+                    }
+                } else {  // Encode normally
+                    byte charByte = (byte) decodeConstrainedInt(bitqueue, newRange(0, 126, false));
+                    byte[] bytes = new byte[] {charByte};
+                    String result = StandardCharsets.US_ASCII.decode(ByteBuffer.wrap(bytes)).toString();
+                    if (result.length() != 1) {
+                        throw new AssertionError("decoded more than one char (" + result + ")");
+                    }
+                    return result;
+                }
+            }
+            default:
+                throw new UnsupportedOperationException("String type " + restrictionAnnotation + " is not supported yet");
+
+        }
+    }
+
+
     public static byte[] bytesFromCollection(List<Boolean> bitlist) {
         int sizeBytes = (bitlist.size() + 7) / 8;
         byte[] result = new byte[sizeBytes];
@@ -829,13 +942,31 @@ public class UperEncoder {
             bitlist.add(true);
             bitlist.add(false);
             bitlist.addAll(encodeConstrainedInt(n, 0, NUM_16K-1));
-            logger.debug("Length determinant {}: {}", n, binaryStringFromCollection(bitlist));
+            logger.debug("Length determinant {}, 2bits+14bits: {}", n, binaryStringFromCollection(bitlist));
             if (bitlist.size() != 16) {
                 throw new AssertionError("length determinant encoded not as 16 bits");
             }
             return bitlist;
         } else {
             throw new UnsupportedOperationException("Length greater than 16K is not supported yet.");
+        }
+    }
+
+    public static long decodeLengthDeterminant(BitBuffer bitbuffer) {
+        boolean bit8 = bitbuffer.get();
+        if (!bit8) {  // then value is less than 128
+            long result = decodeConstrainedInt(bitbuffer, newRange(0, 127, false));
+            logger.debug("length determinant, decoded as {}", result);
+            return result;
+        } else {
+            boolean bit7 = bitbuffer.get();
+            if (!bit7) {  // then value is less than 16K
+                long result = decodeConstrainedInt(bitbuffer, newRange(0, NUM_16K-1, false));
+                logger.debug("length determinant, decoded as {}", result);
+                return result;
+            } else {  // "Large" n
+                throw new UnsupportedOperationException("lengthes longer than 16K are not supported yet.");
+            }
         }
     }
 

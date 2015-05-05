@@ -1,10 +1,10 @@
-# ASN.1 UPER Encoder
+# ASN.1 UPER Encoder and Decoder
 
-ASN.1 Encoder for Unaligned Packed Encoding Rules (UPER, ITU-T Recommendation [X.691](http://www.itu.int/rec/T-REC-X.691/en) | ISO/IEC 8825-2). Encoder encodes objects of classes annotated with [asn1-datatypes](https://github.com/alexvoronov/geonetworking/tree/master/asn1-datatypes).
+ASN.1 Encoder and Decoder for Unaligned Packed Encoding Rules (UPER, ITU-T Recommendation [X.691](http://www.itu.int/rec/T-REC-X.691/en) | ISO/IEC 8825-2). Encoder encodes objects of classes annotated with [asn1-datatypes](https://github.com/alexvoronov/geonetworking/tree/master/asn1-datatypes).
 
 
 ### Status
-Encoder can handle [camdenm](https://github.com/alexvoronov/geonetworking/tree/master/camdenm). Decoder is in progress, at the moment it can handle parts of camdenm.
+Both Encoder and Decoder can handle [camdenm](https://github.com/alexvoronov/geonetworking/tree/master/camdenm). Decoder can have some problems with unexpected input (values outside of extension root), but works fine for proper input.
 
 
 ### Acknowledgments

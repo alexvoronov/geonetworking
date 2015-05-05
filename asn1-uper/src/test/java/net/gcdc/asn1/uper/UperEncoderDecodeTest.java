@@ -12,6 +12,8 @@ import net.gcdc.camdenm.CoopIts.BasicVehicleContainerHighFrequency;
 import net.gcdc.camdenm.CoopIts.Cam;
 import net.gcdc.camdenm.CoopIts.CamParameters;
 import net.gcdc.camdenm.CoopIts.CoopAwareness;
+import net.gcdc.camdenm.CoopIts.DangerousGoodsBasic;
+import net.gcdc.camdenm.CoopIts.DangerousGoodsExtended;
 import net.gcdc.camdenm.CoopIts.DrivingLaneStatus;
 import net.gcdc.camdenm.CoopIts.HeadingValue;
 import net.gcdc.camdenm.CoopIts.HighFrequencyContainer;
@@ -30,6 +32,9 @@ import net.gcdc.camdenm.CoopIts.ReferencePosition;
 import net.gcdc.camdenm.CoopIts.SemiAxisLength;
 import net.gcdc.camdenm.CoopIts.StationID;
 import net.gcdc.camdenm.CoopIts.StationType;
+import net.gcdc.camdenm.CoopIts.VDS;
+import net.gcdc.camdenm.CoopIts.VehicleIdentification;
+import net.gcdc.camdenm.CoopIts.WMInumber;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -172,6 +177,86 @@ PositionOfPillars ::= SEQUENCE (SIZE(1..3, ...)) OF PosPillar
         Object decoded = UperEncoder.decode(encoded, PtActivationData.class);
         byte[] reencoded = UperEncoder.encode(decoded);
         assertArrayEquals("encoded and reencoded", encoded, reencoded);
+    }
+
+
+    @Test public void StringTest() throws IllegalArgumentException, IllegalAccessException {
+        Object pdu = new VehicleIdentification(
+                new WMInumber("asd"),
+                new VDS("zxcABC")
+              );
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
+        assertEquals("761E793D78C7061430",
+                UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, VehicleIdentification.class);
+        byte[] reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
+    }
+
+
+    @Test public void Utf8StringTest4() throws IllegalArgumentException, IllegalAccessException {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 15; i++) {
+            sb.append("1234567890");
+        }
+        String string150 = sb.toString();
+        Object pdu = new Utf8TestClass(
+                new Utf8TestClass.CompanyName(string150)
+              );
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
+        assertEquals("8096313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930",
+                UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, Utf8TestClass.class);
+        byte[] reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
+    }
+
+    @Test public void Utf8StringTest5() throws IllegalArgumentException, IllegalAccessException {
+        Object pdu = new Utf8TestClass(
+                new Utf8TestClass.CompanyName("mölndal")
+              );
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
+        assertEquals("086DC3B66C6E64616C",
+                UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, Utf8TestClass.class);
+        byte[] reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
+    }
+
+
+    @Test public void Utf8StringTest() throws IllegalArgumentException, IllegalAccessException {
+        Object pdu = new DangerousGoodsExtended(
+                DangerousGoodsBasic.explosives4, 13, false, false, true, "abc", "cde", "zxc"
+              );
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
+        assertEquals("E300348B0E2C62C793281BD3C318",
+                UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, DangerousGoodsExtended.class);
+        byte[] reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
+    }
+
+    @Test public void Utf8StringTest2() throws IllegalArgumentException, IllegalAccessException {
+        Object pdu = new DangerousGoodsExtended(
+                DangerousGoodsBasic.explosives4, 13, false, false, true, "abc", "cde", "a"
+              );
+        byte[] encoded = UperEncoder.encode(pdu);
+        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
+        assertEquals("E300348B0E2C62C793280B08",
+                UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, DangerousGoodsExtended.class);
+        byte[] reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
+
     }
 
     @Test public void test() {

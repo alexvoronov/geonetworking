@@ -1,9 +1,11 @@
 package net.gcdc.asn1.uper;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Collection;
 
 import net.gcdc.asn1.datatypes.Alphabet;
 import net.gcdc.asn1.datatypes.AlphabetBuilder;
@@ -16,8 +18,6 @@ import net.gcdc.asn1.datatypes.FixedSize;
 import net.gcdc.asn1.datatypes.RestrictedString;
 import net.gcdc.asn1.datatypes.Sequence;
 import net.gcdc.asn1.datatypes.SizeRange;
-import net.gcdc.asn1.uper.UperEncoderExampleRestrictionTest.Date.DateAlphabet;
-import net.gcdc.asn1.uper.UperEncoderExampleRestrictionTest.NameString.NameStringAlphabet;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -62,10 +62,10 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64))
         String title;
         Date dateOfHire;
         Name nameOfSpouse;
-        @Asn1Optional Asn1SequenceOf<ChildInformation> children = new Asn1SequenceOf<ChildInformation>();
+        @Asn1Optional Children children = new Children();
 
         public PersonenelRecord() {
-            this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new Asn1SequenceOf<ChildInformation>());
+            this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new Children());
         }
 
         public PersonenelRecord(
@@ -74,7 +74,7 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64))
                 String title,
                 Date dateOfHire,
                 Name nameOfSpouse,
-                Asn1SequenceOf<ChildInformation> children
+                Children children
                 ) {
             this.name = name;
             this.number = number;
@@ -101,7 +101,7 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64))
     }
 
     //"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-."
-    @RestrictedString(value = CharacterRestriction.VisibleString, alphabet = NameStringAlphabet.class)
+    @RestrictedString(value = CharacterRestriction.VisibleString, alphabet = NameString.NameStringAlphabet.class)
     @SizeRange(minValue = 1, maxValue = 64)
     public static class NameString extends Asn1String {
         public NameString() { this(""); }
@@ -113,14 +113,13 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64))
         }
     }
 
-    @Sequence
     public static class EmployeeNumber extends Asn1BigInteger {
         public EmployeeNumber() { this(0); }
         public EmployeeNumber(long value) { this(BigInteger.valueOf(value)); }
         public EmployeeNumber(BigInteger value) { super(value); }
     }
 
-    @RestrictedString(value = CharacterRestriction.VisibleString, alphabet = DateAlphabet.class)
+    @RestrictedString(value = CharacterRestriction.VisibleString, alphabet = Date.DateAlphabet.class)
     @FixedSize(8)
     public static class Date extends Asn1String {
         public Date() { this(""); }
@@ -143,6 +142,12 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64))
         }
     }
 
+    public static class Children extends Asn1SequenceOf<ChildInformation> {
+        public Children() { super(); }
+        public Children(Collection<ChildInformation> coll) { super(coll); }
+    }
+
+
 
 
     @Test public void test() throws IllegalArgumentException, IllegalAccessException {
@@ -161,7 +166,7 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64))
             new NameString("T"),
             new NameString("Smith")
           ),
-          new Asn1SequenceOf<ChildInformation>(Arrays.asList(
+          new Children(Arrays.asList(
             new ChildInformation(
               new Name(
                 new NameString("Ralph"),
@@ -186,6 +191,11 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64))
         logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("865D51D2888A5125F180998444D3CB2E3E9BF90CB8848B867396E8A88A5125F181089B93D71AA2294497C632AE222222985CE521885D54C170CAC838B8",
                 UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, PersonenelRecord.class);
+        byte[] reencoded = UperEncoder.encode(decoded);
+        logger.debug("reencoded hex: {}", UperEncoder.hexStringFromBytes(reencoded));
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
     }
 
 }

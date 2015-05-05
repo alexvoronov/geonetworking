@@ -9,7 +9,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Asn1SequenceOf<T> extends AbstractList<T> {
+public abstract class Asn1SequenceOf<T> extends AbstractList<T> {
     private final static Logger logger = LoggerFactory.getLogger(Asn1SequenceOf.class);
 
     private final List<T> bakingList;

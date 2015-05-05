@@ -911,14 +911,20 @@ public class CoopIts {
     @SizeRange(minValue = 0, maxValue = 40)
     public static class PathHistory extends Asn1SequenceOf<PathPoint> {
         public PathHistory(PathPoint... coll) {
-            super(Arrays.asList(coll));
+            this(Arrays.asList(coll));
+        }
+        public PathHistory(Collection<PathPoint> coll) {
+            super(coll);
         }
     }
 
     @SizeRange(minValue = 1, maxValue = 16)
     public static class ProtectedCommunicationZonesRSU extends Asn1SequenceOf<ProtectedCommunicationZone> {
         public ProtectedCommunicationZonesRSU(ProtectedCommunicationZone... coll) {
-            super(Arrays.asList(coll));
+            this(Arrays.asList(coll));
+        }
+        public ProtectedCommunicationZonesRSU(Collection<ProtectedCommunicationZone> coll) {
+            super(coll);
         }
     }
 
@@ -1257,7 +1263,7 @@ public class CoopIts {
         }
 
         public DrivingLaneStatus(Boolean... coll) {
-            super(Arrays.asList(coll));
+            this(Arrays.asList(coll));
         }
 
         protected DrivingLaneStatus() { super(new ArrayList<Boolean>()); }
@@ -1673,7 +1679,10 @@ public class CoopIts {
     @SizeRange(minValue = 1, maxValue = 23)
     public static class EventHistory extends Asn1SequenceOf<EventPoint> {
         public EventHistory(EventPoint... coll) {
-            super(Arrays.asList(coll));
+            this(Arrays.asList(coll));
+        }
+        public EventHistory(Collection<EventPoint> coll) {
+            super(coll);
         }
     }
 
@@ -1722,7 +1731,10 @@ public class CoopIts {
     @SizeRange(minValue = 1, maxValue = 7)
     public static class Traces extends Asn1SequenceOf<PathHistory> {
         public Traces(PathHistory... coll) {
-            super(Arrays.asList(coll));
+            this(Arrays.asList(coll));
+        }
+        public Traces(Collection<PathHistory> coll) {
+            super(coll);
         }
     }
 
@@ -1897,14 +1909,20 @@ public class CoopIts {
     @SizeRange(minValue = 1, maxValue = 40)
     public static class ItineraryPath extends Asn1SequenceOf<ReferencePosition> {
         public ItineraryPath(ReferencePosition... coll) {
-            super(Arrays.asList(coll));
+            this(Arrays.asList(coll));
+        }
+        public ItineraryPath(Collection<ReferencePosition> coll) {
+            super(coll);
         }
     }
 
     @SizeRange(minValue = 1, maxValue = 3, hasExtensionMarker = true)
     public static class RestrictedTypes extends Asn1SequenceOf<StationType> {
         public RestrictedTypes(StationType... coll) {
-            super(Arrays.asList(coll));
+            this(Arrays.asList(coll));
+        }
+        public RestrictedTypes(Collection<StationType> coll) {
+            super(coll);
         }
     }
 
@@ -2000,18 +2018,21 @@ public class CoopIts {
 
     @SizeRange(minValue = 1, maxValue = 3, hasExtensionMarker = true)
     public static class PositionOfPillars extends Asn1SequenceOf<PosPillar> {
+        public PositionOfPillars(PosPillar... coll) {
+            this(Arrays.asList(coll));
+        }
         public PositionOfPillars(Collection<PosPillar> coll) {
             super(coll);
-        }
-        public PositionOfPillars(PosPillar... coll) {
-            super(Arrays.asList(coll));
         }
     }
 
     @SizeRange(minValue = 1, maxValue = 8, hasExtensionMarker = true)
     public static class ReferenceDenms extends Asn1SequenceOf<ActionID> {
         public ReferenceDenms(ActionID... coll) {
-            super(Arrays.asList(coll));
+            this(Arrays.asList(coll));
+        }
+        public ReferenceDenms(Collection<ActionID> coll) {
+            super(coll);
         }
     }
 

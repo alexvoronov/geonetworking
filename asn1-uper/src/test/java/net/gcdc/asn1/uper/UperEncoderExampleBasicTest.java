@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Collection;
 
 import net.gcdc.asn1.datatypes.Asn1BigInteger;
 import net.gcdc.asn1.datatypes.Asn1Optional;
@@ -54,10 +55,10 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
         String title;
         Date dateOfHire;
         Name nameOfSpouse;
-        @Asn1Optional Asn1SequenceOf<ChildInformation> children = new Asn1SequenceOf<ChildInformation>();
+        @Asn1Optional Children children = new Children();
 
         public PersonenelRecord() {
-            this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new Asn1SequenceOf<ChildInformation>());
+            this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new Children());
         }
 
         public PersonenelRecord(
@@ -66,7 +67,7 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
                 String title,
                 Date dateOfHire,
                 Name nameOfSpouse,
-                Asn1SequenceOf<ChildInformation> children
+                Children children
                 ) {
             this.name = name;
             this.number = number;
@@ -94,7 +95,6 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
         }
     }
 
-    @Sequence
     public static class EmployeeNumber extends Asn1BigInteger {
         public EmployeeNumber() { this(0); }
         public EmployeeNumber(long value) { this(BigInteger.valueOf(value)); }
@@ -119,6 +119,10 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
         }
     }
 
+    public static class Children extends Asn1SequenceOf<ChildInformation> {
+        public Children() { super(); }
+        public Children(Collection<ChildInformation> coll) { super(coll); }
+    }
 
 
     @Test public void test() throws IllegalArgumentException, IllegalAccessException {
@@ -136,7 +140,7 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
             "Mary",
             "T",
             "Smith"),
-          new Asn1SequenceOf<ChildInformation>(Arrays.asList(
+          new Children(Arrays.asList(
             new ChildInformation(
               new Name(
                 "Ralph",

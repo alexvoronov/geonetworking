@@ -5,13 +5,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 
-import net.gcdc.asn1.datatypes.Asn1AnonymousType;
-import net.gcdc.asn1.datatypes.Asn1String;
-import net.gcdc.asn1.datatypes.CharacterRestriction;
-import net.gcdc.asn1.datatypes.RestrictedString;
-import net.gcdc.asn1.datatypes.Sequence;
-import net.gcdc.asn1.datatypes.SizeRange;
-import net.gcdc.asn1.uper.CoopItsTest.TestSeq.CompanyName;
 import net.gcdc.camdenm.CoopIts;
 import net.gcdc.camdenm.CoopIts.AccelerationControl;
 import net.gcdc.camdenm.CoopIts.ActionID;
@@ -311,6 +304,10 @@ public class CoopItsTest {
         logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("01020000000000646006B49D272D693A41BFFFFFFC23B7743E40E11FDFFFFEBFE9ED0737530F5FFFB09000013FFFFFFFFF1CE3FFFFFFFFF1CE1A0AA8",
                 UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, cam.getClass());
+        byte[] reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
     }
 
     @Test public void basicDenmTest() throws IllegalArgumentException, IllegalAccessException {
@@ -357,6 +354,10 @@ public class CoopItsTest {
         logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("010100000000210000000000000000000000000000000006B49D201D693A401FFFFFFE11DBBA1F012C000420102020",
                 UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, denm.getClass());
+        byte[] reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
     }
 
 
@@ -394,6 +395,10 @@ public class CoopItsTest {
         logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("010100000000210000000000000000000000000000000006B49D201D693A401FFFFFFE11DBBA1F012C0004200060",
                 UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, denm.getClass());
+        byte[] reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
     }
 
     @Test public void DenmTestLong() throws IllegalArgumentException, IllegalAccessException {
@@ -515,6 +520,10 @@ public class CoopItsTest {
         logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("010100000000EF80000029079380000091B160000253A26B5A4E900EB49D200FFFFFFF08EDDD0F828A120738436241A86BE0FFFFFFFFFE39C01A2670EDB1B84242166EE4D1878F0A0031DFFFFFFFFF8E7017FFFFFFFFE39C1F9E3C7FBF0EFDFBFA600001FFABFFC63900CEE241A06B49D201D693A401FFFFFFE11DBBA1FFFFFFFFFFC73840000000000000E58680",
                 UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, denm.getClass());
+        byte[] reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
     }
 
     @Test public void DenmTestString() throws IllegalArgumentException, IllegalAccessException {
@@ -639,6 +648,10 @@ public class CoopItsTest {
         logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("010100000000EF80000029079380000091B160000253A26B5A4E900EB49D200FFFFFFF08EDDD0F828A120738436241A86BE0FFFFFFFFFE39C01A2670EDB1B84242166EE4D1878F0A0031DFFFFFFFFF8E7017FFFFFFFFE39C1F9E3C7FBF0EFDFBFA600001FFABFFC63900CEE241A06B49D201D693A401FFFFFFE11DBBA1FFFFFFFFFFC73840000000000000E786BB0F3C9EBC63830A1800",
                 UperEncoder.hexStringFromBytes(encoded));
+
+        Object decoded = UperEncoder.decode(encoded, denm.getClass());
+        byte[] reencoded = UperEncoder.encode(decoded);
+        assertArrayEquals("encoded and reencoded", encoded, reencoded);
     }
 
     @Test public void StringTest() throws IllegalArgumentException, IllegalAccessException {
@@ -684,38 +697,14 @@ public class CoopItsTest {
 
 
 
-    /*
-     <pre>
-     TestSeq ::= SEQUENCE {
-     companyName     UTF8String (SIZE (1..200))}
-     </pre>
-     */
-    @Sequence
-    public static class TestSeq {
-        CompanyName companyName;
-
-        @Asn1AnonymousType
-        @SizeRange(minValue=1, maxValue=200)
-        @RestrictedString(CharacterRestriction.UTF8String)
-        public static class CompanyName extends Asn1String {
-            public CompanyName() { this(""); }
-            public CompanyName(String value) { super(value); }
-        }
-
-        public TestSeq() { this(new CompanyName()); }
-        public TestSeq(CompanyName companyName) {
-            this.companyName = companyName;
-        }
-    }
-
     @Test public void Utf8StringTest4() throws IllegalArgumentException, IllegalAccessException {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 15; i++) {
             sb.append("1234567890");
         }
         String string150 = sb.toString();
-        Object pdu = new TestSeq(
-                new CompanyName(string150)
+        Object pdu = new Utf8TestClass(
+                new Utf8TestClass.CompanyName(string150)
               );
         byte[] encoded = UperEncoder.encode(pdu);
         logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
