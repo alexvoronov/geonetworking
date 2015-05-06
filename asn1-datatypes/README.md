@@ -2,17 +2,19 @@
 
 Java annotations to augment Java classes with information from [ASN.1](http://en.wikipedia.org/wiki/Abstract_Syntax_Notation_One) specifications. These annotations can later be used by encoders like [asn1-uper](https://github.com/alexvoronov/geonetworking/tree/master/asn1-uper).
 
-### Status
+## Status
 
 Datatypes are enough to handle [camdenm](https://github.com/alexvoronov/geonetworking/tree/master/camdenm). There is no compiler yet, so Java classes and annotations have to be created and added manually.
 
-### Examples
+## Examples
 
 
 
 Here's how two examples from the Annex A of the UPER standard (pages 44-53 of [ITU X.691 11/2008](http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-X.691-200811-I!!PDF-E&type=items)) would be encoded in Java.
 
-#### Example 1: Without restrictions or extension markers
+### Example 1: Without restrictions or extension markers
+
+See this code in action as a part of [asn1-uper](https://github.com/alexvoronov/geonetworking/tree/master/asn1-uper) test suite in [UperEncoderExample1BasicTest.java ](https://github.com/alexvoronov/geonetworking/blob/master/asn1-uper/src/test/java/net/gcdc/asn1/uper/UperEncoderExample1BasicTest.java).
 
 ASN.1:
 
@@ -158,7 +160,9 @@ PersonenelRecord record = new PersonenelRecord(
 
 
 
-#### Example 2: With Restrictions, no extension markers
+### Example 2: With Restrictions, no extension markers
+
+See code in [UperEncoderExample2RestrictionTest.java](https://github.com/alexvoronov/geonetworking/blob/master/asn1-uper/src/test/java/net/gcdc/asn1/uper/UperEncoderExample2RestrictionTest.java)
 
 ASN.1:
 
@@ -327,7 +331,9 @@ PersonenelRecord record = new PersonenelRecord(
 
 ```
 
-#### Example 3: With restrictions and extension markers
+### Example 3: With restrictions and extension markers
+
+See code in [UperEncoderExample3ExtensionTest.java](https://github.com/alexvoronov/geonetworking/blob/master/asn1-uper/src/test/java/net/gcdc/asn1/uper/UperEncoderExample3ExtensionTest.java).
 
 ASN.1 schema:
 
@@ -527,14 +533,14 @@ PersonenelRecord record = new PersonenelRecord(
 );
 ```
 
-### Other ASN.1 tools
+## Other ASN.1 tools
 ITU-T have a [list of ASN.1 tools](http://www.itu.int/en/ITU-T/asn1/Pages/Tools.aspx).
 
-### Acknowledgments
+## Acknowledgments
 This implementation was partly developed within [i-GAME](http://gcdc.net/i-game) project that has received funding from the European Union's Seventh Framework Programme for research, technological development and demonstration under grant agreement no [612035](http://cordis.europa.eu/project/rcn/110506_en.html).
 
 Use of annotations and reflection was inspired by [Gson](https://code.google.com/p/google-gson/).
 
-### License
+## License
 
 This code is released under the business-friendly Apache 2.0 license.
