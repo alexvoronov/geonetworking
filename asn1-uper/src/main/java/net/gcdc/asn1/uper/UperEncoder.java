@@ -99,7 +99,7 @@ public class UperEncoder {
         }
     }
 
-    public static class AnnotationStore {
+    private static class AnnotationStore {
 
         private Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
@@ -125,7 +125,6 @@ public class UperEncoder {
 
     public static <T> T decode(byte[] bytes, Class<T> classOfT) {
         ListBitBuffer bitQueue = bitBufferFromBinaryString(binaryStringFromBytes(bytes));
-        //logger.debug("Decoding {} from {}", classOfT.getName(), toBinary(bitQueue));
         T result;
         try {
             result = decode(bitQueue, classOfT, new Annotation[] {});
@@ -135,11 +134,9 @@ public class UperEncoder {
         if (bitQueue.size() > 7) { throw new IllegalArgumentException("Can't fully decode "
                 + classOfT.getName() + ", got (" + result.getClass().getName() + "): " + result + "; remaining " + bitQueue.size() + "  bits: " + bitQueue); }
         return result;
-        // throw new IllegalArgumentException("Can't decode " + classOfT.getName() + " because of "
-        // + e);
     }
 
-    public static <T> List<Boolean> encodeAsList(T obj, Annotation[] extraAnnotations) throws IllegalArgumentException,
+    private static <T> List<Boolean> encodeAsList(T obj, Annotation[] extraAnnotations) throws IllegalArgumentException,
             IllegalAccessException {
         Class<?> type = obj.getClass();
         AnnotationStore annotations = new AnnotationStore(type.getAnnotations(), extraAnnotations);
@@ -495,7 +492,7 @@ public class UperEncoder {
         return false;
     }
 
-    public static <T> T decode(ListBitBuffer bitlist, Class<T> classOfT, Annotation[] extraAnnotations) throws InstantiationException, IllegalAccessException {
+    private static <T> T decode(ListBitBuffer bitlist, Class<T> classOfT, Annotation[] extraAnnotations) throws InstantiationException, IllegalAccessException {
         logger.debug("Decoding {} from remaining bits {}", classOfT.getName(), bitlist.size());//, toBinary(bitlist));
         AnnotationStore annotations = new AnnotationStore(classOfT.getAnnotations(), extraAnnotations);
         if (Asn1Integer.class.isAssignableFrom(classOfT) |
@@ -569,14 +566,12 @@ public class UperEncoder {
                 extensionPresent = bitlist.get();
                 logger.debug("with extension marker, extension {}", extensionPresent ? "present!" : "absent");
             }
-//            logger.debug("remaining buffer before optional-mask ({}): {}", bitlist.size(), bitlist.toString());
             // Bitmask for optional fields.
             Deque<Boolean> optionalFieldsMask = new ArrayDeque<>(sorter.optionalOrdinaryFields.size());
             for (Field f : sorter.optionalOrdinaryFields) {
                 optionalFieldsMask.add(bitlist.get());
                 logger.debug("with optional field {} {}", f.getName(), optionalFieldsMask.getLast() ? "present" : "absent");
             }
-//            logger.debug("remaining buffer after optional-mask before ordinary values ({}): {}", bitlist.size(), bitlist.toString());
             // All ordinary fields (fields within extension root).
             for (Field f : sorter.ordinaryFields) {
                 if (!isTestInstrumentation(f) && (isMandatory(f) || (isOptional(f) && optionalFieldsMask.pop()))) {
@@ -584,10 +579,8 @@ public class UperEncoder {
                     f.set(result, decode(bitlist, f.getType(), f.getAnnotations()));
                 }
             }
-//            logger.debug("remaining buffer after ordinary and before extensions ({}): {}", bitlist.size(), bitlist.toString());
             // Extension fields.
             if (hasExtensionMarker(annotations) && extensionPresent) {
-//                logger.debug("decoding sequence extensions... remaining buffer ({}): {}", bitlist.size(), bitlist.toString());
                 // Number of extensions.
                 int numExtensions = (int) decodeLengthDeterminant(bitlist, true);
                 logger.debug("sequence has {} extension(s)", numExtensions);
@@ -838,7 +831,7 @@ public class UperEncoder {
         return result;
     }
 
-    public static List<Boolean> encodeChar(char c, RestrictedString restriction) {
+    private static List<Boolean> encodeChar(char c, RestrictedString restriction) {
         logger.debug("char {}", c);
         switch (restriction.value()) {
             case IA5String:
@@ -951,27 +944,6 @@ public class UperEncoder {
         }
     }
 
-
-    public static byte[] bytesFromCollection(List<Boolean> bitlist) {
-        int sizeBytes = (bitlist.size() + 7) / 8;
-        byte[] result = new byte[sizeBytes];
-        int byteId = 0;
-        byte bitId = 7;
-        for (Boolean b : bitlist) {
-            logger.trace("bitId: {}, byteId: {}, value: {}", bitId, byteId, b);
-            result[byteId] |= (b ? 1 : 0) << bitId;
-            bitId--;
-            if (bitId < 0) {
-                bitId = 7;
-                byteId++;
-            }
-        }
-        int nZeros = sizeBytes * 8 - bitlist.size();
-        String zeros = nZeros > 0 ? String.format("%0" + nZeros + "d", 0) : "";
-        logger.debug("Padding bits ({}): <{}>", nZeros, zeros);
-        return result;
-    }
-
     private static boolean hasExtensionMarker(AnnotationStore annotations) {
         return annotations.getAnnotation(HasExtensionMarker.class) != null;
     }
@@ -1025,11 +997,11 @@ public class UperEncoder {
         return f.getName().startsWith("$");
     }
 
-    public static List<Boolean> encodeLengthDeterminant(int n) {
+    private static List<Boolean> encodeLengthDeterminant(int n) {
         return encodeLengthDeterminant(n, false);
     }
 
-    public static List<Boolean> encodeLengthDeterminant(int n, boolean isLengthOfBitmask) {
+    private static List<Boolean> encodeLengthDeterminant(int n, boolean isLengthOfBitmask) {
         final List<Boolean> bitlist = new ArrayList<>();
         if (isLengthOfBitmask) {
             if (n <= 64) {
@@ -1066,11 +1038,11 @@ public class UperEncoder {
         }
     }
 
-    public static long decodeLengthDeterminant(ListBitBuffer bitbuffer) {
+    private static long decodeLengthDeterminant(ListBitBuffer bitbuffer) {
         return decodeLengthDeterminant(bitbuffer, false);
     }
 
-    public static long decodeLengthDeterminant(ListBitBuffer bitbuffer, boolean isLengthOfBitmask) {
+    private static long decodeLengthDeterminant(ListBitBuffer bitbuffer, boolean isLengthOfBitmask) {
         if (isLengthOfBitmask) {
             logger.debug("decoding length of bitmask");
             boolean isGreaterThan64 = bitbuffer.get();
@@ -1102,13 +1074,13 @@ public class UperEncoder {
         }
     }
 
-    public static List<Boolean> encodeConstrainedInt(
+    private  static List<Boolean> encodeConstrainedInt(
             final long value,
             final long lowerBound,
             final long upperBound) {
         return encodeConstrainedInt(value, lowerBound, upperBound, false);
     }
-    public static List<Boolean> encodeConstrainedInt(
+    private static List<Boolean> encodeConstrainedInt(
             final long value,
             final long lowerBound,
             final long upperBound,
@@ -1155,6 +1127,26 @@ public class UperEncoder {
         List<Boolean> result = new ArrayList<>(length);
         result.addAll(Arrays.asList(buffer));
         result.addAll(bitlist);
+        return result;
+    }
+
+    public static byte[] bytesFromCollection(List<Boolean> bitlist) {
+        int sizeBytes = (bitlist.size() + 7) / 8;
+        byte[] result = new byte[sizeBytes];
+        int byteId = 0;
+        byte bitId = 7;
+        for (Boolean b : bitlist) {
+            logger.trace("bitId: {}, byteId: {}, value: {}", bitId, byteId, b);
+            result[byteId] |= (b ? 1 : 0) << bitId;
+            bitId--;
+            if (bitId < 0) {
+                bitId = 7;
+                byteId++;
+            }
+        }
+        int nZeros = sizeBytes * 8 - bitlist.size();
+        String zeros = nZeros > 0 ? String.format("%0" + nZeros + "d", 0) : "";
+        logger.debug("Padding bits ({}): <{}>", nZeros, zeros);
         return result;
     }
 
