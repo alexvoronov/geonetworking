@@ -18,7 +18,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UperEncoderExampleBasicTest {
+public class UperEncoderExample1BasicTest {
     private final static Logger logger = LoggerFactory.getLogger(UperEncoder.class);
 
     /**

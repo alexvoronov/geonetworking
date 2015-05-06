@@ -10,11 +10,12 @@ Datatypes are enough to handle [camdenm](https://github.com/alexvoronov/geonetwo
 
 
 
-Here's how two examples from the Appendix of the UPER standard would be encoded in Java.
+Here's how two examples from the Annex A of the UPER standard (pages 44-53 of [ITU X.691 11/2008](http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-X.691-200811-I!!PDF-E&type=items)) would be encoded in Java.
 
 #### Example 1: Without restrictions or extension markers
 
 ASN.1:
+
 
 ```asn1
 PersonnelRecord ::= [APPLICATION 0] IMPLICIT SET { 
@@ -326,6 +327,205 @@ PersonenelRecord record = new PersonenelRecord(
 
 ```
 
+#### Example 3: With restrictions and extension markers
+
+ASN.1 schema:
+
+```asn1
+PersonnelRecord ::= [APPLICATION 0] IMPLICIT SET {
+name Name,
+title [0] VisibleString, 
+number EmployeeNumber, 
+dateOfHire [1] Date, 
+nameOfSpouse [2] Name,
+children [3] IMPLICIT
+SEQUENCE (SIZE(2, ...)) OF ChildInformation OPTIONAL,
+... }
+
+ChildInformation ::= SET { 
+name Name, 
+dateOfBirth [0] Date,
+...,
+sex [1] IMPLICIT ENUMERATED {male(1), female(2),
+unknown(3)} OPTIONAL 
+}
+
+Name ::= [APPLICATION 1] IMPLICIT SEQUENCE
+{ givenName NameString,
+initial NameString (SIZE(1)),
+familyName NameString,
+... }
+
+EmployeeNumber ::= [APPLICATION 2] IMPLICIT INTEGER (0..9999, ...)
+
+Date ::= [APPLICATION 3] IMPLICIT VisibleString
+(FROM("0".."9") ^ SIZE(8, ..., 9..20)) -- YYYYMMDD 
+
+NameString ::= VisibleString
+(FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64, ...))
+```
+
+Corresponding Java code:
+
+```java
+@Sequence
+@HasExtensionMarker
+public static class PersonenelRecord {
+  Name name;
+  EmployeeNumber number;
+  @RestrictedString(CharacterRestriction.VisibleString)
+  String title;
+  Date dateOfHire;
+  Name nameOfSpouse;
+  @Asn1Optional Children children;
+
+  public PersonenelRecord() {
+    this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new Children());
+  }
+
+  public PersonenelRecord(
+      Name name,
+      EmployeeNumber number,
+      String title,
+      Date dateOfHire,
+      Name nameOfSpouse,
+      Children children
+      ) {
+    this.name = name;
+    this.number = number;
+    this.title = title;
+    this.dateOfHire = dateOfHire;
+    this.nameOfSpouse = nameOfSpouse;
+    this.children = children;
+  }
+}
+
+@Sequence
+@HasExtensionMarker
+public static class Name {
+  NameString givenName;
+  @FixedSize(1)
+  NameString initial;
+  NameString familyName;
+
+  public Name() { this(new NameString(), new NameString(), new NameString()); }
+  public Name(NameString givenName, NameString initial, NameString familyName) {
+    this.givenName = givenName;
+    this.initial = initial;
+    this.familyName = familyName;
+  }
+}
+
+//"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-."
+@RestrictedString(value = CharacterRestriction.VisibleString, alphabet = NameString.NameStringAlphabet.class)
+@SizeRange(minValue = 1, maxValue = 64, hasExtensionMarker = true)
+public static class NameString extends Asn1String {
+  public NameString() { this(""); }
+  public NameString(String value) { super(value); }
+
+  public static class NameStringAlphabet extends Alphabet {
+    private final static String chars =
+        new AlphabetBuilder().withRange('a', 'z').withRange('A','Z').withChars("-.").chars();
+    public NameStringAlphabet() {
+      super(chars);
+    }
+  }
+}
+
+@IntRange(minValue = 0, maxValue = 9999, hasExtensionMarker = true)
+public static class EmployeeNumber extends Asn1Integer {
+  public EmployeeNumber() { this(0); }
+  public EmployeeNumber(long value) { super(value); }
+}
+
+@RestrictedString(value = CharacterRestriction.VisibleString, alphabet = Date.DateAlphabet.class)
+@SizeRange(minValue = 8, maxValue = 8, hasExtensionMarker = true)
+public static class Date extends Asn1String {
+  public Date() { this(""); }
+  public Date(String value) { super(value); }
+  public static class DateAlphabet extends Alphabet {
+    private final static String chars = new AlphabetBuilder().withRange('0', '9').chars();
+    public DateAlphabet() {
+      super(chars);
+    }
+  }
+}
+
+@Sequence
+@HasExtensionMarker
+public static class ChildInformation {
+  Name name;
+  Date dateOfBirth;
+
+  @IsExtension
+  @Asn1Optional
+  Sex sex;
+
+  public ChildInformation() { this(new Name(), new Date()); }
+  public ChildInformation(Name name, Date dateOfBirth) {
+    this(name, dateOfBirth, null);
+  }
+  public ChildInformation(Name name, Date dateOfBirth, Sex sex) {
+    this.name = name;
+    this.dateOfBirth = dateOfBirth;
+    this.sex = sex;
+  }
+}
+
+public static enum Sex {
+  male(1),
+  female(2),
+  unknown(3);
+
+  private final int value;
+  public int value() { return value; }
+  private Sex(int value) { this.value = value; }
+}
+
+@SizeRange(minValue=2, maxValue=2, hasExtensionMarker=true)
+public static class Children extends Asn1SequenceOf<ChildInformation> {
+  public Children() { super(); }
+  public Children(Collection<ChildInformation> coll) { super(coll); }
+}
+```
+And example instantiation code:
+
+```java
+PersonenelRecord record = new PersonenelRecord(
+  new Name(
+    new NameString("John"),
+    new NameString("P"),
+    new NameString("Smith")
+  ),
+  new EmployeeNumber(51),
+  "Director",
+  new Date("19710917"),
+  new Name(
+    new NameString("Mary"),
+    new NameString("T"),
+    new NameString("Smith")
+  ),
+  new Children(Arrays.asList(
+    new ChildInformation(
+      new Name(
+        new NameString("Ralph"),
+        new NameString("T"),
+        new NameString("Smith")
+      ),
+      new Date("19571111")
+    ),
+    new ChildInformation(
+      new Name(
+        new NameString("Susan"),
+        new NameString("B"),
+        new NameString("Jones")
+      ),
+      new Date("19590717"),
+      Sex.female
+    )
+  ))
+);
+```
 
 ### Other ASN.1 tools
 ITU-T have a [list of ASN.1 tools](http://www.itu.int/en/ITU-T/asn1/Pages/Tools.aspx).
