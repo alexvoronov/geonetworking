@@ -30,6 +30,7 @@
 		<module>asn1-datatypes</module>
 		<module>asn1-uper</module>
 		<module>camdenm</module>
+		<module>vehicle-adapter</module>
 	</modules>
 
 	<dependencyManagement>

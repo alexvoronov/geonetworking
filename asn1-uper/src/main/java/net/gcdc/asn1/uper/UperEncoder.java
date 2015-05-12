@@ -123,7 +123,7 @@ public class UperEncoder {
         }
     }
 
-    public static <T> T decode(byte[] bytes, Class<T> classOfT) {
+    public static <T> T decode(byte[] bytes, Class<T> classOfT) throws IllegalArgumentException, UnsupportedOperationException {
         ListBitBuffer bitQueue = bitBufferFromBinaryString(binaryStringFromBytes(bytes));
         T result;
         try {
