@@ -1,7 +1,18 @@
 package net.gcdc.asn1.uper;
 
 public interface BitBuffer {
-    public boolean get();
-    public BitBuffer put(boolean element);
-    public int limit();
+    boolean get();
+    boolean get(int index);
+    BitBuffer put(boolean element);
+    BitBuffer put(int index, boolean element);
+    int limit();
+    int capacity();
+    int position();
+    int remaining();
+    BitBuffer flip();
+    String toBooleanString(int startIndex, int length);
+    String toBooleanStringFromPosition(int startIndex);
+    byte[] array();
+    BitBuffer putByte(byte element);
+    byte getByte();
 }
