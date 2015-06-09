@@ -5,7 +5,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -484,17 +483,6 @@ public class UperEncoder {
         return;
     }
 
-    private static List<Boolean> paddedTo(int length, List<Boolean> bitlist) {
-        if (length < bitlist.size()) { throw new IllegalArgumentException(
-                "List is longer then desired length, " + bitlist.size() + " > " + length); }
-        Boolean[] buffer = new Boolean[length - bitlist.size()];
-        Arrays.fill(buffer, false);
-        List<Boolean> result = new ArrayList<>(length);
-        result.addAll(Arrays.asList(buffer));
-        result.addAll(bitlist);
-        return result;
-    }
-
     public static byte[] bytesFromCollection(List<Boolean> bitlist) {
         int sizeBytes = (bitlist.size() + 7) / 8;
         byte[] result = new byte[sizeBytes];
@@ -560,16 +548,6 @@ public class UperEncoder {
             if ((c = s.charAt(i)) == '1') result[i / Byte.SIZE] = (byte) (result[i / Byte.SIZE] | (0x80 >>> (i % Byte.SIZE)));
             else if (c != '0')
                 throw new IllegalArgumentException();
-        return result;
-    }
-
-    private static ArrayDeque<Boolean> collectionFromBinaryString(String s) {
-        ArrayDeque<Boolean> result = new ArrayDeque<>(s.length());
-        for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) != '1' && s.charAt(i) != '0') { throw new IllegalArgumentException(
-                    "bad character in 'binary' string " + s.charAt(i)); }
-            result.add(s.charAt(i) == '1');
-        }
         return result;
     }
 
