@@ -190,13 +190,6 @@ public class UperEncoder {
         return false;
     }
 
-
-    /** This function only throws an exception, to be used in ternary (a?b:c) expression. */
-    static <T> long badSize(Class<T> classOfT) {
-        throw new IllegalArgumentException("both size range and fixed size are null for "
-                + classOfT.getName());
-    }
-
     private static <T> Constructor<T> findConsturctor(Class<T> classOfT, Object... parameters) {
         @SuppressWarnings("unchecked")
         Constructor<T>[] declaredConstructors = (Constructor<T>[]) classOfT
