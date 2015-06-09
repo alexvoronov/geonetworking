@@ -573,16 +573,6 @@ public class UperEncoder {
         return result;
     }
 
-    private static ListBitBuffer listBitBufferFromBinaryString(String s) {
-        ListBitBuffer result = ListBitBuffer.empty();
-        for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) != '1' && s.charAt(i) != '0') { throw new IllegalArgumentException(
-                    "bad character in 'binary' string " + s.charAt(i)); }
-            result.put(s.charAt(i) == '1');
-        }
-        return result;
-    }
-
     private static BitBuffer bitBufferFromBinaryString(String s) {
         ByteBitBuffer result = ByteBitBuffer.allocate(s.length());
         for (int i = 0; i < s.length(); i++) {
