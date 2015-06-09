@@ -24,8 +24,10 @@ public class ByteBitBuffer implements BitBuffer {
     int limit;
 
     @Override public boolean get(int index) {
-        if (index < 0 || index >= limit) {
-            throw new IndexOutOfBoundsException("Index " + index + " outside of 0.." + limit);
+        if (index < 0) {
+            throw new IndexOutOfBoundsException("Index " + index + " is less than 0");
+        } else if (index >= limit) {
+            throw new IndexOutOfBoundsException("Index " + index + " violates the limit " + limit);
         }
         boolean result = (bytes[index / 8] & mask[index % 8]) != 0;
         return result;
@@ -112,8 +114,8 @@ public class ByteBitBuffer implements BitBuffer {
         this.isFinite = false;
     }
 
-    public static ByteBitBuffer allocate(int length) {
-        return new ByteBitBuffer(new byte[(length + 7) / 8]);
+    public static ByteBitBuffer allocate(int lengthInBits) {
+        return new ByteBitBuffer(new byte[(lengthInBits + 7) / 8]);
     }
 
     public static ByteBitBuffer createInfinite() {
