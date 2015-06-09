@@ -425,7 +425,7 @@ public class UperEncoder {
                     logger.debug(
                             "continuing sequence : {} extension(s) are present, encoding length determinant for them...",
                             numExtensions);
-                    encodeLengthDeterminant(bitbuffer, numExtensions, true);
+                    encodeLengthOfBitmask(bitbuffer, numExtensions);
                     // Bitmask for present extensions.
                     for (Field f : sorter.extensionFields) {
                         boolean fieldIsPresent = f.get(obj) != null;
@@ -490,7 +490,7 @@ public class UperEncoder {
             // Extension fields.
             if (hasExtensionMarker(annotations) && extensionPresent) {
                 // Number of extensions.
-                int numExtensions = (int) decodeLengthDeterminant(bitbuffer, true);
+                int numExtensions = (int) decodeLengthOfBitmask(bitbuffer);
                 logger.debug("sequence has {} extension(s)", numExtensions);
                 // Bitmask for extensions.
                 boolean[] bitmaskValueIsPresent = new boolean[numExtensions];
@@ -1419,28 +1419,23 @@ public class UperEncoder {
         return f.getName().startsWith("$");
     }
 
-    private static void encodeLengthDeterminant(BitBuffer bitbuffer, int n) {
-        encodeLengthDeterminant(bitbuffer, n, false);
+    private static void encodeLengthOfBitmask(BitBuffer bitbuffer, int n) {
+        if (n <= 64) {
+            logger.debug(
+                    "normally small length of bitmask, length {} <= 64 indicated as bit <0>", n);
+            bitbuffer.put(false);
+            encodeConstrainedInt(bitbuffer, n, 1, 64);
+            return;
+        } else {
+            logger.debug(
+                    "normally small length of bitmask, length {} > 64 indicated as bit <1>", n);
+            bitbuffer.put(true);
+            encodeLengthDeterminant(bitbuffer, n);
+            return;
+        }
     }
 
-    private static void encodeLengthDeterminant(BitBuffer bitbuffer,
-            int n,
-            boolean isLengthOfBitmask) {
-        if (isLengthOfBitmask) {
-            if (n <= 64) {
-                logger.debug(
-                        "normally small length of bitmask, length {} <= 64 indicated as bit <0>", n);
-                bitbuffer.put(false);
-                encodeConstrainedInt(bitbuffer, n, 1, 64);
-                return;
-            } else {
-                logger.debug(
-                        "normally small length of bitmask, length {} > 64 indicated as bit <1>", n);
-                bitbuffer.put(true);
-                encodeLengthDeterminant(bitbuffer, n, false);
-                return;
-            }
-        } else {
+    private static void encodeLengthDeterminant(BitBuffer bitbuffer, int n) {
             int position = bitbuffer.position();
             if (n < 128) {
                 bitbuffer.put(false);
@@ -1463,30 +1458,27 @@ public class UperEncoder {
                 throw new UnsupportedOperationException(
                         "Length greater than 16K is not supported yet.");
             }
+
+    }
+
+    private static long decodeLengthOfBitmask(BitBuffer bitbuffer) {
+        logger.debug("decoding length of bitmask");
+        boolean isGreaterThan64 = bitbuffer.get();
+        logger.debug(
+                "length determinant extension preamble size flag: <{}> (preamble size {} 64)",
+                isGreaterThan64 ? "1" : "0", isGreaterThan64 ? ">" : "<=");
+        if (!isGreaterThan64) {
+            long result = decodeConstrainedInt(bitbuffer, newRange(1, 64, false));
+            logger.debug("normally small length of bitmask, length <= 64, decoded as {}",
+                    result);
+            return result;
+        } else {
+            logger.debug("normally small length of bitmask, length > 64, decoding as ordinary length determinant...");
+            return decodeLengthDeterminant(bitbuffer);
         }
     }
 
     private static long decodeLengthDeterminant(BitBuffer bitbuffer) {
-        return decodeLengthDeterminant(bitbuffer, false);
-    }
-
-    private static long decodeLengthDeterminant(BitBuffer bitbuffer, boolean isLengthOfBitmask) {
-        if (isLengthOfBitmask) {
-            logger.debug("decoding length of bitmask");
-            boolean isGreaterThan64 = bitbuffer.get();
-            logger.debug(
-                    "length determinant extension preamble size flag: <{}> (preamble size {} 64)",
-                    isGreaterThan64 ? "1" : "0", isGreaterThan64 ? ">" : "<=");
-            if (!isGreaterThan64) {
-                long result = decodeConstrainedInt(bitbuffer, newRange(1, 64, false));
-                logger.debug("normally small length of bitmask, length <= 64, decoded as {}",
-                        result);
-                return result;
-            } else {
-                logger.debug("normally small length of bitmask, length > 64, decoding as ordinary length determinant...");
-                return decodeLengthDeterminant(bitbuffer, false);
-            }
-        } else {
             boolean bit8 = bitbuffer.get();
             if (!bit8) {  // then value is less than 128
                 long result = decodeConstrainedInt(bitbuffer, newRange(0, 127, false));
@@ -1503,7 +1495,7 @@ public class UperEncoder {
                             "lengthes longer than 16K are not supported yet.");
                 }
             }
-        }
+
     }
 
     private static void encodeConstrainedInt(
