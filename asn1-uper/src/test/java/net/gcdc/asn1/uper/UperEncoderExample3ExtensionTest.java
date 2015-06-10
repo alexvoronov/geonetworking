@@ -25,12 +25,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UperEncoderExample3ExtensionTest {
-    private final static Logger logger = LoggerFactory.getLogger(UperEncoder.class);
-
-    /**
-     * Example from the Standard on UPER.
-     <pre>
+/**
+ * Example from the Standard on UPER.
+ <pre>
 PersonnelRecord ::= [APPLICATION 0] IMPLICIT SET {
 name Name,
 title [0] VisibleString,
@@ -58,8 +55,11 @@ EmployeeNumber ::= [APPLICATION 2] IMPLICIT INTEGER (0..9999, ...)
 Date ::= [APPLICATION 3] IMPLICIT VisibleString (FROM("0".."9") ^ SIZE(8, ..., 9..20)) -- YYYYMMDD
 
 NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64, ...))
-     </pre>
-     */
+ </pre>
+ */
+public class UperEncoderExample3ExtensionTest {
+    private final static Logger logger = LoggerFactory.getLogger(UperEncoder.class);
+
     @Sequence
     @HasExtensionMarker
     public static class PersonenelRecord {
@@ -69,10 +69,10 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64, ...
         String title;
         Date dateOfHire;
         Name nameOfSpouse;
-        @Asn1Optional Children children;
+        @Asn1Optional SequenceOfChildInformation sequenceOfChildInformation;
 
         public PersonenelRecord() {
-            this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new Children());
+            this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new SequenceOfChildInformation());
         }
 
         public PersonenelRecord(
@@ -81,14 +81,14 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64, ...
                 String title,
                 Date dateOfHire,
                 Name nameOfSpouse,
-                Children children
+                SequenceOfChildInformation sequenceOfChildInformation
                 ) {
             this.name = name;
             this.number = number;
             this.title = title;
             this.dateOfHire = dateOfHire;
             this.nameOfSpouse = nameOfSpouse;
-            this.children = children;
+            this.sequenceOfChildInformation = sequenceOfChildInformation;
         }
     }
 
@@ -175,9 +175,9 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64, ...
     }
 
     @SizeRange(minValue=2, maxValue=2, hasExtensionMarker=true)
-    public static class Children extends Asn1SequenceOf<ChildInformation> {
-        public Children() { super(); }
-        public Children(Collection<ChildInformation> coll) { super(coll); }
+    public static class SequenceOfChildInformation extends Asn1SequenceOf<ChildInformation> {
+        public SequenceOfChildInformation() { super(); }
+        public SequenceOfChildInformation(Collection<ChildInformation> coll) { super(coll); }
     }
 
 
@@ -199,7 +199,7 @@ NameString ::= VisibleString (FROM("a".."z" | "A".."Z" | "-.") ^ SIZE(1..64, ...
             new NameString("T"),
             new NameString("Smith")
           ),
-          new Children(Arrays.asList(
+          new SequenceOfChildInformation(Arrays.asList(
             new ChildInformation(
               new Name(
                 new NameString("Ralph"),

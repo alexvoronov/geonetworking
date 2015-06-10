@@ -55,10 +55,10 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
         String title;
         Date dateOfHire;
         Name nameOfSpouse;
-        @Asn1Optional Children children = new Children();
+        @Asn1Optional SequenceOfChildInformation sequenceOfChildInformation = new SequenceOfChildInformation();
 
         public PersonenelRecord() {
-            this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new Children());
+            this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new SequenceOfChildInformation());
         }
 
         public PersonenelRecord(
@@ -67,14 +67,14 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
                 String title,
                 Date dateOfHire,
                 Name nameOfSpouse,
-                Children children
+                SequenceOfChildInformation sequenceOfChildInformation
                 ) {
             this.name = name;
             this.number = number;
             this.title = title;
             this.dateOfHire = dateOfHire;
             this.nameOfSpouse = nameOfSpouse;
-            this.children = children;
+            this.sequenceOfChildInformation = sequenceOfChildInformation;
         }
     }
 
@@ -119,9 +119,9 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
         }
     }
 
-    public static class Children extends Asn1SequenceOf<ChildInformation> {
-        public Children() { super(); }
-        public Children(Collection<ChildInformation> coll) { super(coll); }
+    public static class SequenceOfChildInformation extends Asn1SequenceOf<ChildInformation> {
+        public SequenceOfChildInformation() { super(); }
+        public SequenceOfChildInformation(Collection<ChildInformation> coll) { super(coll); }
     }
 
 
@@ -140,7 +140,7 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
             "Mary",
             "T",
             "Smith"),
-          new Children(Arrays.asList(
+          new SequenceOfChildInformation(Arrays.asList(
             new ChildInformation(
               new Name(
                 "Ralph",

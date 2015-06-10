@@ -27,7 +27,7 @@ PersonnelRecord ::= [APPLICATION 0] IMPLICIT SET {
   dateOfHire [1] Date, 
   nameOfSpouse [2] Name,
   children [3] IMPLICIT
-    SEQUENCE OF ChildInformation DEFAULT {} }
+  SEQUENCE OF ChildInformation DEFAULT {} }
 
 ChildInformation ::= SET { 
   name Name,
@@ -49,75 +49,79 @@ Corresponding Java code:
 ```java
 @Sequence
 public static class PersonenelRecord {
-    Name name;
-    EmployeeNumber number;
-    @RestrictedString(CharacterRestriction.VisibleString)
-    String title;
-    Date dateOfHire;
-    Name nameOfSpouse;
-    @Asn1Optional Asn1SequenceOf<ChildInformation> children = new Asn1SequenceOf<ChildInformation>();
+  Name name;
+  EmployeeNumber number;
+  @RestrictedString(CharacterRestriction.VisibleString)
+  String title;
+  Date dateOfHire;
+  Name nameOfSpouse;
+  @Asn1Optional SequenceOfChildInformation sequenceOfChildInformation = new SequenceOfChildInformation();
 
-    public PersonenelRecord() {
-        this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new Asn1SequenceOf<ChildInformation>());
-    }
+  public PersonenelRecord() {
+  this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new SequenceOfChildInformation());
+  }
 
-    public PersonenelRecord(
-            Name name,
-            EmployeeNumber number,
-            String title,
-            Date dateOfHire,
-            Name nameOfSpouse,
-            Asn1SequenceOf<ChildInformation> children
-            ) {
-        this.name = name;
-        this.number = number;
-        this.title = title;
-        this.dateOfHire = dateOfHire;
-        this.nameOfSpouse = nameOfSpouse;
-        this.children = children;
-    }
+  public PersonenelRecord(
+    Name name,
+    EmployeeNumber number,
+    String title,
+    Date dateOfHire,
+    Name nameOfSpouse,
+    SequenceOfChildInformation sequenceOfChildInformation
+    ) {
+  this.name = name;
+  this.number = number;
+  this.title = title;
+  this.dateOfHire = dateOfHire;
+  this.nameOfSpouse = nameOfSpouse;
+  this.sequenceOfChildInformation = sequenceOfChildInformation;
+  }
 }
 
 @Sequence
 public static class Name {
-    @RestrictedString(CharacterRestriction.VisibleString)
-    String givenName;
-    @RestrictedString(CharacterRestriction.VisibleString)
-    String initial;
-    @RestrictedString(CharacterRestriction.VisibleString)
-    String familyName;
+  @RestrictedString(CharacterRestriction.VisibleString)
+  String givenName;
+  @RestrictedString(CharacterRestriction.VisibleString)
+  String initial;
+  @RestrictedString(CharacterRestriction.VisibleString)
+  String familyName;
 
-    public Name() { this("", "", ""); }
-    public Name(String givenName, String initial, String familyName) {
-        this.givenName = givenName;
-        this.initial = initial;
-        this.familyName = familyName;
-    }
+  public Name() { this("", "", ""); }
+  public Name(String givenName, String initial, String familyName) {
+  this.givenName = givenName;
+  this.initial = initial;
+  this.familyName = familyName;
+  }
 }
 
-@Sequence
 public static class EmployeeNumber extends Asn1BigInteger {
-    public EmployeeNumber() { this(0); }
-    public EmployeeNumber(long value) { this(BigInteger.valueOf(value)); }
-    public EmployeeNumber(BigInteger value) { super(value); }
+  public EmployeeNumber() { this(0); }
+  public EmployeeNumber(long value) { this(BigInteger.valueOf(value)); }
+  public EmployeeNumber(BigInteger value) { super(value); }
 }
 
 @RestrictedString(CharacterRestriction.VisibleString)
 public static class Date extends Asn1String {
-    public Date() { this(""); }
-    public Date(String value) { super(value); }
+  public Date() { this(""); }
+  public Date(String value) { super(value); }
 }
 
 @Sequence
 public static class ChildInformation {
-    Name name;
-    Date dateOfBirth;
+  Name name;
+  Date dateOfBirth;
 
-    public ChildInformation() { this(new Name(), new Date()); }
-    public ChildInformation(Name name, Date dateOfBirth) {
-        this.name = name;
-        this.dateOfBirth = dateOfBirth;
-    }
+  public ChildInformation() { this(new Name(), new Date()); }
+  public ChildInformation(Name name, Date dateOfBirth) {
+  this.name = name;
+  this.dateOfBirth = dateOfBirth;
+  }
+}
+
+public static class SequenceOfChildInformation extends Asn1SequenceOf<ChildInformation> {
+  public SequenceOfChildInformation() { super(); }
+  public SequenceOfChildInformation(Collection<ChildInformation> coll) { super(coll); }
 }
 ```
 
@@ -126,34 +130,34 @@ And the use of those classes:
 ```java
 PersonenelRecord record = new PersonenelRecord(
   new Name(
-    "John",
-    "P",
-    "Smith"
+  "John",
+  "P",
+  "Smith"
   ),
   new EmployeeNumber(51),
   "Director",
   new Date("19710917"),
   new Name(
-    "Mary",
+  "Mary",
+  "T",
+  "Smith"),
+  new SequenceOfChildInformation(Arrays.asList(
+  new ChildInformation(
+    new Name(
+    "Ralph",
     "T",
-    "Smith"),
-  new Asn1SequenceOf<ChildInformation>(Arrays.asList(
-    new ChildInformation(
-      new Name(
-        "Ralph",
-        "T",
-        "Smith"
-      ),
-      new Date("19571111")
+    "Smith"
     ),
-    new ChildInformation(
-      new Name(
-        "Susan",
-        "B",
-        "Jones"
-      ),
-      new Date("19590717")
-    )
+    new Date("19571111")
+  ),
+  new ChildInformation(
+    new Name(
+    "Susan",
+    "B",
+    "Jones"
+    ),
+    new Date("19590717")
+  )
   ))
 );
 ```
@@ -174,7 +178,7 @@ PersonnelRecord ::= [APPLICATION 0] IMPLICIT SET {
   dateOfHire [1] Date,
   nameOfSpouse [2] Name,
   children [3] IMPLICIT
-    SEQUENCE OF ChildInformation DEFAULT {} }
+  SEQUENCE OF ChildInformation DEFAULT {} }
 
 ChildInformation ::= SET {
   name Name,
@@ -197,104 +201,106 @@ Java classes:
 ```java
 @Sequence
 public static class PersonenelRecord {
+  Name name;
+  EmployeeNumber number;
+  @RestrictedString(CharacterRestriction.VisibleString)
+  String title;
+  Date dateOfHire;
+  Name nameOfSpouse;
+  @Asn1Optional SequenceOfChildInformation sequenceOfChildInformation = new SequenceOfChildInformation();
 
-    Name name;
-    
-    EmployeeNumber number;
-    
-    @RestrictedString(CharacterRestriction.VisibleString)
-    String title;
-    
-    Date dateOfHire;
-    
-    Name nameOfSpouse;
-    
-    @Asn1Optional Asn1SequenceOf<ChildInformation> children = new Asn1SequenceOf<ChildInformation>();
+  public PersonenelRecord() {
+    this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new SequenceOfChildInformation());
+  }
 
-    public PersonenelRecord() {
-        this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new Asn1SequenceOf<ChildInformation>());
-    }
-
-    public PersonenelRecord(
-            Name name,
-            EmployeeNumber number,
-            String title,
-            Date dateOfHire,
-            Name nameOfSpouse,
-            Asn1SequenceOf<ChildInformation> children
-            ) {
-        this.name = name;
-        this.number = number;
-        this.title = title;
-        this.dateOfHire = dateOfHire;
-        this.nameOfSpouse = nameOfSpouse;
-        this.children = children;
-    }
+  public PersonenelRecord(
+      Name name,
+      EmployeeNumber number,
+      String title,
+      Date dateOfHire,
+      Name nameOfSpouse,
+      SequenceOfChildInformation sequenceOfChildInformation
+      ) {
+    this.name = name;
+    this.number = number;
+    this.title = title;
+    this.dateOfHire = dateOfHire;
+    this.nameOfSpouse = nameOfSpouse;
+    this.sequenceOfChildInformation = sequenceOfChildInformation;
+  }
 }
 
 @Sequence
 public static class Name {
-    NameString givenName;
-    @FixedSize(1)
-    NameString initial;
-    NameString familyName;
+  NameString givenName;
+  @FixedSize(1)
+  NameString initial;
+  NameString familyName;
 
-    public Name() { this(new NameString(), new NameString(), new NameString()); }
-    public Name(NameString givenName, NameString initial, NameString familyName) {
-        this.givenName = givenName;
-        this.initial = initial;
-        this.familyName = familyName;
-    }
+  public Name() { this(new NameString(), new NameString(), new NameString()); }
+  public Name(NameString givenName, NameString initial, NameString familyName) {
+    this.givenName = givenName;
+    this.initial = initial;
+    this.familyName = familyName;
+  }
 }
 
-@RestrictedString(value = CharacterRestriction.VisibleString, alphabet = NameStringAlphabet.class)
+//"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-."
+@RestrictedString(value = CharacterRestriction.VisibleString, alphabet = NameString.NameStringAlphabet.class)
 @SizeRange(minValue = 1, maxValue = 64)
 public static class NameString extends Asn1String {
-    public NameString() { this(""); }
-    public NameString(String value) { super(value); }
+  public NameString() { this(""); }
+  public NameString(String value) { super(value); }
 
-    public static class NameStringAlphabet implements Alphabet {
-        private final static String chars = new AlphabetBuilder().withRange('a', 'z').withRange('A','Z').withChars("-.").chars();
-        @Override public String chars() { return chars; }
+  public static class NameStringAlphabet extends Alphabet {
+    private final static String chars =
+        new AlphabetBuilder().withRange('a', 'z').withRange('A','Z').withChars("-.").chars();
+    public NameStringAlphabet() {
+      super(chars);
     }
+  }
 }
 
-@Sequence
 public static class EmployeeNumber extends Asn1BigInteger {
-    public EmployeeNumber() { this(0); }
-    public EmployeeNumber(long value) { this(BigInteger.valueOf(value)); }
-    public EmployeeNumber(BigInteger value) { super(value); }
+  public EmployeeNumber() { this(0); }
+  public EmployeeNumber(long value) { this(BigInteger.valueOf(value)); }
+  public EmployeeNumber(BigInteger value) { super(value); }
 }
 
-@RestrictedString(value = CharacterRestriction.VisibleString, alphabet = DateAlphabet.class)
+@RestrictedString(value = CharacterRestriction.VisibleString, alphabet = Date.DateAlphabet.class)
 @FixedSize(8)
 public static class Date extends Asn1String {
-    public Date() { this(""); }
-    public Date(String value) { super(value); }
-
-    public static class DateAlphabet implements Alphabet {
-        private final static String chars = new AlphabetBuilder().withRange('0', '9').chars();
-        @Override public String chars() { return chars; }
+  public Date() { this(""); }
+  public Date(String value) { super(value); }
+  public static class DateAlphabet extends Alphabet {
+    private final static String chars = new AlphabetBuilder().withRange('0', '9').chars();
+    public DateAlphabet() {
+      super(chars);
     }
+  }
 }
 
 @Sequence
 public static class ChildInformation {
-    Name name;
-    Date dateOfBirth;
+  Name name;
+  Date dateOfBirth;
 
-    public ChildInformation() { this(new Name(), new Date()); }
-    public ChildInformation(Name name, Date dateOfBirth) {
-        this.name = name;
-        this.dateOfBirth = dateOfBirth;
-    }
+  public ChildInformation() { this(new Name(), new Date()); }
+  public ChildInformation(Name name, Date dateOfBirth) {
+    this.name = name;
+    this.dateOfBirth = dateOfBirth;
+  }
+}
+
+public static class SequenceOfChildInformation extends Asn1SequenceOf<ChildInformation> {
+  public SequenceOfChildInformation() { super(); }
+  public SequenceOfChildInformation(Collection<ChildInformation> coll) { super(coll); }
 }
 ```
 
 And example object instantiation:
 
 ```java
-
 PersonenelRecord record = new PersonenelRecord(
   new Name(
     new NameString("John"),
@@ -309,7 +315,7 @@ PersonenelRecord record = new PersonenelRecord(
     new NameString("T"),
     new NameString("Smith")
   ),
-  new Asn1SequenceOf<ChildInformation>(Arrays.asList(
+  new SequenceOfChildInformation(Arrays.asList(
     new ChildInformation(
       new Name(
         new NameString("Ralph"),
@@ -328,7 +334,6 @@ PersonenelRecord record = new PersonenelRecord(
     )
   ))
 );
-
 ```
 
 ### Example 3: With restrictions and extension markers
@@ -356,11 +361,12 @@ sex [1] IMPLICIT ENUMERATED {male(1), female(2),
 unknown(3)} OPTIONAL 
 }
 
-Name ::= [APPLICATION 1] IMPLICIT SEQUENCE
-{ givenName NameString,
-initial NameString (SIZE(1)),
-familyName NameString,
-... }
+Name ::= [APPLICATION 1] IMPLICIT SEQUENCE { 
+  givenName NameString,
+  initial NameString (SIZE(1)),
+  familyName NameString,
+  ... 
+}
 
 EmployeeNumber ::= [APPLICATION 2] IMPLICIT INTEGER (0..9999, ...)
 
@@ -383,10 +389,10 @@ public static class PersonenelRecord {
   String title;
   Date dateOfHire;
   Name nameOfSpouse;
-  @Asn1Optional Children children;
+  @Asn1Optional SequenceOfChildInformation sequenceOfChildInformation;
 
   public PersonenelRecord() {
-    this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new Children());
+    this(new Name(), new EmployeeNumber(), "", new Date(), new Name(), new SequenceOfChildInformation());
   }
 
   public PersonenelRecord(
@@ -395,14 +401,14 @@ public static class PersonenelRecord {
       String title,
       Date dateOfHire,
       Name nameOfSpouse,
-      Children children
+      SequenceOfChildInformation sequenceOfChildInformation
       ) {
     this.name = name;
     this.number = number;
     this.title = title;
     this.dateOfHire = dateOfHire;
     this.nameOfSpouse = nameOfSpouse;
-    this.children = children;
+    this.sequenceOfChildInformation = sequenceOfChildInformation;
   }
 }
 
@@ -489,11 +495,12 @@ public static enum Sex {
 }
 
 @SizeRange(minValue=2, maxValue=2, hasExtensionMarker=true)
-public static class Children extends Asn1SequenceOf<ChildInformation> {
-  public Children() { super(); }
-  public Children(Collection<ChildInformation> coll) { super(coll); }
+public static class SequenceOfChildInformation extends Asn1SequenceOf<ChildInformation> {
+  public SequenceOfChildInformation() { super(); }
+  public SequenceOfChildInformation(Collection<ChildInformation> coll) { super(coll); }
 }
 ```
+
 And example instantiation code:
 
 ```java
@@ -511,7 +518,7 @@ PersonenelRecord record = new PersonenelRecord(
     new NameString("T"),
     new NameString("Smith")
   ),
-  new Children(Arrays.asList(
+  new SequenceOfChildInformation(Arrays.asList(
     new ChildInformation(
       new Name(
         new NameString("Ralph"),
