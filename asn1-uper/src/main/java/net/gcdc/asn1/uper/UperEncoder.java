@@ -220,42 +220,22 @@ public class UperEncoder {
 
     /** Instantiate a given class T using given parameters. */
     static <T> T instantiate(Class<T> classOfT, Object... parameters) {
-        if (classOfT == long.class) {
-            if (parameters.length != 1 || !long.class.isAssignableFrom(parameters[0].getClass())) {
-                throw new IllegalArgumentException("can't instantiate " + classOfT + " from " + Arrays.asList(parameters));
-            } else {
-                return (T) parameters[0];
-            }
-        } else if (classOfT == int.class) {
-            if (parameters.length != 1 || !int.class.isAssignableFrom(parameters[0].getClass())) {
-                throw new IllegalArgumentException("can't instantiate " + classOfT + " from " + Arrays.asList(parameters));
-            } else {
-                return (T) parameters[0];
-            }
-        } else if (classOfT == short.class) {
-            if (parameters.length != 1 || !short.class.isAssignableFrom(parameters[0].getClass())) {
-                throw new IllegalArgumentException("can't instantiate " + classOfT + " from " + Arrays.asList(parameters));
-            } else {
-                return (T) parameters[0];
-            }
-        } else {
-            Class<?>[] parameterTypes = new Class<?>[parameters.length];
-            for (int i = 0; i < parameters.length; i++) {
-                parameterTypes[i] = parameters[i].getClass();
-            }
-            Constructor<T> constructor = findConsturctor(classOfT, parameters);
-            boolean constructorIsAccessible = constructor.isAccessible();
-            constructor.setAccessible(true);
-            T result;
-            try {
-                result = constructor.newInstance(parameters);
-            } catch (IllegalArgumentException | InvocationTargetException | InstantiationException
-                    | IllegalAccessException e) {
-                throw new IllegalArgumentException("Can't instantiate " + classOfT.getName(), e);
-            }
-            constructor.setAccessible(constructorIsAccessible);
-            return result;
+        Class<?>[] parameterTypes = new Class<?>[parameters.length];
+        for (int i = 0; i < parameters.length; i++) {
+            parameterTypes[i] = parameters[i].getClass();
         }
+        Constructor<T> constructor = findConsturctor(classOfT, parameters);
+        boolean constructorIsAccessible = constructor.isAccessible();
+        constructor.setAccessible(true);
+        T result;
+        try {
+            result = constructor.newInstance(parameters);
+        } catch (IllegalArgumentException | InvocationTargetException | InstantiationException
+                | IllegalAccessException e) {
+            throw new IllegalArgumentException("Can't instantiate " + classOfT.getName(), e);
+        }
+        constructor.setAccessible(constructorIsAccessible);
+        return result;
     }
 
     static long decodeConstrainedInt(BitBuffer bitqueue, IntRange intRange) {
