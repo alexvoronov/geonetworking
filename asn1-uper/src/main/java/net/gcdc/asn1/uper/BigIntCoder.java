@@ -2,8 +2,6 @@ package net.gcdc.asn1.uper;
 
 import java.lang.annotation.Annotation;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 
 import net.gcdc.asn1.datatypes.Asn1BigInteger;
 import net.gcdc.asn1.datatypes.IntRange;
@@ -24,11 +22,12 @@ class BigIntCoder implements Encoder, Decoder {
         if (intRange != null) { throw new UnsupportedOperationException(
                 "Big int with range is not supported yet"); }
         int lengthInOctets = (int) UperEncoder.decodeLengthDeterminant(bitbuffer);
-        List<Boolean> valueBits = new ArrayList<Boolean>(lengthInOctets * 8);
+        BitBuffer valueBits = ByteBitBuffer.allocate(lengthInOctets * 8);
         for (int i = 0; i < lengthInOctets * 8; i++) {
-            valueBits.add(bitbuffer.get());
+            valueBits.put(bitbuffer.get());
         }
-        BigInteger resultValue = new BigInteger(UperEncoder.binaryStringFromCollection(valueBits), 2);
+        valueBits.flip();
+        BigInteger resultValue = new BigInteger(+1, valueBits.array());
         UperEncoder.logger.debug("big int Decoded as {}", resultValue);
         return UperEncoder.instantiate(classOfT, resultValue);
     }

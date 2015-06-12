@@ -7,7 +7,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -253,19 +252,19 @@ public class UperEncoder {
         if (range == 1) { return lowerBound; }
         int bitlength = BigInteger.valueOf(range - 1).bitLength();
         logger.trace("This int will require {} bits, available {}", bitlength, bitqueue.remaining());
-        List<Boolean> relevantBits = new ArrayList<>();
-        for (int i = 0; i < bitlength; i++) {
-            relevantBits.add(bitqueue.get());
+        BitBuffer relevantBits = ByteBitBuffer.allocate( ((bitlength + 7) / 8) * 8);  // Full bytes.
+        int numPaddingBits = (8 - (bitlength % 8)) % 8;  // Leading padding 0-bits.
+        for (int i = 0; i < numPaddingBits; i++) {
+            relevantBits.put(false);
         }
-        final BigInteger big = new BigInteger(binaryStringFromCollection(relevantBits), 2);  // This
-                                                                                            // is
-                                                                                            // very
-                                                                                            // inefficient,
-                                                                                            // I
-                                                                                            // know.
+        for (int i = 0; i < bitlength; i++) {
+            relevantBits.put(bitqueue.get());
+        }
+        relevantBits.flip();
+        final BigInteger big = new BigInteger(+1, relevantBits.array());
         final long result = lowerBound + big.longValue();
         logger.debug("bits {} decoded as {} plus lower bound {} give {}",
-                binaryStringFromCollection(relevantBits), big.longValue(), lowerBound, result);
+                relevantBits.toBooleanStringFromPosition(0), big.longValue(), lowerBound, result);
         if ((result < intRange.minValue() || intRange.maxValue() < result)
                 && !intRange.hasExtensionMarker()) { throw new AssertionError("Decoded value "
                 + result + " is outside of range (" + intRange.minValue() + ".."
@@ -503,14 +502,6 @@ public class UperEncoder {
                     + Character.digit(s.charAt(i + 1), 16));
         }
         return data;
-    }
-
-    public static String binaryStringFromCollection(Collection<Boolean> bitlist) {
-        StringBuilder sb = new StringBuilder(bitlist.size());
-        for (Boolean b : bitlist) {
-            sb.append(b ? "1" : "0");
-        }
-        return sb.toString();
     }
 
     public static String binaryStringFromBytes(byte[] bytes) {
