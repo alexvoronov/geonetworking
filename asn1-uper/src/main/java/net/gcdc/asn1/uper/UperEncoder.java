@@ -26,11 +26,9 @@ import org.slf4j.LoggerFactory;
  * @see ITU-T Recommendation <a
  *      href="http://www.itu.int/ITU-T/recommendations/rec.aspx?rec=x.691">X.691</a>
  *
- *      TODO: refactoring, refactoring, refactoring. Clean up the mess, unify converters, replace
- *      all
- *      Collection<Boolean> with byte-array-based BitBuffer. Also cover the rest of unsupported
- *      cases,
- *      and write unit tests for them. */
+ *      TODO: Cover the rest of (useful) ASN.1 datatypes and PER-visible constraints,
+ *      write unit tests for them. Clean-up, do more refactoring.
+ **/
 public class UperEncoder {
     final static Logger logger = LoggerFactory.getLogger(UperEncoder.class);
 
