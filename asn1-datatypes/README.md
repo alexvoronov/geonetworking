@@ -6,6 +6,25 @@ Java annotations to augment Java classes with information from [ASN.1](http://en
 
 Datatypes are enough to handle [camdenm](https://github.com/alexvoronov/geonetworking/tree/master/camdenm). There is no compiler yet, so Java classes and annotations have to be created and added manually.
 
+## Supported ASN.1 Features
+The following ASN.1 features are implemented:
+
+ASN.1 | Java
+----- | ----
+`INTEGER` (unconstrained) | `BigInteger`
+`INTEGER` (constrained)   | `short`, `int`, `long`, `BigInteger` (depending on constraint)
+`BOOLEAN`                 | `boolean`
+`ENUMERATED`              | `enum`
+`SEQUENCE`                | class
+`CHOICE`                  | class
+`BIT STRING` (constrained to fixed length) | class
+`BIT STRING` (non-fixed length)            | `List<Boolean>`
+`OCTET STRING`            | `List<Byte>`
+`IA5String`, `UTF8String`, `VisibleString` | `String`
+`SEQUENCE OF T`           | `List<T>` (or `SequenceOfT extends Asn1SequenceOf<T>`)
+`SET OF T`                | also `List<T>`
+
+
 ## Examples
 
 
