@@ -6,7 +6,7 @@ A basic implementation of the [ETSI](http://en.wikipedia.org/wiki/ETSI) ITS stac
 
 ### Status
 
-Sending CAM via Single Hop Broadcast and DENM via GeoBroadcast is supported. Forwarding of GeoBroadcast packets is on the wishlist. There are currently no plans for GeoUnicast or Security.
+Sending CAM via Single Hop Broadcast and DENM via GeoBroadcast is supported. Forwarding of GeoBroadcast packets is on the wishlist. There are currently no plans for GeoUnicast or Security (for Security, try [fitsec](https://www.assembla.com/code/fitsec/subversion/nodes)).
 
 Basic functionality was tested at an ETSI Plugtest in March 2015, and many things already worked. However, this is not a production-ready code. Even API is expected to change when usage patterns emerge, feedback is welcome! 
 
