@@ -12,7 +12,12 @@ This implementation was partly developed within [i-GAME](http://gcdc.net/i-game)
 
 Use of reflection was inspired by [Gson](https://code.google.com/p/google-gson/).
 
-Excellent OSS Nokalva [ASN.1 Playground](http://asn1-playground.oss.com/) was used to catch a few errors in the encoder results.
+Excellent OSS Nokalva [ASN.1 Playground](http://asn1-playground.oss.com/) was used to catch a few errors in the encoder results. OSS Nokalva provides state-of-the-art commercial [OSS ASN.1 Tools](http://www.oss.com/asn1/products/asn1-java/asn1-java.html) to author/compile/encode/decode ASN.1. If you are looking for a production-ready ASN.1 encoder/decoder, check it out, they offer generous trials. 
+
+
+### Other encoders
+
+More commercial and free ASN.1 tools and vendors are listed at [ITU ASN.1 Tools page](http://www.itu.int/en/ITU-T/asn1/Pages/Tools.aspx) and in the documentation of [asn1-datatypes](https://github.com/alexvoronov/geonetworking/tree/master/asn1-datatypes).
 
 
 ### License

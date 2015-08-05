@@ -560,7 +560,33 @@ PersonenelRecord record = new PersonenelRecord(
 ```
 
 ## Other ASN.1 tools
-ITU-T have a [list of ASN.1 tools](http://www.itu.int/en/ITU-T/asn1/Pages/Tools.aspx).
+ITU-T have a [list of ASN.1 tools](http://www.itu.int/en/ITU-T/asn1/Pages/Tools.aspx). IvmaiAsn project also have [its own list](http://ivmaiasn.sourceforge.net/asn1lnk.html).
+
+Here is my (incomplete) list of the open-source tools:
+
+Name | License | Runtime | Compiler | BER, DER? | UPER?
+---- | ------- | ------- | -------- | --- | ---
+[asn1c](https://github.com/vlm/asn1c) | BSD 2-clause | C | C | ✓ | ✓
+[asn1scc](https://github.com/ttsiodras/asn1scc) | Dual: LGPL, commercial | C, Ada | F#, Antlr/Java | ✓ | ✓
+[snacc](https://github.com/nevali/snacc) | GPL | C | C, C++ | ✓
+[III ASN.1](http://iiiasn1.sourceforge.net/main.html) | Mozilla | C++ | C++ | ✓ | ✓
+[libtasn1](http://www.gnu.org/software/libtasn1/) | LGPL | ANSI C99 | C | ✓ (DER) | 
+[pyasn1](http://pyasn1.sourceforge.net/) | BSD 2-clause | Python |  [asn1ate](https://github.com/kimgr/asn1ate) (Python) | ✓ | 
+[ASN1js](https://github.com/GlobalSign/ASN1.js) | BSD 3-clause | JavaScript | . | ✓
+[asn1js](https://github.com/lapo-luchini/asn1js) | MIT | JavaScript | . | ✓
+[node-asn1](https://github.com/mcavage/node-asn1) | MIT | JavaScript | . | ✓ (BER) |
+[ASN1.js](https://github.com/indutny/asn1.js) | MIT | JavaScript | . | ✓ (DER) | 
+[ASN1s](https://github.com/lastrix/ASN1S) | GPL | Java | Java/Antlr | ✓ (BER) |
+[jASN1](https://github.com/juherr/jASN1) | LGPL | Java | Java | ✓ (BER) |
+[openASN.1](http://sourceforge.net/projects/openasn1/) | LGPL | Java | Java | ✓ | ✓
+[asn1forj](http://sourceforge.net/projects/asn1forj) | GPL | Java | ? | ✓ |
+[JAC](http://sourceforge.net/projects/jac-asn1) | GPL | Java | ? | ✓ (BER, CER, DER) | 
+[JASN](http://sourceforge.net/projects/jasn) |  GPL | Java | ? | ✓ (BER, DER) | 
+[Binary Notes](http://sourceforge.net/projects/bnotes) | Apache | Java, .NET | XSLT | ✓ | ✓
+[arc](http://www.forge.com.au/Research/products/arc/arc.htm) | BSD 4-clause | Java | javacc/Java | 
+[Cryptix](http://cryptix-asn1.sourceforge.net/) | BSD 2-clause | Java | SableCC | 
+[Legion of The Bouncy Castle](https://www.bouncycastle.org/) | MIT, MIT X11 |  Java, C# | . | ✓ (DER, BER) | 
+[Apache Harmony](https://harmony.apache.org/subcomponents/classlibrary/asn1_framework.html) | Apache | Java | . | 
 
 ## Acknowledgments
 This implementation was partly developed within [i-GAME](http://gcdc.net/i-game) project that has received funding from the European Union's Seventh Framework Programme for research, technological development and demonstration under grant agreement no [612035](http://cordis.europa.eu/project/rcn/110506_en.html).
