@@ -2,9 +2,29 @@
 
 Java annotations to augment Java classes with information from [ASN.1](http://en.wikipedia.org/wiki/Abstract_Syntax_Notation_One) specifications. These annotations can later be used by encoders like [asn1-uper](https://github.com/alexvoronov/geonetworking/tree/master/asn1-uper).
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents:**
+
+  - [Status](#status)
+  - [Supported ASN.1 Features](#supported-asn1-features)
+  - [Design choices](#design-choices)
+  - [Examples](#examples)
+    - [Example 1: Without restrictions or extension markers](#example-1-without-restrictions-or-extension-markers)
+    - [Example 2: With Restrictions, no extension markers](#example-2-with-restrictions-no-extension-markers)
+    - [Example 3: With restrictions and extension markers](#example-3-with-restrictions-and-extension-markers)
+  - [Other ASN.1 tools](#other-asn1-tools)
+  - [Acknowledgments](#acknowledgments)
+  - [License](#license)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+
 ## Status
 
 Datatypes are enough to handle [camdenm](https://github.com/alexvoronov/geonetworking/tree/master/camdenm). There is no compiler yet, so Java classes and annotations have to be created and added manually.
+
+
 
 ## Supported ASN.1 Features
 The following ASN.1 features are implemented:
@@ -25,11 +45,41 @@ ASN.1 | Java
 `SET OF T`                | also `List<T>`
 
 
+## Design choices
+
+
+Design goal was to make the library as clean and simple as possible for the end user, even if it will not be very performant. Inspiration was taken from GSON, where they use reflection to extract fields from classes.
+
+ASN.1 has three major ways to construct complex datatypes: `SEQUENCE`, `CHOICE` and `SEQUENCE OF`. They correspond to `struct `, `union` and arrays of C language. (ASN.1 `SET` and `SET OF` are pretty much identical to `SEQUENCE` and `SEQUENCE OF`, at least for PER, so they are not considered separately).
+
+A `SEQUENCE` is encoded as an ordinary Java class. Java Reflection API `Class.getFields()` can return all fields of a class. The documentation says that there is no guarantee on the order in which the fields are returned, however, since Java version 1.6 the fields are returned in the declaration order.
+
+A `CHOICE` is encoded as an ordinary Java class as well, with exactly one field in the class being non-null, corresponding to the element present.
+
+A `SEQUENCE OF` is encoded as `List<T>`. Java type erasure in generics results in the type being lost at run-time if there is no object, so decoding will not work for generics (encoding is fine). So the class have to be non-generic and extend `List<T>`. GSON allows generic classes by using extra parameters. Scala also solved this issue, using Manifests and implicit parameters. For this library, just making a non-generic wrapper class with a concrete type for `List` is good enough. To make instantiation of abstract `List<T>` easier, there is `Asn1SequenceOF<T>` (it was not possible to extend, for example, `ArrayList<T>` directly). 
+
+`OCTET STRING` is just a `SEQUENCE OF byte`. `BIT STRING` is a `SEQUENCE OF boolean`. `ENUMERATED` is an enum.
+
+Integers in ASN.1 are unbounded by default, so `BigInteger` is used to represent them. If an integer is constrained, then `long`, `int` or `short` will be enough to represent it.
+
+All strings, including `IA5String`, `UTF8String` and  `VisibleString` are represented by Java `String`, the difference is only in annotations.
+
+`OPTIONAL` is implemented as a nullable field with an annotation. Using built-in Java 8 `Optional<T>` was not possible due to type erasure, and creating non-generic wrapper classes every time `OPTIONAL` is used is too much of a burden, so a simple nullable field is used. The name for annotation is `@Asn1Optional`, to not clash with built-in `Optional`.
+
+`DEFAULT` is treated in ASN.1 almost exactly as `OPTIONAL`, so the annotation from `OPTIONAL` is used for `DEFAULT` as well. The only difference is that `DEFAULT` have a static initializer in the Java class.
+
+ASN.1 restrictions are implemented as Java Annotations. Integers have `@IntRange`, sequences have `@SizeRange` and `@FixedSize`, strings have alphabets etc.
+
+ASN.1 Extensions are marked by annotations too. A sequence that has an extension marker have annotation `@HasExtensionMarker`, and all elements that come after that marker in ASN.1 are marked with `@IsExtension` in the Java class. `@IntRange()` and `@SizeRange()` also support an optional argument `hasExtension=true`, which is set to `false` by default.
+
+
+
+
 ## Examples
 
 
 
-Here's how two examples from the Annex A of the UPER standard (pages 44-53 of [ITU X.691 11/2008](http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-X.691-200811-I!!PDF-E&type=items)) would be encoded in Java.
+Here's how three examples from the Annex A of the UPER standard (pages 44-53 of [ITU X.691 11/2008](http://www.itu.int/rec/dologin_pub.asp?lang=e&id=T-REC-X.691-200811-I!!PDF-E&type=items)) would be encoded in Java.
 
 ### Example 1: Without restrictions or extension markers
 
@@ -572,6 +622,7 @@ Name | License | Runtime | Compiler | BER, DER? | UPER?
 [III ASN.1](http://iiiasn1.sourceforge.net/main.html) | Mozilla | C++ | C++ | ✓ | ✓
 [libtasn1](http://www.gnu.org/software/libtasn1/) | LGPL | ANSI C99 | C | ✓ (DER) | 
 [pyasn1](http://pyasn1.sourceforge.net/) | BSD 2-clause | Python |  [asn1ate](https://github.com/kimgr/asn1ate) (Python) | ✓ | 
+[dpkt](https://github.com/kbandla/dpkt/blob/master/dpkt/asn1.py) | BSD 3-Clause | Python | . | ✓ | 
 [ASN1js](https://github.com/GlobalSign/ASN1.js) | BSD 3-clause | JavaScript | . | ✓
 [asn1js](https://github.com/lapo-luchini/asn1js) | MIT | JavaScript | . | ✓
 [node-asn1](https://github.com/mcavage/node-asn1) | MIT | JavaScript | . | ✓ (BER) |
