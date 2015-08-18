@@ -1,6 +1,7 @@
 package net.gcdc.vehicle;
 
 import java.io.IOException;
+import java.nio.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
@@ -22,6 +23,84 @@ import net.gcdc.geonetworking.StationConfig;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.InetSocketAddress;
+
+import com.lexicalscope.jewel.cli.ArgumentValidationException;
+import com.lexicalscope.jewel.cli.CliFactory;
+import com.lexicalscope.jewel.cli.InvalidOptionSpecificationException;
+import com.lexicalscope.jewel.cli.Option;
+
+import net.gcdc.camdenm.CoopIts.AccelerationControl;
+import net.gcdc.camdenm.CoopIts.AccelerationConfidence;
+import net.gcdc.camdenm.CoopIts.Altitude;
+import net.gcdc.camdenm.CoopIts.AltitudeConfidence;
+import net.gcdc.camdenm.CoopIts.AltitudeValue;
+import net.gcdc.camdenm.CoopIts.BasicContainer;
+import net.gcdc.camdenm.CoopIts.BasicVehicleContainerHighFrequency;
+import net.gcdc.camdenm.CoopIts.BasicVehicleContainerLowFrequency;
+import net.gcdc.camdenm.CoopIts.Cam;
+import net.gcdc.camdenm.CoopIts.CamParameters;
+import net.gcdc.camdenm.CoopIts.CoopAwareness;
+import net.gcdc.camdenm.CoopIts.Curvature;
+import net.gcdc.camdenm.CoopIts.CurvatureConfidence;
+import net.gcdc.camdenm.CoopIts.CurvatureValue;
+import net.gcdc.camdenm.CoopIts.DangerousGoodsBasic;
+import net.gcdc.camdenm.CoopIts.DangerousGoodsContainer;
+import net.gcdc.camdenm.CoopIts.Denm;
+import net.gcdc.camdenm.CoopIts.DecentralizedEnvironmentalNotificationMessage;
+import net.gcdc.camdenm.CoopIts.DriveDirection;
+import net.gcdc.camdenm.CoopIts.EmergencyContainer;
+import net.gcdc.camdenm.CoopIts.ExteriorLights;
+import net.gcdc.camdenm.CoopIts.GenerationDeltaTime;
+import net.gcdc.camdenm.CoopIts.Heading;
+import net.gcdc.camdenm.CoopIts.HeadingConfidence;
+import net.gcdc.camdenm.CoopIts.HeadingValue;
+import net.gcdc.camdenm.CoopIts.HighFrequencyContainer;
+import net.gcdc.camdenm.CoopIts.ItsPduHeader;
+import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
+import net.gcdc.camdenm.CoopIts.Latitude;
+import net.gcdc.camdenm.CoopIts.LightBarSirenInUse;
+import net.gcdc.camdenm.CoopIts.Longitude;
+import net.gcdc.camdenm.CoopIts.LongitudinalAcceleration;
+import net.gcdc.camdenm.CoopIts.LongitudinalAccelerationValue;
+import net.gcdc.camdenm.CoopIts.LowFrequencyContainer;
+import net.gcdc.camdenm.CoopIts.PathHistory;
+import net.gcdc.camdenm.CoopIts.PosConfidenceEllipse;
+import net.gcdc.camdenm.CoopIts.PtActivation;
+import net.gcdc.camdenm.CoopIts.PtActivationData;
+import net.gcdc.camdenm.CoopIts.PtActivationType;
+import net.gcdc.camdenm.CoopIts.PublicTransportContainer;
+import net.gcdc.camdenm.CoopIts.ReferencePosition;
+import net.gcdc.camdenm.CoopIts.RescueContainer;
+import net.gcdc.camdenm.CoopIts.RoadWorksContainerBasic;
+import net.gcdc.camdenm.CoopIts.SafetyCarContainer;
+import net.gcdc.camdenm.CoopIts.SemiAxisLength;
+import net.gcdc.camdenm.CoopIts.SpecialTransportContainer;
+import net.gcdc.camdenm.CoopIts.SpecialTransportType;
+import net.gcdc.camdenm.CoopIts.SpecialVehicleContainer;
+import net.gcdc.camdenm.CoopIts.Speed;
+import net.gcdc.camdenm.CoopIts.SpeedConfidence;
+import net.gcdc.camdenm.CoopIts.SpeedValue;
+import net.gcdc.camdenm.CoopIts.StationType;
+import net.gcdc.camdenm.CoopIts.VehicleLength;
+import net.gcdc.camdenm.CoopIts.VehicleLengthValue;
+import net.gcdc.camdenm.CoopIts.VehicleLengthConfidenceIndication;
+import net.gcdc.camdenm.CoopIts.VehicleRole;
+import net.gcdc.camdenm.CoopIts.VehicleWidth;
+import net.gcdc.camdenm.CoopIts.YawRate;
+import net.gcdc.camdenm.CoopIts.YawRateConfidence;
+import net.gcdc.camdenm.CoopIts.YawRateValue;
+
+import net.gcdc.geonetworking.LinkLayerUdpToEthernet;
+import net.gcdc.geonetworking.LongPositionVector;
+import net.gcdc.geonetworking.Position;
+import net.gcdc.geonetworking.StationConfig;
+import net.gcdc.geonetworking.Address;
+import net.gcdc.geonetworking.Optional;
+//import net.gcdc.geonetworking.StationType;
+
+import org.threeten.bp.Instant;
 
 public class VehicleAdapter {
     private final static Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
@@ -49,6 +128,195 @@ public class VehicleAdapter {
 
     public static final ExecutorService executor = Executors.newCachedThreadPool();
 
+    /* Unpack a message from Simulink and create a CAM message. The
+     * Simulink message must be formatted according to the local
+     * message set defined here:
+     * https://github.com/Zeverin/GCDC16-Chalmers-Communication/tree/master/Documentation
+     *
+     * Please note that this is the first draft and that everything
+     * may change :)
+     */
+    public Cam simulinkToCam(byte[] packet, boolean withLowFreq){
+        ByteBuffer buffer = ByteBuffer.wrap(packet);
+        return createCam(withLowFreq,
+                         buffer.get(),    /* vehicleRole */
+                         buffer.get(),    /* stationType */
+                         buffer.getInt(), /* genDeltaTimeMillis */
+                         buffer.getInt(), /* vehicleLength */
+                         buffer.getInt(), /* vehicleWidth */
+                         buffer.getInt(), /* latitude */
+                         buffer.getInt(), /* longitude */
+                         buffer.getInt(), /* semiAxisLength */
+                         buffer.getInt(), /* majorAxisLength */
+                         buffer.getInt(), /* headingValue */
+                         buffer.getInt(), /* altitude */
+                         buffer.getInt(), /* heading */
+                         buffer.get(),    /* headingConfidence */
+                         buffer.getInt(), /* speed */
+                         buffer.get(),    /* speedConfidence */
+                         buffer.getInt(), /* yawRate */
+                         buffer.get(),    /* yawRateConfidence */
+                         buffer.getInt(), /* longitudinalAcceleration */
+                         buffer.get(),    /* longitudinalAccelerationConfidence */
+                         buffer.get(),    /* accelerationControlStatus */
+                         buffer.get());   /* exteriorLightsStatus */
+    }
+
+    /* Unpack a CAM message and create a Simulink message.
+     */
+    //TODO: How do we handle lowFrequencyContainer in LMS?
+    //TODO: How do we unpack the data from Simulink? Either the data
+    //needs to be public or we need get methods.
+    public byte[] camToSimulink(Cam cam){
+        ByteBuffer buffer = ByteBuffer.allocate(61);
+        /*
+        CoopAwareness coopAwareness = cam.cam;
+        CamParameters camParameters = coopAwareness.camParameters;
+        BasicContainer basicContainer = cp.basicContainer;
+        HighFrequencyContainer highFrequencyContainer = cp.highFrequencyContainer;
+        LowFrequencyContainer lowFrequencyContainer = cp.lowFrequencyContainer;
+        buffer.putInt(lowFrequencyContainer ? lowFrequencyContainer.basicVehicleContainerLowFrequency.vehicleRole : -1);
+        buffer.put(basicContainer.stationType);
+        */
+        return null;        
+    }
+
+    public Cam createCam(boolean withLowFreq,
+                         byte vehicleRole,
+                         byte stationType,
+                         int genDeltaTimeMillis,
+                         int vehicleLength,
+                         int vehicleWidth,
+                         int latitude,
+                         int longitude,
+                         //Position confidence ellipse not defined
+                         //properly in D3.2
+                         int semiAxisLength,
+                         int majorAxisLength,
+                         int headingValue,
+                         //Above part of confidence ellipse
+                         int altitude,
+                         int heading,
+                         byte headingConfidence,
+                         int speed,
+                         byte speedConfidence,
+                         int yawRate,
+                         byte yawRateConfidence,
+                         int longitudinalAcceleration,
+                         byte longitudinalAccelerationConfidence,
+                         //Do we want these? If so they need to be
+                         //added to the local message set.
+                         byte accelerationControlStatus,
+                         byte exteriorLightsStatus){
+
+
+        LowFrequencyContainer lowFrequencyContainer = withLowFreq ?
+            new LowFrequencyContainer(
+                                      new BasicVehicleContainerLowFrequency(
+                                                                            VehicleRole.fromCode(vehicleRole),
+                                                                            ExteriorLights.builder()
+                                                                            .lowBeamHeadlightsOn   ((exteriorLightsStatus & (1<<7)) != 0)  // check, maybe in the other order!
+                                                                            .highBeamHeadlightsOn  ((exteriorLightsStatus & (1<<6)) != 0)
+                                                                            .leftTurnSignalOn      ((exteriorLightsStatus & (1<<5)) != 0)
+                                                                            .rightTurnSignalOn     ((exteriorLightsStatus & (1<<4)) != 0)
+                                                                            .daytimeRunningLightsOn((exteriorLightsStatus & (1<<3)) != 0)
+                                                                            .reverseLightOn        ((exteriorLightsStatus & (1<<2)) != 0)
+                                                                            .fogLightOn            ((exteriorLightsStatus & (1<<1)) != 0)
+                                                                            .parkingLightsOn       ((exteriorLightsStatus & (1<<0)) != 0)
+                                                                            .create(),
+                                                                            new PathHistory()
+                                                                            ))
+            :
+            null; 
+
+        //Not used for participating vehicles
+        SpecialVehicleContainer specialVehicleContainer = null;
+
+        BasicContainer basicContainer =
+            new BasicContainer(
+                               new StationType(stationType),
+                               new ReferencePosition(
+                                                     new Latitude(latitude),
+                                                     new Longitude(longitude),
+                                                     new PosConfidenceEllipse(
+                                                                              new SemiAxisLength(semiAxisLength),
+                                                                              new SemiAxisLength(),
+                                                                              new HeadingValue(headingValue)),        //Not implemented yet
+                                                     new Altitude(
+                                                                  new AltitudeValue(altitude),
+                                                                  AltitudeConfidence.unavailable)));
+        
+        HighFrequencyContainer highFrequencyContainer =
+            new HighFrequencyContainer(BasicVehicleContainerHighFrequency.builder()
+                                       .heading(new Heading(new HeadingValue(heading),
+                                                            new HeadingConfidence(headingConfidence)))
+                                       .speed(new Speed(new SpeedValue(speed),
+                                                        new SpeedConfidence(speedConfidence)))
+                                       .vehicleLength(new VehicleLength(new VehicleLengthValue(vehicleLength),
+                                                                        VehicleLengthConfidenceIndication.unavailable))
+                                       .vehicleWidth(new VehicleWidth(vehicleWidth))
+                                       .longitudinalAcceleration(new LongitudinalAcceleration(new LongitudinalAccelerationValue(longitudinalAcceleration),
+                                                                                              new AccelerationConfidence(longitudinalAccelerationConfidence)))
+                                       .yawRate(new YawRate(new YawRateValue(yawRate),
+                                                            //Fix yawRateConfidence unaviable
+                                                            YawRateConfidence.unavailable))
+                                       .accelerationControl(AccelerationControl.builder()
+                                                            .brakePedalEngaged(      (accelerationControlStatus & (1<<7)) != 0)  // is order correct?
+                                                            .gasPedalEngaged(        (accelerationControlStatus & (1<<6)) != 0)
+                                                            .emergencyBrakeEngaged(  (accelerationControlStatus & (1<<5)) != 0)
+                                                            .collisionWarningEngaged((accelerationControlStatus & (1<<4)) != 0)
+                                                            .accEngaged(             (accelerationControlStatus & (1<<3)) != 0)
+                                                            .cruiseControlEngaged(   (accelerationControlStatus & (1<<2)) != 0)
+                                                            .speedLimiterEngaged(    (accelerationControlStatus & (1<<1)) != 0)
+                                                            .create())
+                                       .create()
+                                       );
+
+            return new Cam(
+                    new ItsPduHeader(new MessageId(MessageId.cam)),
+                    new CoopAwareness(
+                            new GenerationDeltaTime(genDeltaTimeMillis * GenerationDeltaTime.oneMilliSec),
+                            new CamParameters(
+                                              basicContainer,
+                                              highFrequencyContainer,
+                                              lowFrequencyContainer,
+                                              specialVehicleContainer)));
+    }
+
+    /* Not implemented yet. */
+    public Denm simulinkToDenm(byte[] packet){
+        return null;
+    }
+
+    public byte[] denmToSimulink(){
+        return null;
+    }
+
+    public Denm createDenm(boolean withSituation,
+                           boolean withLocation,
+                           boolean withAlacarte){
+
+
+        return new Denm(
+                        new ItsPduHeader(new MessageId(MessageId.denm)),
+                        new DecentralizedEnvironmentalNotificationMessage());
+    }
+
+    //TODO: GCDCM messages needs to be added to the library
+    /*
+    public Gcdcm simulinkToGcdcm(byte[] packet){
+
+    }
+
+    public byte[] gcdcmToSimulink(){
+        return null;
+    }
+
+    public Gcdcm createGcdcm(){
+
+    }
+    */
+
     private Runnable receiveFromSimulinkLoop = new Runnable() {
         byte[] buffer = new byte[MAX_UDP_LENGTH];
         private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -56,7 +324,9 @@ public class VehicleAdapter {
             try {
                 while (true) {
                     rcvSocket.receive(packet);
-                    byte[] receivedData = Arrays.copyOfRange(packet.getData(), packet.getOffset(), packet.getOffset() + packet.getLength());
+                    byte[] receivedData = Arrays.copyOfRange(packet.getData(),
+                                                             packet.getOffset(),
+                                                             packet.getOffset() + packet.getLength());
                     assert (receivedData.length == packet.getLength());
                     // TODO: unpack data from received
                     // if (isCam) {
@@ -69,6 +339,7 @@ public class VehicleAdapter {
                     //   Gcdcm gcdcm = ...;  // TODO: Fill in from receivedData.
                     //   send(gcdcm);
                     // }
+                    
                 }
             } catch (IOException e) {
                 logger.error("Failed to receive packet from Simulink, terminating", e);
@@ -159,7 +430,84 @@ public class VehicleAdapter {
         }
     }
 
-    public VehicleAdapter(int portRcvFromSimulink, StationConfig config, LinkLayer linkLayer, PositionProvider position, MacAddress macAddress) throws SocketException {
+    /*
+    private void send(Gcdcm gcdcm){
+
+    }
+    */
+
+    public static class SocketAddressFromString {  // Public, otherwise JewelCLI can't access it!
+        private final InetSocketAddress address;
+
+        public SocketAddressFromString(final String addressStr) {
+            String[] hostAndPort = addressStr.split(":");
+            if (hostAndPort.length != 2) { throw new ArgumentValidationException(
+                                                                                 "Expected host:port, got " + addressStr); }
+            String hostname = hostAndPort[0];
+            int port = Integer.parseInt(hostAndPort[1]);
+            this.address = new InetSocketAddress(hostname, port);
+        }
+
+        public InetSocketAddress asInetSocketAddress() {
+            return address;
+        }
+    }
+
+    private static interface CliOptions {
+
+        @Option(defaultValue="57.0") double getLat();
+
+        @Option(defaultValue="13.0") double getLon();
+
+        @Option SocketAddressFromString getRemoteAddressForUdpLinkLayer();
+
+        @Option int getLocalPortForUdpLinkLayer();
+
+        @Option int getUpperTesterUdpPort();
+
+        @Option(helpRequest = true) boolean getHelp();
+
+        @Option boolean hasEthernetHeader();
+
+        @Option SocketAddressFromString getGpsdServerAddress();
+
+        boolean isGpsdServerAddress();
+
+        @Option MacAddress getMacAddress();
+
+        boolean isMacAddress();
+
+        @Option boolean withoutCAM();
+
+    }
+
+    public static class DummyPositionProvider implements PositionProvider{
+        private final MacAddress senderMac;
+
+        DummyPositionProvider(MacAddress senderMac){
+            this.senderMac = senderMac;
+        }
+        
+        public LongPositionVector getLatestPosition(){
+            Optional<Address> emptyAddress = Optional.empty();
+            /*
+            return new LongPositionVector(new Address(true, StationType.passengerCar,
+                                                      752, senderMac.value()),
+                                          Instant.now(), new Position(0, 0),
+                                          true, 0, 0);                                          
+            */
+            return new LongPositionVector(emptyAddress,
+                                          Instant.now(),
+                                          new Position(0, 0),
+                                          true,
+                                          0,
+                                          0);
+        }
+    }
+
+    public VehicleAdapter(int portRcvFromSimulink, StationConfig config,
+                          LinkLayer linkLayer, PositionProvider position,
+                          MacAddress macAddress) throws SocketException {
         rcvSocket = new DatagramSocket(portRcvFromSimulink);
         station = new GeonetStation(config, linkLayer, position, macAddress);
         new Thread(station).start();
@@ -168,8 +516,33 @@ public class VehicleAdapter {
         executor.submit(receiveFromSimulinkLoop);
         executor.submit(sendToSimulinkLoop);
     }
+    
+    //TODO: Clean up main class and look through the CLI options.
+    public static void main(String[] args) throws IOException {
+        logger.info("Starting vehicle adapter...");
 
-    public static void main(String[] args) {
+        //Parse CLI options
+        CliOptions opts = CliFactory.parseArguments(CliOptions.class, args);
+        boolean hasEthernetHeader = opts.hasEthernetHeader();
+
+        if(!hasEthernetHeader && ! opts.isMacAddress()){
+            logger.error("Can't have MAC address with no ethernet header support!");
+            System.exit(1);
+        }
+
+        StationConfig config = new StationConfig();
+        LinkLayer linkLayer =
+            new LinkLayerUdpToEthernet(opts.getLocalPortForUdpLinkLayer(),
+                                       opts.getRemoteAddressForUdpLinkLayer().
+                                       asInetSocketAddress(),
+                                       opts.hasEthernetHeader());
+        
+        MacAddress senderMac = opts.isMacAddress() ? opts.getMacAddress() : new MacAddress(0);
+
+        DummyPositionProvider positionProvider = new DummyPositionProvider(senderMac);
+        
+        VehicleAdapter va = new VehicleAdapter(25000, config, linkLayer,
+                                               positionProvider, senderMac);
     }
 
 }
