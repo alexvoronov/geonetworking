@@ -111,8 +111,10 @@ public class VehicleAdapter {
 
     private final static short PORT_CAM  = 2001;
     private final static short PORT_DENM = 2002;
+    private final static short PORT_GCDCM = 2003;
 
-    private final static long CAM_INTERVAL_MIN_MS = 100;
+    //GCDC requires the non-standard max rate of 25Hz
+    private final static long CAM_INTERVAL_MIN_MS = 40;
     private final static long CAM_INTERVAL_MAX_MS = 1000;
     private final static long CAM_LOW_FREQ_INTERVAL_MS = 500;
 
@@ -138,34 +140,41 @@ public class VehicleAdapter {
      */
     public Cam simulinkToCam(byte[] packet, boolean withLowFreq){
         ByteBuffer buffer = ByteBuffer.wrap(packet);
-        return createCam(withLowFreq,
-                         buffer.get(),    /* vehicleRole */
-                         buffer.get(),    /* stationType */
-                         buffer.getInt(), /* genDeltaTimeMillis */
-                         buffer.getInt(), /* vehicleLength */
-                         buffer.getInt(), /* vehicleWidth */
-                         buffer.getInt(), /* latitude */
-                         buffer.getInt(), /* longitude */
-                         buffer.getInt(), /* semiAxisLength */
-                         buffer.getInt(), /* majorAxisLength */
-                         buffer.getInt(), /* headingValue */
-                         buffer.getInt(), /* altitude */
-                         buffer.getInt(), /* heading */
-                         buffer.get(),    /* headingConfidence */
-                         buffer.getInt(), /* speed */
-                         buffer.get(),    /* speedConfidence */
-                         buffer.getInt(), /* yawRate */
-                         buffer.get(),    /* yawRateConfidence */
-                         buffer.getInt(), /* longitudinalAcceleration */
-                         buffer.get(),    /* longitudinalAccelerationConfidence */
-                         buffer.get(),    /* accelerationControlStatus */
-                         buffer.get());   /* exteriorLightsStatus */
+
+        try{
+            int genDeltaTimeMillis = buffer.getInt();
+            return createCam(withLowFreq,
+                             genDeltaTimeMillis,
+                             buffer.get(),    /* stationType */                             
+                             buffer.get(),    /* vehicleRole */
+                             buffer.getInt(), /* vehicleLength */
+                             buffer.getInt(), /* vehicleWidth */
+                             buffer.getInt(), /* latitude */
+                             buffer.getInt(), /* longitude */
+                             buffer.getInt(), /* semiMajorAxisConfidence */
+                             buffer.getInt(), /* semiMinorAxisConfidence */
+                             buffer.getInt(), /* semiMajorOrientation */
+                             buffer.getInt(), /* headingValue */
+                             buffer.getInt(), /* altitude */
+                             buffer.getInt(), /* heading */
+                             buffer.get(),    /* headingConfidence */
+                             buffer.getInt(), /* speed */
+                             buffer.get(),    /* speedConfidence */
+                             buffer.getInt(), /* yawRate */
+                             buffer.get(),    /* yawRateConfidence */
+                             buffer.getInt(), /* longitudinalAcceleration */
+                             buffer.get());   /* longitudinalAccelerationConfidence */
+        }catch(BufferOverflowException e){
+            logger.error("Failed to create CAM from Simulink message: " + e);
+            return null;
+        }
     }
 
     /* Unpack a CAM message and create a Simulink message.
      */
-    //TODO: How do we handle lowFrequencyContainer in LMS?
-    //TODO: How do we unpack the data from Simulink? Either the data
+    //TODO: Varying number of containers not supported by local
+    //message set yet.
+    //TODO: How do we unpack the data from CAM? Either the data
     //needs to be public or we need get methods.
     public byte[] camToSimulink(Cam cam){
         ByteBuffer buffer = ByteBuffer.allocate(61);
@@ -182,19 +191,17 @@ public class VehicleAdapter {
     }
 
     public Cam createCam(boolean withLowFreq,
-                         byte vehicleRole,
-                         byte stationType,
                          int genDeltaTimeMillis,
+                         byte stationType,
+                         byte vehicleRole,
                          int vehicleLength,
                          int vehicleWidth,
                          int latitude,
                          int longitude,
-                         //Position confidence ellipse not defined
-                         //properly in D3.2
-                         int semiAxisLength,
-                         int majorAxisLength,
+                         int semiMajorAxisConfidence,
+                         int semiMinorAxisConfidence,
+                         int semiMajorOrientation,
                          int headingValue,
-                         //Above part of confidence ellipse
                          int altitude,
                          int heading,
                          byte headingConfidence,
@@ -203,27 +210,14 @@ public class VehicleAdapter {
                          int yawRate,
                          byte yawRateConfidence,
                          int longitudinalAcceleration,
-                         byte longitudinalAccelerationConfidence,
-                         //Do we want these? If so they need to be
-                         //added to the local message set.
-                         byte accelerationControlStatus,
-                         byte exteriorLightsStatus){
+                         byte longitudinalAccelerationConfidence){
 
 
         LowFrequencyContainer lowFrequencyContainer = withLowFreq ?
             new LowFrequencyContainer(
                                       new BasicVehicleContainerLowFrequency(
                                                                             VehicleRole.fromCode(vehicleRole),
-                                                                            ExteriorLights.builder()
-                                                                            .lowBeamHeadlightsOn   ((exteriorLightsStatus & (1<<7)) != 0)  // check, maybe in the other order!
-                                                                            .highBeamHeadlightsOn  ((exteriorLightsStatus & (1<<6)) != 0)
-                                                                            .leftTurnSignalOn      ((exteriorLightsStatus & (1<<5)) != 0)
-                                                                            .rightTurnSignalOn     ((exteriorLightsStatus & (1<<4)) != 0)
-                                                                            .daytimeRunningLightsOn((exteriorLightsStatus & (1<<3)) != 0)
-                                                                            .reverseLightOn        ((exteriorLightsStatus & (1<<2)) != 0)
-                                                                            .fogLightOn            ((exteriorLightsStatus & (1<<1)) != 0)
-                                                                            .parkingLightsOn       ((exteriorLightsStatus & (1<<0)) != 0)
-                                                                            .create(),
+                                                                            null,
                                                                             new PathHistory()
                                                                             ))
             :
@@ -239,39 +233,34 @@ public class VehicleAdapter {
                                                      new Latitude(latitude),
                                                      new Longitude(longitude),
                                                      new PosConfidenceEllipse(
-                                                                              new SemiAxisLength(semiAxisLength),
-                                                                              new SemiAxisLength(),
-                                                                              new HeadingValue(headingValue)),        //Not implemented yet
+                                                                              new SemiAxisLength(semiMajorAxisConfidence),
+                                                                              new SemiAxisLength(semiMinorAxisConfidence),
+                                                                              new HeadingValue(semiMajorOrientation)),
                                                      new Altitude(
                                                                   new AltitudeValue(altitude),
                                                                   AltitudeConfidence.unavailable)));
         
         HighFrequencyContainer highFrequencyContainer =
             new HighFrequencyContainer(BasicVehicleContainerHighFrequency.builder()
-                                       .heading(new Heading(new HeadingValue(heading),
+                                       .heading(new Heading(
+                                                            new HeadingValue(heading),
                                                             new HeadingConfidence(headingConfidence)))
-                                       .speed(new Speed(new SpeedValue(speed),
+                                       .speed(new Speed(
+                                                        new SpeedValue(speed),
                                                         new SpeedConfidence(speedConfidence)))
-                                       .vehicleLength(new VehicleLength(new VehicleLengthValue(vehicleLength),
+                                       .vehicleLength(new VehicleLength(
+                                                                        new VehicleLengthValue(vehicleLength),
                                                                         VehicleLengthConfidenceIndication.unavailable))
                                        .vehicleWidth(new VehicleWidth(vehicleWidth))
-                                       .longitudinalAcceleration(new LongitudinalAcceleration(new LongitudinalAccelerationValue(longitudinalAcceleration),
+                                       .longitudinalAcceleration(new LongitudinalAcceleration(
+                                                                                              new LongitudinalAccelerationValue(longitudinalAcceleration),
                                                                                               new AccelerationConfidence(longitudinalAccelerationConfidence)))
-                                       .yawRate(new YawRate(new YawRateValue(yawRate),
-                                                            //Fix yawRateConfidence unaviable
-                                                            YawRateConfidence.unavailable))
-                                       .accelerationControl(AccelerationControl.builder()
-                                                            .brakePedalEngaged(      (accelerationControlStatus & (1<<7)) != 0)  // is order correct?
-                                                            .gasPedalEngaged(        (accelerationControlStatus & (1<<6)) != 0)
-                                                            .emergencyBrakeEngaged(  (accelerationControlStatus & (1<<5)) != 0)
-                                                            .collisionWarningEngaged((accelerationControlStatus & (1<<4)) != 0)
-                                                            .accEngaged(             (accelerationControlStatus & (1<<3)) != 0)
-                                                            .cruiseControlEngaged(   (accelerationControlStatus & (1<<2)) != 0)
-                                                            .speedLimiterEngaged(    (accelerationControlStatus & (1<<1)) != 0)
-                                                            .create())
+                                       .yawRate(new YawRate(
+                                                            new YawRateValue(yawRate),
+                                                            //TODO: This code is slow. Cache YawRateConfidence.values() if it's a problem.
+                                                            YawRateConfidence.values()[yawRateConfidence]))
                                        .create()
                                        );
-
             return new Cam(
                     new ItsPduHeader(new MessageId(MessageId.cam)),
                     new CoopAwareness(
@@ -328,6 +317,30 @@ public class VehicleAdapter {
                                                              packet.getOffset(),
                                                              packet.getOffset() + packet.getLength());
                     assert (receivedData.length == packet.getLength());
+
+                    switch(packet.getPort()){
+                    case PORT_CAM:
+                        Cam cam = simulinkToCam(receivedData, true);
+                        send(cam);
+                        break;
+
+                    case PORT_DENM:
+                        Denm denm = simulinkToDenm(receivedData);
+
+                        //TODO: How does GeoNetworking addressing work
+                        //in GCDC? When I asked during a conference
+                        //call I got the answer that we'll boadcast
+                        //everything, but how is the broadcast
+                        //geonetworking address defined?
+                        send(denm, null);
+                        break;
+
+                    case PORT_GCDCM:
+                        //TODO: Gcdcm is not included in the library yet.
+                        break;
+                    default:
+                        //fallthrough                        
+                    }
                     // TODO: unpack data from received
                     // if (isCam) {
                     //   Cam cam = ...;  // TODO: Fill in from receivedData.
@@ -376,7 +389,7 @@ public class VehicleAdapter {
                         Denm denm;
                         try {
                             denm = UperEncoder.decode(btpPacket.payload(), Denm.class);
-
+                            
                             // TODO: Fill in the buffer for packet.
 
                             packet.setPort(DEFAULT_SIMULINK_UDP_PORT);
@@ -481,6 +494,7 @@ public class VehicleAdapter {
 
     }
 
+    //TODO: Create a proper PositionProvider for the beacon service
     public static class DummyPositionProvider implements PositionProvider{
         private final MacAddress senderMac;
 
