@@ -116,7 +116,9 @@ public class VehicleAdapter {
     //GCDC requires the non-standard max rate of 25Hz
     private final static long CAM_INTERVAL_MIN_MS = 40;
     private final static long CAM_INTERVAL_MAX_MS = 1000;
-    private final static long CAM_LOW_FREQ_INTERVAL_MS = 500;
+
+    //GCDC requires 1Hz for the low frequency container
+    private final static long CAM_LOW_FREQ_INTERVAL_MS = 1000;
 
     private final static long CAM_INITIAL_DELAY_MS = 20;  // At startup.
 
@@ -138,12 +140,13 @@ public class VehicleAdapter {
      * Please note that this is the first draft and that everything
      * may change :)
      */
+    private int lastLowFreqContainer = 0;
     public Cam simulinkToCam(byte[] packet, boolean withLowFreq){
         ByteBuffer buffer = ByteBuffer.wrap(packet);
 
         try{
             int genDeltaTimeMillis = buffer.getInt();
-            return createCam(withLowFreq,
+            Cam cam = createCam((lastLowFreqContainer - genDeltaTimeMillis) > CAM_LOW_FREQ_INTERVAL_MS,
                              genDeltaTimeMillis,
                              buffer.get(),    /* stationType */                             
                              buffer.get(),    /* vehicleRole */
@@ -164,6 +167,10 @@ public class VehicleAdapter {
                              buffer.get(),    /* yawRateConfidence */
                              buffer.getInt(), /* longitudinalAcceleration */
                              buffer.get());   /* longitudinalAccelerationConfidence */
+
+            lastLowFreqContainer = genDeltaTimeMillis;
+            return cam;
+            
         }catch(BufferOverflowException e){
             logger.error("Failed to create CAM from Simulink message: " + e);
             return null;
@@ -318,6 +325,9 @@ public class VehicleAdapter {
                                                              packet.getOffset() + packet.getLength());
                     assert (receivedData.length == packet.getLength());
 
+                    Cam cam = simulinkToCam(receivedData, true);
+                    send(cam);
+                    /*
                     switch(packet.getPort()){
                     case PORT_CAM:
                         Cam cam = simulinkToCam(receivedData, true);
@@ -341,6 +351,7 @@ public class VehicleAdapter {
                     default:
                         //fallthrough                        
                     }
+                    */
                     // TODO: unpack data from received
                     // if (isCam) {
                     //   Cam cam = ...;  // TODO: Fill in from receivedData.
@@ -466,32 +477,21 @@ public class VehicleAdapter {
         }
     }
 
-    private static interface CliOptions {
+    private static interface CliOptions{
 
-        @Option(defaultValue="57.0") double getLat();
-
-        @Option(defaultValue="13.0") double getLon();
+        @Option int getPortRcvFromSimulink();
 
         @Option SocketAddressFromString getRemoteAddressForUdpLinkLayer();
 
         @Option int getLocalPortForUdpLinkLayer();
 
-        @Option int getUpperTesterUdpPort();
-
         @Option(helpRequest = true) boolean getHelp();
 
         @Option boolean hasEthernetHeader();
 
-        @Option SocketAddressFromString getGpsdServerAddress();
-
-        boolean isGpsdServerAddress();
-
         @Option MacAddress getMacAddress();
 
         boolean isMacAddress();
-
-        @Option boolean withoutCAM();
-
     }
 
     //TODO: Create a proper PositionProvider for the beacon service
@@ -547,15 +547,14 @@ public class VehicleAdapter {
         StationConfig config = new StationConfig();
         LinkLayer linkLayer =
             new LinkLayerUdpToEthernet(opts.getLocalPortForUdpLinkLayer(),
-                                       opts.getRemoteAddressForUdpLinkLayer().
-                                       asInetSocketAddress(),
+                                       opts.getRemoteAddressForUdpLinkLayer().asInetSocketAddress(),
                                        opts.hasEthernetHeader());
         
         MacAddress senderMac = opts.isMacAddress() ? opts.getMacAddress() : new MacAddress(0);
 
         DummyPositionProvider positionProvider = new DummyPositionProvider(senderMac);
         
-        VehicleAdapter va = new VehicleAdapter(25000, config, linkLayer,
+        VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer,
                                                positionProvider, senderMac);
     }
 
