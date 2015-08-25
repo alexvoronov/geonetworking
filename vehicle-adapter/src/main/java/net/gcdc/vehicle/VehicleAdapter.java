@@ -12,12 +12,15 @@ import java.util.concurrent.Executors;
 import net.gcdc.asn1.uper.UperEncoder;
 import net.gcdc.camdenm.CoopIts.Cam;
 import net.gcdc.camdenm.CoopIts.Denm;
+import net.gcdc.geonetworking.Area;
+import net.gcdc.geonetworking.Area.*;
 import net.gcdc.geonetworking.BtpPacket;
 import net.gcdc.geonetworking.BtpSocket;
 import net.gcdc.geonetworking.Destination.Geobroadcast;
 import net.gcdc.geonetworking.GeonetStation;
 import net.gcdc.geonetworking.LinkLayer;
 import net.gcdc.geonetworking.MacAddress;
+import net.gcdc.geonetworking.Position;
 import net.gcdc.geonetworking.PositionProvider;
 import net.gcdc.geonetworking.StationConfig;
 
@@ -148,6 +151,8 @@ public class VehicleAdapter {
 
     public static final ExecutorService executor = Executors.newCachedThreadPool();
 
+    public static VehiclePositionProvider vehiclePositionProvider;
+
     /* Unpack a message from Simulink and create a CAM message. The
      * Simulink message must be formatted according to the local
      * message set defined here:
@@ -162,12 +167,15 @@ public class VehicleAdapter {
 
 
         try{
-            //TODO: Need to throw away the message ID before getting
-            //anything else
+            byte messageId = buffer.get();
+            if(messageId != MessageId.cam){
+                logger.error("Incorrect local CAM received: " + receivedData);
+                return null;
+            }
             int genDeltaTimeMillis = buffer.getInt();
             Cam cam = createCam((lastLowFreqContainer - genDeltaTimeMillis) > CAM_LOW_FREQ_INTERVAL_MS,
                              genDeltaTimeMillis,
-                             buffer.get(),    /* stationType */                             
+                             buffer.get(),    /* stationType */
                              buffer.get(),    /* vehicleRole */
                              buffer.getInt(), /* vehicleLength */
                              buffer.getInt(), /* vehicleWidth */
@@ -298,8 +306,37 @@ public class VehicleAdapter {
     }
 
     /* Not implemented yet. */
-    public Denm simulinkToDenm(byte[] packet){
-        return null;
+    public Denm simulinkToDenm(byte[] receivedData){
+        ByteBuffer buffer = ByteBuffer.wrap(receivedData);
+
+        try{
+            byte messageId = buffer.get();
+            if(messageId != MessageId.denm){
+                logger.error("Incorrect local DENM received: " + receivedData);
+                return null;
+            }
+            
+            return createDenm(buffer.get(),     /* containerMask */
+                              buffer.get(),     /* managementMask */
+                              buffer.getLong(), /* detectionTime */
+                              buffer.getLong(), /* referenceTime */
+                              buffer.getInt(),  /* termination */
+                              buffer.getInt(),  /* latitude */
+                              buffer.getInt(),  /* longitude */
+                              buffer.getInt(),  /* semiMajorConfidence */
+                              buffer.getInt(),  /* semiMinorConfidence */
+                              buffer.getInt(),  /* semiMajorOrientation */
+                              buffer.getInt(),  /* altitude */
+                              buffer.getInt(),  /* relevanceDistance */
+                              buffer.getInt(),  /* relevanceTrafficDirection */
+                              buffer.getInt(),  /* ValidityDuration */
+                              buffer.getInt(),  /* transmissionInterval */
+                              buffer.getInt()); /* stationType */                       
+            
+        }catch(BufferOverflowException e){
+            logger.error("Failed to create DENM from Simulink message: " + e);
+            return null;
+        }
     }
 
     public byte[] denmToSimulink(){
@@ -319,11 +356,11 @@ public class VehicleAdapter {
                            int semiMinorConfidence,
                            int semiMajorOrientation,
                            int altitudeValue,
-                           int stationTypeValue,
                            int relevanceDistanceValue,
                            int relevanceTrafficDirectionValue,
                            int validityDurationValue,
-                           int transmissionIntervalValue){
+                           int transmissionIntervalValue,
+                           int stationTypeValue){
 
         boolean withSituationContainer = ((containerMask & (1<<7)) != 0);
         boolean withLocationContainer = ((containerMask & (1<<6)) != 0);
@@ -369,11 +406,17 @@ public class VehicleAdapter {
             .create();
                                                                                
         DecentralizedEnvironmentalNotificationMessage decentralizedEnvironmentalNotificationMessage =
-            new DecentralizedEnvironmentalNotificationMessage(managementContainer);
+            new DecentralizedEnvironmentalNotificationMessage(managementContainer,
+                                                              situationContainer,
+                                                              locationContainer,
+                                                              alacarteContainer);
 
-        return new Denm(
-                        new ItsPduHeader(new MessageId(MessageId.denm)),
-                        decentralizedEnvironmentalNotificationMessage);
+        Denm denm = new Denm(
+                             new ItsPduHeader(new MessageId(MessageId.denm)),
+                             decentralizedEnvironmentalNotificationMessage);
+
+        logger.debug("Created DENM: " + denm);
+        return denm;
     }
 
     //TODO: GCDCM messages needs to be added to the library
@@ -397,6 +440,7 @@ public class VehicleAdapter {
         @Override public void run() {
             try {
                 while (true) {
+                    logger.debug("Waiting for packet from vehicle control...");
                     rcvSocket.receive(packet);
                     byte[] receivedData = Arrays.copyOfRange(packet.getData(),
                                                              packet.getOffset(),
@@ -405,31 +449,33 @@ public class VehicleAdapter {
 
                     /* First byte is the MessageId */
                     switch(receivedData[0]){
-                    case MessageId.cam:
+                    case MessageId.cam: {
                         Cam cam = simulinkToCam(receivedData);
                         send(cam);
                         break;
+                    }
 
-                    case MessageId.denm:
-                        Denm denm = simulinkToDenm(receivedData);
+                    case MessageId.denm: {
+                        Denm denm = simulinkToDenm(receivedData);                        
 
-                        //TODO: How does GeoNetworking addressing work
-                        //in GCDC? When I asked during a conference
-                        //call I got the answer that we'll boadcast
-                        //everything, but how is the broadcast
-                        //geonetworking address defined?
-                        send(denm, null);
+                        /* TODO: How does GeoNetworking addressing work in
+                         * GCDC16? For now let's just broadcast
+                         * everything in a 200m radius.
+                         */
+                        send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), (double) 200)));
                         break;
+                    }
 
                         /*
-                    case MessageId.gcdcm:
-                        //TODO: Gcdcm is not included in the library yet.
-                        break;
+                          case MessageId.gcdcm:
+                          //TODO: Gcdcm is not included in the library yet.
+                          break;
                         */
                         
                     default:
-                        //fallthrough                        
-                    }                    
+                        //fallthrough
+                        logger.debug("Reached default in receiveFromSimulink switch");
+                    }
                 }
             } catch (IOException e) {
                 logger.error("Failed to receive packet from Simulink, terminating", e);
@@ -442,7 +488,7 @@ public class VehicleAdapter {
         byte[] buffer = new byte[MAX_UDP_LENGTH];
         private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
         @Override public void run() {
-            try {
+real             try {
                 BtpPacket btpPacket = btpSocket.receive();
                 switch (btpPacket.destinationPort()) {
                     case PORT_CAM: {
@@ -560,7 +606,7 @@ public class VehicleAdapter {
         boolean isMacAddress();
     }
 
-    //TODO: Create a proper PositionProvider for the beacon service
+    //DEPRECATED
     public static class DummyPositionProvider implements PositionProvider{
         private final MacAddress senderMac;
 
@@ -582,6 +628,46 @@ public class VehicleAdapter {
                                           true,
                                           0,
                                           0);
+        }
+    }
+
+    /* PositionProvider is used by the beaconing service and for
+     * creating the Geobroadcast address used for DENM messages.
+     */
+    public static class VehiclePositionProvider implements PositionProvider{
+        public Address address;        
+        public Position position;
+        public boolean isPositionConfident;
+        public double speedMetersPerSecond;
+        public double headingDegreesFromNorth;
+
+        //TODO: Remove once we have a proper address
+        Optional<Address> emptyAddress = Optional.empty();
+
+        VehiclePositionProvider(Address address){
+            this.address = address;
+            this.position = new Position(0, 0);
+            this.isPositionConfident = false;
+            this.speedMetersPerSecond = 0;
+            this.headingDegreesFromNorth = 0;
+        }
+
+        //TODO: Update position based on data in CAM messages
+        public void updatePosition(int lattitude, int longitude){
+            this.position = new Position((double) lattitude, (double) longitude);
+        }
+
+        public Position getPosition(){
+            return this.position;
+        }
+
+        public LongPositionVector getLatestPosition(){
+            return new LongPositionVector(emptyAddress,
+                                          Instant.now(),
+                                          position,
+                                          isPositionConfident,
+                                          speedMetersPerSecond,
+                                          headingDegreesFromNorth);
         }
     }
 
@@ -618,10 +704,11 @@ public class VehicleAdapter {
         
         MacAddress senderMac = opts.isMacAddress() ? opts.getMacAddress() : new MacAddress(0);
 
-        DummyPositionProvider positionProvider = new DummyPositionProvider(senderMac);
+        //TODO: Add a proper address
+        vehiclePositionProvider = new VehiclePositionProvider(null);
         
         VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer,
-                                               positionProvider, senderMac);
+                                               vehiclePositionProvider, senderMac);
     }
 
 }
