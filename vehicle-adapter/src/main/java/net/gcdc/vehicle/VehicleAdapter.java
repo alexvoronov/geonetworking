@@ -31,8 +31,11 @@ import com.lexicalscope.jewel.cli.CliFactory;
 import com.lexicalscope.jewel.cli.InvalidOptionSpecificationException;
 import com.lexicalscope.jewel.cli.Option;
 
+/*
 import net.gcdc.camdenm.CoopIts.AccelerationControl;
 import net.gcdc.camdenm.CoopIts.AccelerationConfidence;
+import net.gcdc.camdenm.CoopIts.ActionID;
+import net.gcdc.camdenm.CoopIts.AlacarteContainer;
 import net.gcdc.camdenm.CoopIts.Altitude;
 import net.gcdc.camdenm.CoopIts.AltitudeConfidence;
 import net.gcdc.camdenm.CoopIts.AltitudeValue;
@@ -61,10 +64,12 @@ import net.gcdc.camdenm.CoopIts.ItsPduHeader;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
 import net.gcdc.camdenm.CoopIts.Latitude;
 import net.gcdc.camdenm.CoopIts.LightBarSirenInUse;
+import net.gcdc.camdenm.CoopIts.LocationContainer;
 import net.gcdc.camdenm.CoopIts.Longitude;
 import net.gcdc.camdenm.CoopIts.LongitudinalAcceleration;
 import net.gcdc.camdenm.CoopIts.LongitudinalAccelerationValue;
 import net.gcdc.camdenm.CoopIts.LowFrequencyContainer;
+import net.gcdc.camdenm.CoopIts.ManagementContainer;
 import net.gcdc.camdenm.CoopIts.PathHistory;
 import net.gcdc.camdenm.CoopIts.PosConfidenceEllipse;
 import net.gcdc.camdenm.CoopIts.PtActivation;
@@ -76,6 +81,7 @@ import net.gcdc.camdenm.CoopIts.RescueContainer;
 import net.gcdc.camdenm.CoopIts.RoadWorksContainerBasic;
 import net.gcdc.camdenm.CoopIts.SafetyCarContainer;
 import net.gcdc.camdenm.CoopIts.SemiAxisLength;
+import net.gcdc.camdenm.CoopIts.SequenceNumber;
 import net.gcdc.camdenm.CoopIts.SpecialTransportContainer;
 import net.gcdc.camdenm.CoopIts.SpecialTransportType;
 import net.gcdc.camdenm.CoopIts.SpecialVehicleContainer;
@@ -83,6 +89,10 @@ import net.gcdc.camdenm.CoopIts.Speed;
 import net.gcdc.camdenm.CoopIts.SpeedConfidence;
 import net.gcdc.camdenm.CoopIts.SpeedValue;
 import net.gcdc.camdenm.CoopIts.StationType;
+import net.gcdc.camdenm.CoopIts.StationID;
+import net.gcdc.camdenm.CoopIts.SituationContainer;
+import net.gcdc.camdenm.CoopIts.Termination;
+import net.gcdc.camdenm.CoopIts.TimestampIts;
 import net.gcdc.camdenm.CoopIts.VehicleLength;
 import net.gcdc.camdenm.CoopIts.VehicleLengthValue;
 import net.gcdc.camdenm.CoopIts.VehicleLengthConfidenceIndication;
@@ -91,6 +101,9 @@ import net.gcdc.camdenm.CoopIts.VehicleWidth;
 import net.gcdc.camdenm.CoopIts.YawRate;
 import net.gcdc.camdenm.CoopIts.YawRateConfidence;
 import net.gcdc.camdenm.CoopIts.YawRateValue;
+*/
+import net.gcdc.camdenm.CoopIts.*;
+import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
 
 import net.gcdc.geonetworking.LinkLayerUdpToEthernet;
 import net.gcdc.geonetworking.LongPositionVector;
@@ -113,11 +126,11 @@ public class VehicleAdapter {
     private final static short PORT_DENM = 2002;
     private final static short PORT_GCDCM = 2003;
 
-    //GCDC requires the non-standard max rate of 25Hz
+    /* GCDC requires the non-standard max rate of 25Hz */
     private final static long CAM_INTERVAL_MIN_MS = 40;
     private final static long CAM_INTERVAL_MAX_MS = 1000;
 
-    //GCDC requires 1Hz for the low frequency container
+    /* GCDC requires 1Hz for the low frequency container */
     private final static long CAM_LOW_FREQ_INTERVAL_MS = 1000;
 
     private final static long CAM_INITIAL_DELAY_MS = 20;  // At startup.
@@ -128,7 +141,10 @@ public class VehicleAdapter {
 
     public final static int MAX_UDP_LENGTH = 65535;
 
+    //TODO: Remove and use CLI arguments instead
     public final static int DEFAULT_SIMULINK_UDP_PORT = 5000;
+
+    public final static int STATION_ID = 1337;
 
     public static final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -141,10 +157,13 @@ public class VehicleAdapter {
      * may change :)
      */
     private int lastLowFreqContainer = 0;
-    public Cam simulinkToCam(byte[] packet, boolean withLowFreq){
-        ByteBuffer buffer = ByteBuffer.wrap(packet);
+    public Cam simulinkToCam(byte[] receivedData){
+        ByteBuffer buffer = ByteBuffer.wrap(receivedData);
+
 
         try{
+            //TODO: Need to throw away the message ID before getting
+            //anything else
             int genDeltaTimeMillis = buffer.getInt();
             Cam cam = createCam((lastLowFreqContainer - genDeltaTimeMillis) > CAM_LOW_FREQ_INTERVAL_MS,
                              genDeltaTimeMillis,
@@ -183,8 +202,8 @@ public class VehicleAdapter {
     //message set yet.
     //TODO: How do we unpack the data from CAM? Either the data
     //needs to be public or we need get methods.
-    public byte[] camToSimulink(Cam cam){
-        ByteBuffer buffer = ByteBuffer.allocate(61);
+    public void camToSimulink(Cam cam, byte[] packetBuffer) throws BufferOverflowException{
+        ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
         /*
         CoopAwareness coopAwareness = cam.cam;
         CamParameters camParameters = coopAwareness.camParameters;
@@ -194,7 +213,6 @@ public class VehicleAdapter {
         buffer.putInt(lowFrequencyContainer ? lowFrequencyContainer.basicVehicleContainerLowFrequency.vehicleRole : -1);
         buffer.put(basicContainer.stationType);
         */
-        return null;        
     }
 
     public Cam createCam(boolean withLowFreq,
@@ -288,14 +306,74 @@ public class VehicleAdapter {
         return null;
     }
 
-    public Denm createDenm(boolean withSituation,
-                           boolean withLocation,
-                           boolean withAlacarte){
+    //TODO: Only management container is implemented.
+    private int denm_sequence_number = 0;
+    public Denm createDenm(byte containerMask,
+                           byte managementMask,
+                           long detectionTimeValue,
+                           long referenceTimeValue,
+                           int terminationValue,
+                           int latitudeValue,
+                           int longitudeValue,
+                           int semiMajorConfidence,
+                           int semiMinorConfidence,
+                           int semiMajorOrientation,
+                           int altitudeValue,
+                           int stationTypeValue,
+                           int relevanceDistanceValue,
+                           int relevanceTrafficDirectionValue,
+                           int validityDurationValue,
+                           int transmissionIntervalValue){
 
+        boolean withSituationContainer = ((containerMask & (1<<7)) != 0);
+        boolean withLocationContainer = ((containerMask & (1<<6)) != 0);
+        boolean withAlacarteContainer = ((containerMask & (1<<5)) != 0);
+
+        //TODO: Implement these containers
+        SituationContainer situationContainer = null;
+        LocationContainer locationContainer = null;
+        AlacarteContainer alacarteContainer = null;
+
+        /* Management container */
+        //TODO: Move these declarations inside the builder instead?
+        TimestampIts detectionTime = new TimestampIts(detectionTimeValue);
+        TimestampIts referenceTime = new TimestampIts(referenceTimeValue);
+        Termination termination = Termination.values()[terminationValue];
+        ReferencePosition eventPosition =
+            new ReferencePosition(new Latitude(latitudeValue),
+                                  new Longitude(longitudeValue),
+                                  new PosConfidenceEllipse(
+                                                           new SemiAxisLength(semiMajorConfidence),
+                                                           new SemiAxisLength(semiMinorConfidence),
+                                                           new HeadingValue(semiMajorOrientation)),
+                                  new Altitude(new AltitudeValue(altitudeValue),
+                                               AltitudeConfidence.unavailable));
+        RelevanceDistance relevanceDistance = RelevanceDistance.values()[relevanceDistanceValue];
+        RelevanceTrafficDirection relevanceTrafficDirection = RelevanceTrafficDirection.values()[relevanceTrafficDirectionValue];
+        ValidityDuration validityDuration = new ValidityDuration(validityDurationValue);
+        TransmissionInterval transmissionInterval = new TransmissionInterval(transmissionIntervalValue);
+        StationType stationType = new StationType(stationTypeValue);
+
+        ManagementContainer managementContainer =
+            ManagementContainer.builder()
+            .actionID(new ActionID(new StationID(STATION_ID), new SequenceNumber(denm_sequence_number++)))
+            .detectionTime(detectionTime)
+            .referenceTime(referenceTime)
+            .termination((managementMask & (1<<7)) != 0 ? termination : null)
+            .eventPosition(eventPosition)
+            .relevanceDistance((managementMask & (1<<6)) != 0 ? relevanceDistance : null)
+            .relevanceTrafficDirection((managementMask & (1<<5)) != 0 ? relevanceTrafficDirection : null)
+            .validityDuration((managementMask & (1<<4)) != 0 ? validityDuration : null)
+            .transmissionInterval((managementMask & (1<<3)) != 0 ? transmissionInterval : null)
+            .stationType(stationType)
+            .create();
+                                                                               
+        DecentralizedEnvironmentalNotificationMessage decentralizedEnvironmentalNotificationMessage =
+            new DecentralizedEnvironmentalNotificationMessage(managementContainer);
 
         return new Denm(
                         new ItsPduHeader(new MessageId(MessageId.denm)),
-                        new DecentralizedEnvironmentalNotificationMessage());
+                        decentralizedEnvironmentalNotificationMessage);
     }
 
     //TODO: GCDCM messages needs to be added to the library
@@ -325,16 +403,14 @@ public class VehicleAdapter {
                                                              packet.getOffset() + packet.getLength());
                     assert (receivedData.length == packet.getLength());
 
-                    Cam cam = simulinkToCam(receivedData, true);
-                    send(cam);
-                    /*
-                    switch(packet.getPort()){
-                    case PORT_CAM:
-                        Cam cam = simulinkToCam(receivedData, true);
+                    /* First byte is the MessageId */
+                    switch(receivedData[0]){
+                    case MessageId.cam:
+                        Cam cam = simulinkToCam(receivedData);
                         send(cam);
                         break;
 
-                    case PORT_DENM:
+                    case MessageId.denm:
                         Denm denm = simulinkToDenm(receivedData);
 
                         //TODO: How does GeoNetworking addressing work
@@ -345,25 +421,15 @@ public class VehicleAdapter {
                         send(denm, null);
                         break;
 
-                    case PORT_GCDCM:
+                        /*
+                    case MessageId.gcdcm:
                         //TODO: Gcdcm is not included in the library yet.
                         break;
+                        */
+                        
                     default:
                         //fallthrough                        
-                    }
-                    */
-                    // TODO: unpack data from received
-                    // if (isCam) {
-                    //   Cam cam = ...;  // TODO: Fill in from receivedData.
-                    //   send(cam);
-                    // } else if (isDenm) {
-                    //   Denm denm = ...;  // TODO: Fill in from receivedData.
-                    //   send(denm);
-                    // } else if (isIgameMsg) {
-                    //   Gcdcm gcdcm = ...;  // TODO: Fill in from receivedData.
-                    //   send(gcdcm);
-                    // }
-                    
+                    }                    
                 }
             } catch (IOException e) {
                 logger.error("Failed to receive packet from Simulink, terminating", e);
@@ -383,8 +449,8 @@ public class VehicleAdapter {
                         Cam cam;
                         try {
                             cam = UperEncoder.decode(btpPacket.payload(), Cam.class);
-
-                            // TODO: Fill in the buffer for packet.
+                            camToSimulink(cam, buffer);
+                            
 
                             packet.setPort(DEFAULT_SIMULINK_UDP_PORT);
                             try {
@@ -392,7 +458,7 @@ public class VehicleAdapter {
                             } catch (IOException e) {
                                 logger.warn("Failed to send packet to Simulink", e);
                             }
-                        } catch (IllegalArgumentException | UnsupportedOperationException e) {
+                        } catch (IllegalArgumentException | UnsupportedOperationException | BufferOverflowException e) {
                             logger.warn("Can't decode cam", e);
                         }
                         break;
