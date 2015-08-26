@@ -305,7 +305,6 @@ public class VehicleAdapter {
                                               specialVehicleContainer)));
     }
 
-    /* Not implemented yet. */
     public Denm simulinkToDenm(byte[] receivedData){
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
 
@@ -331,7 +330,14 @@ public class VehicleAdapter {
                               buffer.getInt(),  /* relevanceTrafficDirection */
                               buffer.getInt(),  /* ValidityDuration */
                               buffer.getInt(),  /* transmissionInterval */
-                              buffer.getInt()); /* stationType */                       
+                              buffer.getInt(),  /* stationType */
+                              buffer.getInt(),  /* situationMask */
+                              buffer.getInt(),  /* informationQuality */
+                              buffer.getInt(),  /* causeCode */
+                              buffer.getInt(),  /* subCauseCode */
+                              buffer.getInt(),  /* linkedCauseCode */
+                              buffer.getInt()); /* linkedSubCauseCode */
+            
             
         }catch(BufferOverflowException e){
             logger.error("Failed to create DENM from Simulink message: " + e);
@@ -360,16 +366,13 @@ public class VehicleAdapter {
                            int relevanceTrafficDirectionValue,
                            int validityDurationValue,
                            int transmissionIntervalValue,
-                           int stationTypeValue){
-
-        boolean withSituationContainer = ((containerMask & (1<<7)) != 0);
-        boolean withLocationContainer = ((containerMask & (1<<6)) != 0);
-        boolean withAlacarteContainer = ((containerMask & (1<<5)) != 0);
-
-        //TODO: Implement these containers
-        SituationContainer situationContainer = null;
-        LocationContainer locationContainer = null;
-        AlacarteContainer alacarteContainer = null;
+                           int stationTypeValue,
+                           int situationMask,
+                           int informationQuality,
+                           int causeCode,
+                           int subCauseCode,
+                           int linkedCauseCode,
+                           int linkedSubCauseCode){
 
         /* Management container */
         //TODO: Move these declarations inside the builder instead?
@@ -404,6 +407,30 @@ public class VehicleAdapter {
             .transmissionInterval((managementMask & (1<<3)) != 0 ? transmissionInterval : null)
             .stationType(stationType)
             .create();
+
+        /* Situation container */
+        SituationContainer situationContainer = (containerMask & (1<<7)) != 0 ?
+            new SituationContainer(new InformationQuality(informationQuality),
+                                   new CauseCode(new CauseCodeType(causeCode), new SubCauseCodeType(subCauseCode)),
+                                   (situationMask & (1<<7)) != 0 ? new CauseCode(new CauseCodeType(linkedCauseCode), new SubCauseCodeType(linkedSubCauseCode)) : null,
+                                   //TODO: Add EventHistory to SituationContainer
+                                   null)
+            :null;
+
+        /* Location container */
+        
+        /* TODO: Local message set needs support for variable length
+         * packets in order to add the Traces in the location
+         * container.
+         */
+        LocationContainer locationContainer = (containerMask & (1<<6)) != 0 ?
+            new LocationContainer()
+            :null;
+
+        /* Alacarte container */
+        AlacarteContainer alacarteContainer = (containerMask & (1<<5)) != 0 ?
+            new AlacarteContainer()
+            :null;
                                                                                
         DecentralizedEnvironmentalNotificationMessage decentralizedEnvironmentalNotificationMessage =
             new DecentralizedEnvironmentalNotificationMessage(managementContainer,
@@ -488,7 +515,7 @@ public class VehicleAdapter {
         byte[] buffer = new byte[MAX_UDP_LENGTH];
         private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
         @Override public void run() {
-real             try {
+            try {
                 BtpPacket btpPacket = btpSocket.receive();
                 switch (btpPacket.destinationPort()) {
                     case PORT_CAM: {
