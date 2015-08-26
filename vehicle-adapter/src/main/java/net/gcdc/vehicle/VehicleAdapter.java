@@ -336,8 +336,11 @@ public class VehicleAdapter {
                               buffer.getInt(),  /* causeCode */
                               buffer.getInt(),  /* subCauseCode */
                               buffer.getInt(),  /* linkedCauseCode */
-                              buffer.getInt()); /* linkedSubCauseCode */
-            
+                              buffer.getInt(),  /* linkedSubCauseCode */
+                              buffer.getInt(),  /* alacarteMask */
+                              buffer.getInt(),  /* lanePosition*/
+                              buffer.getInt(),  /* temperature */
+                              buffer.getInt()); /* positioningSolutionType */
             
         }catch(BufferOverflowException e){
             logger.error("Failed to create DENM from Simulink message: " + e);
@@ -372,7 +375,11 @@ public class VehicleAdapter {
                            int causeCode,
                            int subCauseCode,
                            int linkedCauseCode,
-                           int linkedSubCauseCode){
+                           int linkedSubCauseCode,
+                           int alacarteMask,
+                           int lanePosition,
+                           int temperature,
+                           int positioningSolutionType){
 
         /* Management container */
         //TODO: Move these declarations inside the builder instead?
@@ -429,7 +436,14 @@ public class VehicleAdapter {
 
         /* Alacarte container */
         AlacarteContainer alacarteContainer = (containerMask & (1<<5)) != 0 ?
-            new AlacarteContainer()
+            new AlacarteContainer((alacarteMask & (1<<7)) != 0 ? new LanePosition(lanePosition) : null,
+                                  //TODO: Change the constructor to a builder before implementing
+                                  (alacarteMask & (1<<6)) != 0 ? new ImpactReductionContainer() : null,
+                                  (alacarteMask & (1<<5)) != 0 ? new Temperature(temperature) : null,
+                                  //TODO: Change the constructor to a builder before implementing
+                                  (alacarteMask & (1<<4)) != 0 ? new RoadWorksContainerExtended() : null,
+                                  (alacarteMask & (1<<3)) != 0 ? PositioningSolutionType.values()[positioningSolutionType] : null,
+                                  (alacarteMask & (1<<2)) != 0 ? new StationaryVehicleContainer() : null)                                  
             :null;
                                                                                
         DecentralizedEnvironmentalNotificationMessage decentralizedEnvironmentalNotificationMessage =
