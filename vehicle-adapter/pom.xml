@@ -46,7 +46,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>net.gcdc.uppertester.ItsStation</mainClass>
+							<mainClass>net.gcdc.vehicle.VehicleAdapter</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
