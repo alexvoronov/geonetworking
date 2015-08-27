@@ -173,29 +173,36 @@ public class VehicleAdapter {
                 return null;
             }
             int genDeltaTimeMillis = buffer.getInt();
+            byte stationType = buffer.get();
+            byte vehicleRole = buffer.get();
+            int vehicleLength = buffer.getInt();
+            int vehicleWidth = buffer.getInt();
+            int latitude = buffer.getInt();
+            int longitude = buffer.getInt();
             Cam cam = createCam((lastLowFreqContainer - genDeltaTimeMillis) > CAM_LOW_FREQ_INTERVAL_MS,
-                             genDeltaTimeMillis,
-                             buffer.get(),    /* stationType */
-                             buffer.get(),    /* vehicleRole */
-                             buffer.getInt(), /* vehicleLength */
-                             buffer.getInt(), /* vehicleWidth */
-                             buffer.getInt(), /* latitude */
-                             buffer.getInt(), /* longitude */
-                             buffer.getInt(), /* semiMajorAxisConfidence */
-                             buffer.getInt(), /* semiMinorAxisConfidence */
-                             buffer.getInt(), /* semiMajorOrientation */
-                             buffer.getInt(), /* headingValue */
-                             buffer.getInt(), /* altitude */
-                             buffer.getInt(), /* heading */
-                             buffer.get(),    /* headingConfidence */
-                             buffer.getInt(), /* speed */
-                             buffer.get(),    /* speedConfidence */
-                             buffer.getInt(), /* yawRate */
-                             buffer.get(),    /* yawRateConfidence */
-                             buffer.getInt(), /* longitudinalAcceleration */
-                             buffer.get());   /* longitudinalAccelerationConfidence */
+                                genDeltaTimeMillis,
+                                stationType,
+                                vehicleRole,
+                                vehicleLength,
+                                vehicleWidth,
+                                latitude,
+                                longitude,
+                                buffer.getInt(), /* semiMajorAxisConfidence */
+                                buffer.getInt(), /* semiMinorAxisConfidence */
+                                buffer.getInt(), /* semiMajorOrientation */
+                                buffer.getInt(), /* headingValue */
+                                buffer.getInt(), /* altitude */
+                                buffer.getInt(), /* heading */
+                                buffer.get(),    /* headingConfidence */
+                                buffer.getInt(), /* speed */
+                                buffer.get(),    /* speedConfidence */
+                                buffer.getInt(), /* yawRate */
+                                buffer.get(),    /* yawRateConfidence */
+                                buffer.getInt(), /* longitudinalAcceleration */
+                                buffer.get());   /* longitudinalAccelerationConfidence */ 
 
             lastLowFreqContainer = genDeltaTimeMillis;
+            vehiclePositionProvider.updatePosition(latitude, longitude);
             return cam;
             
         }catch(BufferOverflowException e){
@@ -352,7 +359,6 @@ public class VehicleAdapter {
         return null;
     }
 
-    //TODO: Only management container is implemented.
     private int denm_sequence_number = 0;
     public Denm createDenm(byte containerMask,
                            byte managementMask,
@@ -647,31 +653,6 @@ public class VehicleAdapter {
         boolean isMacAddress();
     }
 
-    //DEPRECATED
-    public static class DummyPositionProvider implements PositionProvider{
-        private final MacAddress senderMac;
-
-        DummyPositionProvider(MacAddress senderMac){
-            this.senderMac = senderMac;
-        }
-        
-        public LongPositionVector getLatestPosition(){
-            Optional<Address> emptyAddress = Optional.empty();
-            /*
-            return new LongPositionVector(new Address(true, StationType.passengerCar,
-                                                      752, senderMac.value()),
-                                          Instant.now(), new Position(0, 0),
-                                          true, 0, 0);                                          
-            */
-            return new LongPositionVector(emptyAddress,
-                                          Instant.now(),
-                                          new Position(0, 0),
-                                          true,
-                                          0,
-                                          0);
-        }
-    }
-
     /* PositionProvider is used by the beaconing service and for
      * creating the Geobroadcast address used for DENM messages.
      */
@@ -693,9 +674,9 @@ public class VehicleAdapter {
             this.headingDegreesFromNorth = 0;
         }
 
-        //TODO: Update position based on data in CAM messages
-        public void updatePosition(int lattitude, int longitude){
-            this.position = new Position((double) lattitude, (double) longitude);
+        //TODO: Is the formatting of lat/long the same as in the CAM message?
+        public void updatePosition(int latitude, int longitude){
+            this.position = new Position((double) latitude, (double) longitude);
         }
 
         public Position getPosition(){
