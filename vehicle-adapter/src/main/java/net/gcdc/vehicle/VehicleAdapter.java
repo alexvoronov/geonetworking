@@ -202,7 +202,8 @@ public class VehicleAdapter {
                                 buffer.get());   /* longitudinalAccelerationConfidence */ 
 
             lastLowFreqContainer = genDeltaTimeMillis;
-            vehiclePositionProvider.updatePosition(latitude, longitude);
+            //TODO: Thread crashes when running this...
+            //vehiclePositionProvider.updatePosition(latitude, longitude);
             return cam;
             
         }catch(BufferOverflowException e){
@@ -362,20 +363,20 @@ public class VehicleAdapter {
     private int denm_sequence_number = 0;
     public Denm createDenm(byte containerMask,
                            byte managementMask,
-                           long detectionTimeValue,
-                           long referenceTimeValue,
-                           int terminationValue,
-                           int latitudeValue,
-                           int longitudeValue,
+                           long detectionTime,
+                           long referenceTime,
+                           int termination,
+                           int latitude,
+                           int longitude,
                            int semiMajorConfidence,
                            int semiMinorConfidence,
                            int semiMajorOrientation,
-                           int altitudeValue,
-                           int relevanceDistanceValue,
-                           int relevanceTrafficDirectionValue,
-                           int validityDurationValue,
-                           int transmissionIntervalValue,
-                           int stationTypeValue,
+                           int altitude,
+                           int relevanceDistance,
+                           int relevanceTrafficDirection,
+                           int validityDuration,
+                           int transmissionInterval,
+                           int stationType,
                            int situationMask,
                            int informationQuality,
                            int causeCode,
@@ -389,36 +390,45 @@ public class VehicleAdapter {
 
         /* Management container */
         //TODO: Move these declarations inside the builder instead?
-        TimestampIts detectionTime = new TimestampIts(detectionTimeValue);
-        TimestampIts referenceTime = new TimestampIts(referenceTimeValue);
-        Termination termination = Termination.values()[terminationValue];
+        /*
+        TimestampIts detectionTime = new TimestampIts(detectionTime);
+        TimestampIts referenceTime = new TimestampIts(referenceTime);
+        Termination termination = Termination.values()[termination];
         ReferencePosition eventPosition =
-            new ReferencePosition(new Latitude(latitudeValue),
-                                  new Longitude(longitudeValue),
+            new ReferencePosition(new Latitude(latitude),
+                                  new Longitude(longitude),
                                   new PosConfidenceEllipse(
                                                            new SemiAxisLength(semiMajorConfidence),
                                                            new SemiAxisLength(semiMinorConfidence),
                                                            new HeadingValue(semiMajorOrientation)),
-                                  new Altitude(new AltitudeValue(altitudeValue),
+                                  new Altitude(new AltitudeValue(altitude),
                                                AltitudeConfidence.unavailable));
-        RelevanceDistance relevanceDistance = RelevanceDistance.values()[relevanceDistanceValue];
-        RelevanceTrafficDirection relevanceTrafficDirection = RelevanceTrafficDirection.values()[relevanceTrafficDirectionValue];
-        ValidityDuration validityDuration = new ValidityDuration(validityDurationValue);
-        TransmissionInterval transmissionInterval = new TransmissionInterval(transmissionIntervalValue);
-        StationType stationType = new StationType(stationTypeValue);
+        RelevanceDistance relevanceDistance = RelevanceDistance.values()[relevanceDistance];
+        RelevanceTrafficDirection relevanceTrafficDirection = RelevanceTrafficDirection.values()[relevanceTrafficDirection];
+        ValidityDuration validityDuration = new ValidityDuration(validityDuration);
+        TransmissionInterval transmissionInterval = new TransmissionInterval(transmissionInterval);
+        StationType stationType = new StationType(stationType);
+        */
 
         ManagementContainer managementContainer =
             ManagementContainer.builder()
             .actionID(new ActionID(new StationID(STATION_ID), new SequenceNumber(denm_sequence_number++)))
-            .detectionTime(detectionTime)
-            .referenceTime(referenceTime)
-            .termination((managementMask & (1<<7)) != 0 ? termination : null)
-            .eventPosition(eventPosition)
-            .relevanceDistance((managementMask & (1<<6)) != 0 ? relevanceDistance : null)
-            .relevanceTrafficDirection((managementMask & (1<<5)) != 0 ? relevanceTrafficDirection : null)
-            .validityDuration((managementMask & (1<<4)) != 0 ? validityDuration : null)
-            .transmissionInterval((managementMask & (1<<3)) != 0 ? transmissionInterval : null)
-            .stationType(stationType)
+            .detectionTime(new TimestampIts(detectionTime))
+            .referenceTime(new TimestampIts(referenceTime))
+            .termination((managementMask & (1<<7)) != 0 ? Termination.values()[termination] : null)
+            .eventPosition(new ReferencePosition(new Latitude(latitude),
+                                                 new Longitude(longitude),
+                                                 new PosConfidenceEllipse(new SemiAxisLength(semiMajorConfidence),
+                                                                          new SemiAxisLength(semiMinorConfidence),
+                                                                          new HeadingValue(semiMajorOrientation)),
+                                                 new Altitude(new AltitudeValue(altitude),
+                                                              //TODO: Should altitudeconfidence be added?
+                                                              AltitudeConfidence.unavailable)))
+            .relevanceDistance((managementMask & (1<<6)) != 0 ? RelevanceDistance.values()[relevanceDistance] : null)
+            .relevanceTrafficDirection((managementMask & (1<<5)) != 0 ? RelevanceTrafficDirection.values()[relevanceTrafficDirection] : null)
+            .validityDuration((managementMask & (1<<4)) != 0 ? new ValidityDuration(validityDuration) : null)
+            .transmissionInterval((managementMask & (1<<3)) != 0 ? new TransmissionInterval(transmissionInterval) : null)
+            .stationType(new StationType(stationType))
             .create();
 
         /* Situation container */
@@ -434,7 +444,7 @@ public class VehicleAdapter {
         
         /* TODO: Local message set needs support for variable length
          * packets in order to add the Traces in the location
-         * container.
+         * container. LocationContainer is not used in GCDC16 though.
          */
         LocationContainer locationContainer = (containerMask & (1<<6)) != 0 ?
             new LocationContainer()
@@ -449,6 +459,7 @@ public class VehicleAdapter {
                                   //TODO: Change the constructor to a builder before implementing
                                   (alacarteMask & (1<<4)) != 0 ? new RoadWorksContainerExtended() : null,
                                   (alacarteMask & (1<<3)) != 0 ? PositioningSolutionType.values()[positioningSolutionType] : null,
+                                  //TODO: Implement
                                   (alacarteMask & (1<<2)) != 0 ? new StationaryVehicleContainer() : null)                                  
             :null;
                                                                                
@@ -497,13 +508,15 @@ public class VehicleAdapter {
                     /* First byte is the MessageId */
                     switch(receivedData[0]){
                     case MessageId.cam: {
+                        logger.debug("CREATING CAM");
                         Cam cam = simulinkToCam(receivedData);
                         send(cam);
                         break;
                     }
 
                     case MessageId.denm: {
-                        Denm denm = simulinkToDenm(receivedData);                        
+                        logger.debug("CREATING DENM");
+                        Denm denm = simulinkToDenm(receivedData);                  
 
                         /* TODO: How does GeoNetworking addressing work in
                          * GCDC16? For now let's just broadcast
@@ -680,7 +693,7 @@ public class VehicleAdapter {
         }
 
         public Position getPosition(){
-            return this.position;
+            return position;
         }
 
         public LongPositionVector getLatestPosition(){
@@ -727,6 +740,9 @@ public class VehicleAdapter {
         MacAddress senderMac = opts.isMacAddress() ? opts.getMacAddress() : new MacAddress(0);
 
         //TODO: Add a proper address
+        /* TODO: StationType is both a class in CoopITS and an ENUM in
+         * geonetworking 
+         */
         vehiclePositionProvider = new VehiclePositionProvider(null);
         
         VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer,
