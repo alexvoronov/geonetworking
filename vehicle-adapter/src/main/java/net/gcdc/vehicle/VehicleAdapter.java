@@ -194,7 +194,7 @@ public class VehicleAdapter {
                                 buffer.getInt(), /* semiMinorAxisConfidence */
                                 buffer.getInt(), /* semiMajorOrientation */
                                 buffer.getInt(), /* heading */
-                                buffer.get(),    /* headingConfidence */                                
+                                buffer.get(),    /* headingConfidence */
                                 buffer.getInt(), /* altitude */
                                 buffer.getInt(), /* speed */
                                 buffer.get(),    /* speedConfidence */
@@ -217,41 +217,37 @@ public class VehicleAdapter {
 
     /* Unpack a CAM message and create a Simulink message.
      */
-    //TODO: Implement the rest of the data fields for CAM
     public void camToSimulink(Cam cam, byte[] packetBuffer) throws BufferOverflowException{
         ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
-        CoopAwareness coopAwareness = cam.cam();
-        CamParameters camParameters = coopAwareness.camParameters();
-        BasicContainer basicContainer = camParameters.basicContainer();
-        HighFrequencyContainer highFrequencyContainer = camParameters.highFrequencyContainer();
-        LowFrequencyContainer lowFrequencyContainer = camParameters.lowFrequencyContainer();
+        byte containerMask = 0;
         
-        buffer.putInt((int) cam.cam().generationDeltaTime().value);
-        buffer.put((byte) cam.cam().camParameters().basicContainer().stationType().value);
-        buffer.put((byte) cam.cam().camParameters().lowFrequencyContainer().basicVehicleContainerLowFrequency().vehicleRole().value());
-        buffer.putInt((int) cam.cam().camParameters().highFrequencyContainer().basicVehicleContainerHighFrequency().vehicleLength().vehicleLengthValue().value);
-        buffer.putInt((int) cam.cam().camParameters().highFrequencyContainer().basicVehicleContainerHighFrequency().vehicleWidth().value);
-        buffer.putInt((int) cam.cam().camParameters().basicContainer().referencePosition().latitude().value);
-        buffer.putInt((int) cam.cam().camParameters().basicContainer().referencePosition().longitude().value);
-        buffer.putInt((int) cam.cam().camParameters().basicContainer().referencePosition().positionConfidenceEllipse().semiMajorConfidence().value);
-        buffer.putInt((int) cam.cam().camParameters().basicContainer().referencePosition().positionConfidenceEllipse().semiMinorConfidence().value);
-        buffer.putInt((int) cam.cam().camParameters().basicContainer().referencePosition().positionConfidenceEllipse().semiMajorOrientation().value);
-        buffer.putInt((int) cam.cam().camParameters().highFrequencyContainer().basicVehicleContainerHighFrequency().heading().headingValue().value);
-        buffer.putInt((int) cam.cam().camParameters().basicContainer().referencePosition().altitude().altitudeValue().value);
-        //buffer.putInt((int) cam.cam().camParameters().basicContainer
-                      /*
+        /* If there's a lowFrequencyContainer present, set the
+         * container mask to 1.
+         */
+        if(cam.getCam().getCamParameters().getLowFrequencyContainer() != null) containerMask = 1;
 
-
-                        byte headingConfidence,
-                        int speed,
-                        byte speedConfidence,
-                        int yawRate,
-                        byte yawRateConfidence,
-                        int longitudinalAcceleration,
-                        byte longitudinalAccelerationConfidence        
-                      */
-
-
+        buffer.put(containerMask);
+        buffer.putInt((int) cam.getCam().getGenerationDeltaTime().value);
+        buffer.put((byte) cam.getCam().getCamParameters().getBasicContainer().stationType().value);
+        buffer.put((byte) cam.getCam().getCamParameters().getLowFrequencyContainer().basicVehicleContainerLowFrequency().vehicleRole().value());
+        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleLength().getVehicleLengthValue().value);
+        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleWidth().value);
+        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLatitude().value);
+        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLongitude().value);
+        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMajorConfidence().value);
+        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMinorConfidence().value);
+        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMajorOrientation().value);
+        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getHeading().getHeadingValue().value);
+        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getHeading().getHeadingConfidence().value);        
+        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getAltitude().getAltitudeValue().value);
+        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getSpeed().getSpeedValue().value);
+        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getSpeed().getSpeedConfidence().value);
+        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getYawRate().getYawRateValue().value);
+        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getYawRate().getYawRateConfidence().value());
+        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
+                      getLongitudinalAccelerationValue().value());
+        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
+                      getLongitudinalAccelerationConfidence().value());
     }
 
     public Cam createCam(boolean withLowFreq,
@@ -266,8 +262,8 @@ public class VehicleAdapter {
                          int semiMinorAxisConfidence,
                          int semiMajorOrientation,
                          int heading,
+                         byte headingConfidence,                         
                          int altitude,
-                         byte headingConfidence,
                          int speed,
                          byte speedConfidence,
                          int yawRate,
@@ -594,7 +590,7 @@ public class VehicleAdapter {
                         Denm denm;
                         try {
                             denm = UperEncoder.decode(btpPacket.payload(), Denm.class);
-                            
+
                             // TODO: Fill in the buffer for packet.
 
                             packet.setPort(DEFAULT_SIMULINK_UDP_PORT);
