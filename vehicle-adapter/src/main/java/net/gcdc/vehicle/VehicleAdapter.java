@@ -161,6 +161,8 @@ public class VehicleAdapter {
      * Please note that this is the first draft and that everything
      * may change :)
      */
+    //TODO: Decision on if to include low frequency container should
+    //be made in Simulink instead. Use a container bit mask.
     private int lastLowFreqContainer = 0;
     public Cam simulinkToCam(byte[] receivedData){
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
@@ -172,6 +174,7 @@ public class VehicleAdapter {
                 logger.error("Incorrect local CAM received: " + receivedData);
                 return null;
             }
+            byte containerMask = buffer.get();
             int genDeltaTimeMillis = buffer.getInt();
             byte stationType = buffer.get();
             byte vehicleRole = buffer.get();
@@ -179,7 +182,7 @@ public class VehicleAdapter {
             int vehicleWidth = buffer.getInt();
             int latitude = buffer.getInt();
             int longitude = buffer.getInt();
-            Cam cam = createCam((lastLowFreqContainer - genDeltaTimeMillis) > CAM_LOW_FREQ_INTERVAL_MS,
+            Cam cam = createCam((containerMask & (1<<7)) != 0,
                                 genDeltaTimeMillis,
                                 stationType,
                                 vehicleRole,
@@ -190,10 +193,9 @@ public class VehicleAdapter {
                                 buffer.getInt(), /* semiMajorAxisConfidence */
                                 buffer.getInt(), /* semiMinorAxisConfidence */
                                 buffer.getInt(), /* semiMajorOrientation */
-                                buffer.getInt(), /* headingValue */
-                                buffer.getInt(), /* altitude */
                                 buffer.getInt(), /* heading */
-                                buffer.get(),    /* headingConfidence */
+                                buffer.get(),    /* headingConfidence */                                
+                                buffer.getInt(), /* altitude */
                                 buffer.getInt(), /* speed */
                                 buffer.get(),    /* speedConfidence */
                                 buffer.getInt(), /* yawRate */
@@ -202,6 +204,7 @@ public class VehicleAdapter {
                                 buffer.get());   /* longitudinalAccelerationConfidence */ 
 
             lastLowFreqContainer = genDeltaTimeMillis;
+            
             //TODO: Thread crashes when running this...
             //vehiclePositionProvider.updatePosition(latitude, longitude);
             return cam;
@@ -214,21 +217,41 @@ public class VehicleAdapter {
 
     /* Unpack a CAM message and create a Simulink message.
      */
-    //TODO: Varying number of containers not supported by local
-    //message set yet.
-    //TODO: How do we unpack the data from CAM? Either the data
-    //needs to be public or we need get methods.
+    //TODO: Implement the rest of the data fields for CAM
     public void camToSimulink(Cam cam, byte[] packetBuffer) throws BufferOverflowException{
         ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
-        /*
-        CoopAwareness coopAwareness = cam.cam;
-        CamParameters camParameters = coopAwareness.camParameters;
-        BasicContainer basicContainer = cp.basicContainer;
-        HighFrequencyContainer highFrequencyContainer = cp.highFrequencyContainer;
-        LowFrequencyContainer lowFrequencyContainer = cp.lowFrequencyContainer;
-        buffer.putInt(lowFrequencyContainer ? lowFrequencyContainer.basicVehicleContainerLowFrequency.vehicleRole : -1);
-        buffer.put(basicContainer.stationType);
-        */
+        CoopAwareness coopAwareness = cam.cam();
+        CamParameters camParameters = coopAwareness.camParameters();
+        BasicContainer basicContainer = camParameters.basicContainer();
+        HighFrequencyContainer highFrequencyContainer = camParameters.highFrequencyContainer();
+        LowFrequencyContainer lowFrequencyContainer = camParameters.lowFrequencyContainer();
+        
+        buffer.putInt((int) cam.cam().generationDeltaTime().value);
+        buffer.put((byte) cam.cam().camParameters().basicContainer().stationType().value);
+        buffer.put((byte) cam.cam().camParameters().lowFrequencyContainer().basicVehicleContainerLowFrequency().vehicleRole().value());
+        buffer.putInt((int) cam.cam().camParameters().highFrequencyContainer().basicVehicleContainerHighFrequency().vehicleLength().vehicleLengthValue().value);
+        buffer.putInt((int) cam.cam().camParameters().highFrequencyContainer().basicVehicleContainerHighFrequency().vehicleWidth().value);
+        buffer.putInt((int) cam.cam().camParameters().basicContainer().referencePosition().latitude().value);
+        buffer.putInt((int) cam.cam().camParameters().basicContainer().referencePosition().longitude().value);
+        buffer.putInt((int) cam.cam().camParameters().basicContainer().referencePosition().positionConfidenceEllipse().semiMajorConfidence().value);
+        buffer.putInt((int) cam.cam().camParameters().basicContainer().referencePosition().positionConfidenceEllipse().semiMinorConfidence().value);
+        buffer.putInt((int) cam.cam().camParameters().basicContainer().referencePosition().positionConfidenceEllipse().semiMajorOrientation().value);
+        buffer.putInt((int) cam.cam().camParameters().highFrequencyContainer().basicVehicleContainerHighFrequency().heading().headingValue().value);
+        buffer.putInt((int) cam.cam().camParameters().basicContainer().referencePosition().altitude().altitudeValue().value);
+        //buffer.putInt((int) cam.cam().camParameters().basicContainer
+                      /*
+
+
+                        byte headingConfidence,
+                        int speed,
+                        byte speedConfidence,
+                        int yawRate,
+                        byte yawRateConfidence,
+                        int longitudinalAcceleration,
+                        byte longitudinalAccelerationConfidence        
+                      */
+
+
     }
 
     public Cam createCam(boolean withLowFreq,
@@ -242,9 +265,8 @@ public class VehicleAdapter {
                          int semiMajorAxisConfidence,
                          int semiMinorAxisConfidence,
                          int semiMajorOrientation,
-                         int headingValue,
-                         int altitude,
                          int heading,
+                         int altitude,
                          byte headingConfidence,
                          int speed,
                          byte speedConfidence,
