@@ -228,8 +228,8 @@ public class VehicleAdapter {
 
         buffer.put(containerMask);
         buffer.putInt((int) cam.getCam().getGenerationDeltaTime().value);
-        buffer.put((byte) cam.getCam().getCamParameters().getBasicContainer().stationType().value);
-        buffer.put((byte) cam.getCam().getCamParameters().getLowFrequencyContainer().basicVehicleContainerLowFrequency().vehicleRole().value());
+        buffer.put((byte) cam.getCam().getCamParameters().getBasicContainer().getStationType().value);
+        buffer.put((byte) cam.getCam().getCamParameters().getLowFrequencyContainer().getBasicVehicleContainerLowFrequency().getVehicleRole().value());
         buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleLength().getVehicleLengthValue().value);
         buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleWidth().value);
         buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLatitude().value);
