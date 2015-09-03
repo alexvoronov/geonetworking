@@ -46,6 +46,9 @@ public class CoopIts {
 
         public Cam() { this(new ItsPduHeader(new MessageId(MessageId.cam)), new CoopAwareness()); }
 
+        public ItsPduHeader header(){ return this.header; }
+        public CoopAwareness cam(){ return this.cam; }
+
         @Override public String toString() { return "CAM(" + header + ", " + cam + ")"; }
     }
 
@@ -54,6 +57,8 @@ public class CoopIts {
         ProtocolVersion protocolVersion;
         MessageId messageID;
         StationID stationID;
+
+        public StationID stationID(){ return this.stationID; }
 
         @Override public String toString() {
             return "Header(protocolVersion " + protocolVersion + ", messageID " + messageID +
@@ -112,6 +117,9 @@ public class CoopIts {
         GenerationDeltaTime generationDeltaTime;
         CamParameters camParameters;
 
+        public GenerationDeltaTime generationDeltaTime(){ return this.generationDeltaTime; }
+        public CamParameters camParameters(){ return this.camParameters; }
+
         public CoopAwareness() { this(new GenerationDeltaTime(), new CamParameters()); }
         public CoopAwareness(GenerationDeltaTime generationDeltaTime, CamParameters camParameters) {
             this.generationDeltaTime = generationDeltaTime;
@@ -141,6 +149,11 @@ public class CoopIts {
         @Asn1Optional LowFrequencyContainer lowFrequencyContainer;
         @Asn1Optional SpecialVehicleContainer specialVehicleContainer;
 
+        public BasicContainer basicContainer(){ return this.basicContainer; }
+        public HighFrequencyContainer highFrequencyContainer(){ return this.highFrequencyContainer; }
+        public LowFrequencyContainer lowFrequencyContainer(){ return this.lowFrequencyContainer; }
+        public SpecialVehicleContainer specialVehicleContainer(){ return this.specialVehicleContainer; }
+
         public CamParameters() { this(new BasicContainer(), new HighFrequencyContainer()); }
 
         public CamParameters(
@@ -168,6 +181,10 @@ public class CoopIts {
     public static class BasicContainer {
         StationType stationType;
         ReferencePosition referencePosition;
+
+        public StationType stationType(){ return this.stationType; }
+        public ReferencePosition referencePosition(){ return this.referencePosition; }
+        
         public BasicContainer() { this(new StationType(), new ReferencePosition()); }
         public BasicContainer(StationType stationType, ReferencePosition referencePosition) {
             this.stationType = stationType;
@@ -185,6 +202,9 @@ public class CoopIts {
         }
         BasicVehicleContainerHighFrequency basicVehicleContainerHighFrequency;
         RSUContainerHighFrequency rsuContainerHighFrequency;
+
+        public BasicVehicleContainerHighFrequency basicVehicleContainerHighFrequency(){ return this.basicVehicleContainerHighFrequency; }
+        public RSUContainerHighFrequency rsuContainerHighFrequency(){ return this.rsuContainerHighFrequency; }
 
         public HighFrequencyContainer() { this(BasicVehicleContainerHighFrequency.builder().create()); }
         public HighFrequencyContainer(BasicVehicleContainerHighFrequency basicVehicleContainerHighFrequency) {
@@ -216,6 +236,23 @@ public class CoopIts {
         @Asn1Optional PerformanceClass performanceClass;
         @Asn1Optional CenDsrcTollingZone cenDsrcTollingZone;
 
+        public Heading heading(){ return this.heading; }
+        public Speed speed(){ return this.speed; }
+        public DriveDirection driveDirection(){ return this.driveDirection; }
+        public VehicleLength vehicleLength(){ return this.vehicleLength; }
+        public VehicleWidth vehicleWidth(){ return this.vehicleWidth; }
+        public LongitudinalAcceleration longitudinalAcceleration(){ return this.longitudinalAcceleration; }
+        public Curvature curvature(){ return this.curvature; }
+        public CurvatureCalculationMode curvatureCalculationMode(){ return this.curvatureCalculationMode; }
+        public YawRate yawRate(){ return this.yawRate; }
+        public AccelerationControl accelerationControl(){ return this.accelerationControl; }
+        public LanePosition lanePosition(){ return this.lanePosition; }
+        public SteeringWheelAngle steeringWheelAngle(){ return this.steeringWheelAngle; }
+        public LateralAcceleration lateralAcceleration(){ return this.lateralAcceleration; }
+        public VerticalAcceleration verticalAcceleration(){ return this.verticalAcceleration; }
+        public PerformanceClass performanceClass(){ return this.performanceClass; }
+        public CenDsrcTollingZone cenDsrcTollingZone(){ return this.cenDsrcTollingZone; }
+        
         protected BasicVehicleContainerHighFrequency() {}
 
         public static Builder builder() { return new Builder(); }
@@ -286,6 +323,11 @@ public class CoopIts {
         PosConfidenceEllipse positionConfidenceEllipse;
         Altitude altitude;
 
+        public Latitude latitude(){ return this.latitude; }
+        public Longitude longitude(){ return this.longitude; }
+        public PosConfidenceEllipse positionConfidenceEllipse(){ return this.positionConfidenceEllipse; }
+        public Altitude altitude(){ return this.altitude; }
+
         public ReferencePosition() {
             this(new Latitude(), new Longitude(), new PosConfidenceEllipse(), new Altitude());
         }
@@ -305,6 +347,9 @@ public class CoopIts {
         HeadingValue headingValue;
         HeadingConfidence headingConfidence;
 
+        public HeadingValue headingValue(){ return this.headingValue; }
+        public HeadingConfidence headingConfidence(){ return this.headingConfidence; }
+
         public Heading() { this(new HeadingValue(), new HeadingConfidence()); }
         public Heading(HeadingValue headingValue, HeadingConfidence headingConfidence) {
             this.headingValue = headingValue;
@@ -316,6 +361,9 @@ public class CoopIts {
     public static class Speed {
         SpeedValue speedValue;
         SpeedConfidence speedConfidence;
+
+        public SpeedValue speedValue(){ return this.speedValue; }
+        public SpeedConfidence speedConfidence(){ return this.speedConfidence; }
 
         public Speed() { this(new SpeedValue(), new SpeedConfidence()); }
         public Speed(SpeedValue speedValue, SpeedConfidence speedConfidence) {
@@ -364,6 +412,9 @@ public class CoopIts {
     public static class VehicleLength {
         VehicleLengthValue vehicleLengthValue;
         VehicleLengthConfidenceIndication vehicleLengthConfidenceIndication;
+
+        public VehicleLengthValue vehicleLengthValue(){ return this.vehicleLengthValue; }
+        public VehicleLengthConfidenceIndication vehicleLengthConfidenceIndication(){ return this.vehicleLengthConfidenceIndication; }
 
         public VehicleLength() {
             this(new VehicleLengthValue(), VehicleLengthConfidenceIndication.unavailable);
@@ -414,6 +465,9 @@ public class CoopIts {
         LongitudinalAccelerationValue longitudinalAccelerationValue;
         AccelerationConfidence longitudinalAccelerationConfidence;
 
+        public LongitudinalAccelerationValue longitudinalAccelerationValue(){ return this.longitudinalAccelerationValue; }
+        public AccelerationConfidence longitudinalAccelerationConfidence(){ return this.longitudinalAccelerationConfidence; }
+
         public LongitudinalAcceleration() { this(new LongitudinalAccelerationValue(), new AccelerationConfidence()); }
         public LongitudinalAcceleration(LongitudinalAccelerationValue longitudinalAccelerationValue,
                 AccelerationConfidence longitudinalAccelerationConfidence) {
@@ -446,6 +500,9 @@ public class CoopIts {
     public static class Curvature {
         CurvatureValue curvatureValue;
         CurvatureConfidence curvatureConfidence;
+
+        public CurvatureValue curvatureValue(){ return this.curvatureValue; }
+        public CurvatureConfidence curvatureConfidence(){ return this.curvatureConfidence; }
 
         public Curvature() { this( new CurvatureValue(), CurvatureConfidence.unavailable ); }
         public Curvature(CurvatureValue curvatureValue, CurvatureConfidence curvatureConfidence) {
@@ -496,6 +553,9 @@ public class CoopIts {
         YawRateValue yawRateValue;
         YawRateConfidence yawRateConfidence;
 
+        public YawRateValue yawRateValue(){ return this.yawRateValue; }
+        public YawRateConfidence yawRateConfidence(){ return this.yawRateConfidence; }
+
         public YawRate() { this(new YawRateValue(), YawRateConfidence.unavailable); }
         public YawRate(YawRateValue yawRateValue, YawRateConfidence yawRateConfidence) {
             this.yawRateValue = yawRateValue;
@@ -536,6 +596,10 @@ public class CoopIts {
         SemiAxisLength semiMinorConfidence;
         HeadingValue semiMajorOrientation;
 
+        public SemiAxisLength semiMajorConfidence(){ return this.semiMajorConfidence; }
+        public SemiAxisLength semiMinorConfidence(){ return this.semiMinorConfidence; }
+        public HeadingValue semiMajorOrientation(){ return this.semiMajorOrientation; }
+
         public PosConfidenceEllipse() { this(new SemiAxisLength(), new SemiAxisLength(), new HeadingValue()); }
         public PosConfidenceEllipse (
             SemiAxisLength semiMajorConfidence,
@@ -561,6 +625,9 @@ public class CoopIts {
     public static class Altitude {
         AltitudeValue altitudeValue;
         AltitudeConfidence altitudeConfidence;
+
+        public AltitudeValue altitudeValue(){ return this.altitudeValue; }
+        public AltitudeConfidence altitudeConfidence(){ return this.altitudeConfidence; }
 
         public Altitude() { this(new AltitudeValue(), AltitudeConfidence.unavailable); }
         public Altitude(AltitudeValue altitudeValue,        AltitudeConfidence altitudeConfidence) {
@@ -656,6 +723,14 @@ public class CoopIts {
         boolean cruiseControlEngaged; // Bit 5.
         boolean speedLimiterEngaged; // Bit 6.
 
+        public boolean brakePedalEngaged(){ return this.brakePedalEngaged; }
+        public boolean gasPedalEngaged(){ return this.gasPedalEngaged; }
+        public boolean emergencyBrakeEngaged(){ return this.emergencyBrakeEngaged; }
+        public boolean collisionWarningEngaged(){ return this.collisionWarningEngaged; }
+        public boolean accEngaged(){ return this.accEngaged; }
+        public boolean cruiseControlEngaged(){ return this.cruiseControlEngaged; }
+        public boolean speedLimiterEngaged(){ return this.speedLimiterEngaged; }
+
         protected AccelerationControl() {}
 
         public static Builder builder() { return new Builder(); }
@@ -695,6 +770,9 @@ public class CoopIts {
         SteeringWheelAngleValue steeringWheelAngleValue;
         SteeringWheelAngleConfidence steeringWheelAngleConfidence;
 
+        public SteeringWheelAngleValue steeringWheelAngleValue(){ return this.steeringWheelAngleValue; }
+        public SteeringWheelAngleConfidence steeringWheelAngleConfidence(){ return this.steeringWheelAngleConfidence; }
+
         public SteeringWheelAngle() { this(new SteeringWheelAngleValue(),
                 new SteeringWheelAngleConfidence()); }
 
@@ -731,6 +809,9 @@ public class CoopIts {
         LateralAccelerationValue lateralAccelerationValue;
         AccelerationConfidence lateralAccelerationConfidence;
 
+        public LateralAccelerationValue lateralAccelerationValue(){ return this.lateralAccelerationValue; }
+        public AccelerationConfidence lateralAccelerationConfidence(){ return this.lateralAccelerationConfidence; }
+
         public LateralAcceleration() { this(new LateralAccelerationValue(), new AccelerationConfidence()); }
         public LateralAcceleration(LateralAccelerationValue lateralAccelerationValue,
                 AccelerationConfidence lateralAccelerationConfidence) {
@@ -753,6 +834,10 @@ public class CoopIts {
     public static class VerticalAcceleration {
         VerticalAccelerationValue verticalAccelerationValue;
         AccelerationConfidence verticalAccelerationConfidence;
+
+        public VerticalAccelerationValue verticalAccelerationValue(){ return this.verticalAccelerationValue; }
+        public AccelerationConfidence verticalAccelerationConfidence(){ return this.verticalAccelerationConfidence; }
+        
         public VerticalAcceleration() { this(new VerticalAccelerationValue(), new AccelerationConfidence()); }
         public VerticalAcceleration(VerticalAccelerationValue verticalAccelerationValue,
                 AccelerationConfidence verticalAccelerationConfidence) {
@@ -787,6 +872,10 @@ public class CoopIts {
         Longitude protectedZoneLongitude;
         @Asn1Optional ProtectedZoneID cenDsrcTollingZoneID;
 
+        public Latitude protectedZoneLatitude(){ return this.protectedZoneLatitude; }
+        public Longitude protectedZoneLongitude(){ return this.protectedZoneLongitude; }
+        public ProtectedZoneID cenDsrcTollingZoneID(){ return this.cenDsrcTollingZoneID; }
+
         public CenDsrcTollingZone() { this(new Latitude(), new Longitude(), null); }
         public CenDsrcTollingZone(Latitude protectedZoneLatitude, Longitude protectedZoneLongitude,
                 ProtectedZoneID cenDsrcTollingZoneID) {
@@ -804,6 +893,8 @@ public class CoopIts {
     public static class LowFrequencyContainer {
         BasicVehicleContainerLowFrequency basicVehicleContainerLowFrequency;
 
+        public BasicVehicleContainerLowFrequency basicVehicleContainerLowFrequency(){ return this.basicVehicleContainerLowFrequency; }
+
         public LowFrequencyContainer() { this(new BasicVehicleContainerLowFrequency()); }
         public LowFrequencyContainer(BasicVehicleContainerLowFrequency basicVehicleContainerLowFrequency) {
             this.basicVehicleContainerLowFrequency = basicVehicleContainerLowFrequency;
@@ -815,6 +906,10 @@ public class CoopIts {
         VehicleRole vehicleRole;
         ExteriorLights exteriorLights;
         PathHistory pathHistory;
+
+        public VehicleRole vehicleRole(){ return this.vehicleRole; }
+        public ExteriorLights exteriorLights(){ return this.exteriorLights; }
+        public PathHistory pathHistory(){ return this.pathHistory; }
 
         public BasicVehicleContainerLowFrequency() {
             this(VehicleRole.default_, new ExteriorLights(), new PathHistory());
@@ -871,6 +966,15 @@ public class CoopIts {
         boolean fogLightOn;  // Bit 6.
         boolean parkingLightsOn;  // Bit 7.
 
+        public boolean lowBeamHeadlightsOn(){ return this.lowBeamHeadlightsOn; }
+        public boolean highBeamHeadlightsOn(){ return this.highBeamHeadlightsOn; }
+        public boolean leftTurnSignalOn(){ return this.leftTurnSignalOn; }
+        public boolean rightTurnSignalOn(){ return this.rightTurnSignalOn; }
+        public boolean daytimeRunningLightsOn(){ return this.daytimeRunningLightsOn; }
+        public boolean reverseLightOn(){ return this.reverseLightOn; }
+        public boolean fogLightOn(){ return this.fogLightOn; }
+        public boolean parkingLightsOn(){ return this.parkingLightsOn; }
+
         protected ExteriorLights() {}
 
         public static Builder builder() { return new Builder(); }
@@ -901,6 +1005,8 @@ public class CoopIts {
     @HasExtensionMarker
     public static class RSUContainerHighFrequency {
         @Asn1Optional ProtectedCommunicationZonesRSU protectedCommunicationZonesRSU;
+
+        public ProtectedCommunicationZonesRSU protectedCommunicationZonesRSU(){ return this.protectedCommunicationZonesRSU; }
 
         public RSUContainerHighFrequency() { this(null); }
         public RSUContainerHighFrequency(ProtectedCommunicationZonesRSU protectedCommunicationZonesRSU) {
@@ -1229,6 +1335,9 @@ public class CoopIts {
         @Asn1Optional HardShoulderStatus hardShoulderStatus;
         DrivingLaneStatus drivingLaneStatus;
 
+        public HardShoulderStatus hardShoulderStatus(){ return this.hardShoulderStatus; }
+        public DrivingLaneStatus drivingLaneStatus(){ return this.drivingLaneStatus; }
+
         public ClosedLanes() { this(new DrivingLaneStatus()); }
         public ClosedLanes(DrivingLaneStatus drivingLaneStatus) { this(null, drivingLaneStatus); }
         public ClosedLanes(
@@ -1340,6 +1449,9 @@ public class CoopIts {
         CauseCodeType causeCode;
         SubCauseCodeType subCauseCode;
 
+        public CauseCodeType causeCode(){ return this.causeCode; }
+        public SubCauseCodeType subCauseCode(){ return this.subCauseCode; }
+
         public CauseCode() { this(new CauseCodeType(), new SubCauseCodeType()); }
         public CauseCode(CauseCodeType causeCode,
         SubCauseCodeType subCauseCode) {
@@ -1439,6 +1551,9 @@ public class CoopIts {
         ItsPduHeader header;
         DecentralizedEnvironmentalNotificationMessage denm;
 
+        public ItsPduHeader header(){ return this.header; }
+        public DecentralizedEnvironmentalNotificationMessage denm(){ return this.denm; }
+
         public Denm() { this (new ItsPduHeader(new MessageId(MessageId.denm)), new DecentralizedEnvironmentalNotificationMessage()); }
 
         public Denm(ItsPduHeader header, DecentralizedEnvironmentalNotificationMessage denm) {
@@ -1453,6 +1568,11 @@ public class CoopIts {
         @Asn1Optional SituationContainer situation;
         @Asn1Optional LocationContainer location;
         @Asn1Optional AlacarteContainer alacarte;
+
+        public ManagementContainer management(){ return this.management; }
+        public SituationContainer situation(){ return this.situation; }
+        public LocationContainer location(){ return this.location; }
+        public AlacarteContainer alacarte(){ return this.alacarte; }
 
         public DecentralizedEnvironmentalNotificationMessage() { this(new ManagementContainer()); }
 
@@ -1485,6 +1605,17 @@ public class CoopIts {
         @Asn1Optional ValidityDuration validityDuration = defaultValidity;
         @Asn1Optional TransmissionInterval transmissionInterval;
         StationType stationType;
+
+        public ActionID actionID(){ return this.actionID; }
+        public TimestampIts detectionTime(){ return this.detectionTime; }
+        public TimestampIts referenceTime(){ return this.referenceTime; }
+        public Termination termination(){ return this.termination; }
+        public ReferencePosition eventPosition(){ return this.eventPosition; }
+        public RelevanceDistance relevanceDistance(){ return this.relevanceDistance; }
+        public RelevanceTrafficDirection relevanceTrafficDirection(){ return this.relevanceTrafficDirection; }
+        public ValidityDuration validityDuration(){ return this.validityDuration; }
+        public TransmissionInterval transmissionInterval(){ return this.transmissionInterval; }
+        public StationType stationType(){ return this.stationType; }
 
         public ManagementContainer() {
             this.actionID = new ActionID();
@@ -1569,6 +1700,9 @@ public class CoopIts {
         StationID originatingStationID;
         SequenceNumber sequenceNumber;
 
+        public StationID originatingStationID(){ return this.originatingStationID; }
+        public SequenceNumber sequenceNumber(){ return this.sequenceNumber; }
+
         public ActionID() { this (new StationID(), new SequenceNumber()); }
 
         public ActionID(StationID originatingStationID, SequenceNumber sequenceNumber) {
@@ -1649,6 +1783,11 @@ public class CoopIts {
         @Asn1Optional CauseCode linkedCause;
         @Asn1Optional EventHistory eventHistory;
 
+        public InformationQuality informationQuality(){ return this.informationQuality; }
+        public CauseCode eventType(){ return this.eventType; }
+        public CauseCode linkedCause(){ return this.linkedCause; }
+        public EventHistory eventHistory(){ return this.eventHistory; }
+
         public SituationContainer() { this(new InformationQuality(), new CauseCode()); }
         public SituationContainer(InformationQuality informationQuality, CauseCode eventType) {
             this(informationQuality, eventType, null, null);
@@ -1691,6 +1830,10 @@ public class CoopIts {
         DeltaReferencePosition eventPosition;
         @Asn1Optional PathDeltaTime eventDeltaTime;
         InformationQuality informationQuality;
+
+        public DeltaReferencePosition eventPosition(){ return this.eventPosition; }
+        public PathDeltaTime eventDeltaTime(){ return this.eventDeltaTime; }
+        public InformationQuality informationQuality(){ return this.informationQuality; }
 
         public EventPoint() { this(new DeltaReferencePosition(), new InformationQuality()); }
         public EventPoint(DeltaReferencePosition eventPosition,
@@ -1760,6 +1903,13 @@ public class CoopIts {
         @Asn1Optional PositioningSolutionType positioningSolution;
         @Asn1Optional StationaryVehicleContainer stationaryVehicle;
 
+        public LanePosition lanePosition(){ return this.lanePosition; }
+        public ImpactReductionContainer impactReduction(){ return this.impactReduction; }
+        public Temperature externalTemperature(){ return this.externalTemperature; }
+        public RoadWorksContainerExtended roadWorks(){ return this.roadWorks; }
+        public PositioningSolutionType positioningSolution(){ return this.positioningSolution; }
+        public StationaryVehicleContainer stationaryVehicle(){ return this.stationaryVehicle; }
+        
         public AlacarteContainer() { this(null, null, null, null, null, null); }
         public AlacarteContainer(
                 LanePosition lanePosition,
