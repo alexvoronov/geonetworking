@@ -161,9 +161,6 @@ public class VehicleAdapter {
      * Please note that this is the first draft and that everything
      * may change :)
      */
-    //TODO: Decision on if to include low frequency container should
-    //be made in Simulink instead. Use a container bit mask.
-    private int lastLowFreqContainer = 0;
     public Cam simulinkToCam(byte[] receivedData){
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
 
@@ -176,8 +173,8 @@ public class VehicleAdapter {
             }
             byte containerMask = buffer.get();
             int genDeltaTimeMillis = buffer.getInt();
-            byte stationType = buffer.get();
-            byte vehicleRole = buffer.get();
+            int stationType = buffer.getInt();
+            int vehicleRole = buffer.getInt();
             int vehicleLength = buffer.getInt();
             int vehicleWidth = buffer.getInt();
             int latitude = buffer.getInt();
@@ -194,22 +191,20 @@ public class VehicleAdapter {
                                 buffer.getInt(), /* semiMinorAxisConfidence */
                                 buffer.getInt(), /* semiMajorOrientation */
                                 buffer.getInt(), /* heading */
-                                buffer.get(),    /* headingConfidence */
+                                buffer.getInt(), /* headingConfidence */
                                 buffer.getInt(), /* altitude */
                                 buffer.getInt(), /* speed */
-                                buffer.get(),    /* speedConfidence */
+                                buffer.getInt(), /* speedConfidence */
                                 buffer.getInt(), /* yawRate */
-                                buffer.get(),    /* yawRateConfidence */
+                                buffer.getInt(), /* yawRateConfidence */
                                 buffer.getInt(), /* longitudinalAcceleration */
-                                buffer.get());   /* longitudinalAccelerationConfidence */ 
-
-            lastLowFreqContainer = genDeltaTimeMillis;
+                                buffer.getInt());/* longitudinalAccelerationConfidence */ 
             
             //TODO: Thread crashes when running this...
             //vehiclePositionProvider.updatePosition(latitude, longitude);
             return cam;
             
-        }catch(BufferOverflowException e){
+        }catch(BufferUnderflowException e){
             logger.error("Failed to create CAM from Simulink message: " + e);
             return null;
         }
@@ -252,8 +247,8 @@ public class VehicleAdapter {
 
     public Cam createCam(boolean withLowFreq,
                          int genDeltaTimeMillis,
-                         byte stationType,
-                         byte vehicleRole,
+                         int stationType,
+                         int vehicleRole,
                          int vehicleLength,
                          int vehicleWidth,
                          int latitude,
@@ -262,21 +257,24 @@ public class VehicleAdapter {
                          int semiMinorAxisConfidence,
                          int semiMajorOrientation,
                          int heading,
-                         byte headingConfidence,                         
+                         int headingConfidence,                         
                          int altitude,
                          int speed,
-                         byte speedConfidence,
+                         int speedConfidence,
                          int yawRate,
-                         byte yawRateConfidence,
+                         int yawRateConfidence,
                          int longitudinalAcceleration,
-                         byte longitudinalAccelerationConfidence){
+                         int longitudinalAccelerationConfidence){
 
 
         LowFrequencyContainer lowFrequencyContainer = withLowFreq ?
             new LowFrequencyContainer(
                                       new BasicVehicleContainerLowFrequency(
                                                                             VehicleRole.fromCode(vehicleRole),
-                                                                            null,
+                                                                            //TODO: Implement ExteriorLights in LMS?
+                                                                            ExteriorLights.builder()
+                                                                            .set(false, false, false, false, false, false, false, false)
+                                                                            .create(),
                                                                             new PathHistory()
                                                                             ))
             :
