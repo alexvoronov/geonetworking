@@ -108,6 +108,8 @@ import net.gcdc.camdenm.CoopIts.YawRateValue;
 import net.gcdc.camdenm.CoopIts.*;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
 
+import net.gcdc.camdenm.Iclcm.*;
+
 import net.gcdc.geonetworking.LinkLayerUdpToEthernet;
 import net.gcdc.geonetworking.LongPositionVector;
 import net.gcdc.geonetworking.Position;
@@ -243,6 +245,8 @@ public class VehicleAdapter {
                       getLongitudinalAccelerationValue().value());
         buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
                       getLongitudinalAccelerationConfidence().value());
+
+        
     }
 
     public Cam createCam(boolean withLowFreq,
@@ -405,27 +409,6 @@ public class VehicleAdapter {
                            int positioningSolutionType){
 
         /* Management container */
-        //TODO: Move these declarations inside the builder instead?
-        /*
-        TimestampIts detectionTime = new TimestampIts(detectionTime);
-        TimestampIts referenceTime = new TimestampIts(referenceTime);
-        Termination termination = Termination.values()[termination];
-        ReferencePosition eventPosition =
-            new ReferencePosition(new Latitude(latitude),
-                                  new Longitude(longitude),
-                                  new PosConfidenceEllipse(
-                                                           new SemiAxisLength(semiMajorConfidence),
-                                                           new SemiAxisLength(semiMinorConfidence),
-                                                           new HeadingValue(semiMajorOrientation)),
-                                  new Altitude(new AltitudeValue(altitude),
-                                               AltitudeConfidence.unavailable));
-        RelevanceDistance relevanceDistance = RelevanceDistance.values()[relevanceDistance];
-        RelevanceTrafficDirection relevanceTrafficDirection = RelevanceTrafficDirection.values()[relevanceTrafficDirection];
-        ValidityDuration validityDuration = new ValidityDuration(validityDuration);
-        TransmissionInterval transmissionInterval = new TransmissionInterval(transmissionInterval);
-        StationType stationType = new StationType(stationType);
-        */
-
         ManagementContainer managementContainer =
             ManagementContainer.builder()
             .actionID(new ActionID(new StationID(STATION_ID), new SequenceNumber(denm_sequence_number++)))
@@ -493,20 +476,94 @@ public class VehicleAdapter {
         return denm;
     }
 
-    //TODO: GCDCM messages needs to be added to the library
-    /*
-    public Gcdcm simulinkToGcdcm(byte[] packet){
-
+    //TODO: GCDCM messages have been added to the library. Still needs
+    //to be implemented though!
+    public IgameCooperativeLaneChangeMessage simulinkToGcdcm(byte[] packet){
+        return null;
     }
 
     public byte[] gcdcmToSimulink(){
         return null;
     }
 
-    public Gcdcm createGcdcm(){
+    public IgameCooperativeLaneChangeMessage createGcdcm(byte containerMask,
+                             //HW Container
+                             int rearAxleLocation,
+                             int controllerType,
+                             int responseTimeConstant,
+                             int responseTimeDelay,
+                             int targetLongAcc,
+                             int timeHeadway,
+                             int cruiseSpeed,
+                             //LF Container
+                             int participantsReady,
+                             int startPlatoon,
+                             int endOfScenarion,
+                             //MIO Container
+                             int id,
+                             int range,
+                             int bearing,
+                             int rangeRate,
+                             //Lane Container
+                             int lane,
+                             //Pair ID Container
+                             int ackFlag,
+                             //Merge Container
+                             int mergeRequest,
+                             int safeToMerge,
+                             int flag,
+                             int forwardId,
+                             int flagTail,
+                             int flagHead,
+                             //Intersection Container
+                             int platoonId,
+                             int distanceTraveledInCz,
+                             int intention,
+                             int counter){
 
+        VehicleContainerHighFrequency vehicleContainerHighFrequency =
+            new VehicleContainerHighFrequency();
+
+        VehicleContainerLowFrequency vehicleContainerLowFrequency =
+            (containerMask & (1<<7)) != 0 ?
+            new VehicleContainerLowFrequency()
+            : null;
+
+        MostImportantObjectContainer mostImportantObjectContainer =
+            new MostImportantObjectContainer();
+
+        LaneObject laneObject =
+            new LaneObject();
+
+        PairIdObject pairIdObject =
+            new PairIdObject();
+
+        MergeObject mergeObject =
+            new MergeObject();
+
+        ScenarioObject scenarioObject =            
+            new ScenarioObject();
+
+        IclmParameters iclmParameters =
+            new IclmParameters(vehicleContainerHighFrequency,
+                               vehicleContainerLowFrequency,
+                               mostImportantObjectContainer,
+                               laneObject,
+                               pairIdObject,
+                               mergeObject,
+                               scenarioObject);
+
+        IgameCooperativeLaneChangeMessageBody igameCooperativeLaneChangeMessageBody =
+            new IgameCooperativeLaneChangeMessageBody(new GenerationDeltaTime(),
+                                                      iclmParameters);
+                                                                                 
+        IgameCooperativeLaneChangeMessage igameCooperativeLaneChangeMessage =
+            new IgameCooperativeLaneChangeMessage(new ItsPduHeader(),
+                                                  igameCooperativeLaneChangeMessageBody);
+
+        return igameCooperativeLaneChangeMessage;
     }
-    */
+
 
     private Runnable receiveFromSimulinkLoop = new Runnable() {
         byte[] buffer = new byte[MAX_UDP_LENGTH];
