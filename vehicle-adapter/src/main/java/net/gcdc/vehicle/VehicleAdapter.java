@@ -288,36 +288,27 @@ public class VehicleAdapter {
         SpecialVehicleContainer specialVehicleContainer = null;
 
         BasicContainer basicContainer =
-            new BasicContainer(
-                               new StationType(stationType),
-                               new ReferencePosition(
-                                                     new Latitude(latitude),
+            new BasicContainer(new StationType(stationType),
+                               new ReferencePosition(new Latitude(latitude),
                                                      new Longitude(longitude),
-                                                     new PosConfidenceEllipse(
-                                                                              new SemiAxisLength(semiMajorAxisConfidence),
+                                                     new PosConfidenceEllipse(new SemiAxisLength(semiMajorAxisConfidence),
                                                                               new SemiAxisLength(semiMinorAxisConfidence),
                                                                               new HeadingValue(semiMajorOrientation)),
-                                                     new Altitude(
-                                                                  new AltitudeValue(altitude),
+                                                     new Altitude(new AltitudeValue(altitude),
                                                                   AltitudeConfidence.unavailable)));
         
         HighFrequencyContainer highFrequencyContainer =
             new HighFrequencyContainer(BasicVehicleContainerHighFrequency.builder()
-                                       .heading(new Heading(
-                                                            new HeadingValue(heading),
+                                       .heading(new Heading(new HeadingValue(heading),
                                                             new HeadingConfidence(headingConfidence)))
-                                       .speed(new Speed(
-                                                        new SpeedValue(speed),
+                                       .speed(new Speed(new SpeedValue(speed),
                                                         new SpeedConfidence(speedConfidence)))
-                                       .vehicleLength(new VehicleLength(
-                                                                        new VehicleLengthValue(vehicleLength),
+                                       .vehicleLength(new VehicleLength(new VehicleLengthValue(vehicleLength),
                                                                         VehicleLengthConfidenceIndication.unavailable))
                                        .vehicleWidth(new VehicleWidth(vehicleWidth))
-                                       .longitudinalAcceleration(new LongitudinalAcceleration(
-                                                                                              new LongitudinalAccelerationValue(longitudinalAcceleration),
+                                       .longitudinalAcceleration(new LongitudinalAcceleration(new LongitudinalAccelerationValue(longitudinalAcceleration),
                                                                                               new AccelerationConfidence(longitudinalAccelerationConfidence)))
-                                       .yawRate(new YawRate(
-                                                            new YawRateValue(yawRate),
+                                       .yawRate(new YawRate(new YawRateValue(yawRate),
                                                             //TODO: This code is slow. Cache YawRateConfidence.values() if it's a problem.
                                                             YawRateConfidence.values()[yawRateConfidence]))
                                        .create()
@@ -434,7 +425,9 @@ public class VehicleAdapter {
         SituationContainer situationContainer = (containerMask & (1<<7)) != 0 ?
             new SituationContainer(new InformationQuality(informationQuality),
                                    new CauseCode(new CauseCodeType(causeCode), new SubCauseCodeType(subCauseCode)),
-                                   (situationMask & (1<<7)) != 0 ? new CauseCode(new CauseCodeType(linkedCauseCode), new SubCauseCodeType(linkedSubCauseCode)) : null,
+                                   (situationMask & (1<<7)) != 0 ? new CauseCode(new CauseCodeType(linkedCauseCode),
+                                                                                 new SubCauseCodeType(linkedSubCauseCode))
+                                   : null,
                                    //TODO: Add EventHistory to SituationContainer
                                    null)
             :null;
@@ -487,62 +480,86 @@ public class VehicleAdapter {
     }
 
     public IgameCooperativeLaneChangeMessage createGcdcm(byte containerMask,
-                             //HW Container
-                             int rearAxleLocation,
-                             int controllerType,
-                             int responseTimeConstant,
-                             int responseTimeDelay,
-                             int targetLongAcc,
-                             int timeHeadway,
-                             int cruiseSpeed,
-                             //LF Container
-                             int participantsReady,
-                             int startPlatoon,
-                             int endOfScenarion,
-                             //MIO Container
-                             int id,
-                             int range,
-                             int bearing,
-                             int rangeRate,
-                             //Lane Container
-                             int lane,
-                             //Pair ID Container
-                             int ackFlag,
-                             //Merge Container
-                             int mergeRequest,
-                             int safeToMerge,
-                             int flag,
-                             int forwardId,
-                             int flagTail,
-                             int flagHead,
-                             //Intersection Container
-                             int platoonId,
-                             int distanceTraveledInCz,
-                             int intention,
-                             int counter){
+                                                         //HW Container
+                                                         int rearAxleLocation,
+                                                         int controllerType,
+                                                         int responseTimeConstant,
+                                                         int responseTimeDelay,
+                                                         int targetLongAcc,
+                                                         int timeHeadway,
+                                                         int cruiseSpeed,
+                                                         //LF Container
+                                                         byte lfMask, 
+                                                         int participantsReady,
+                                                         int startPlatoon,
+                                                         int endOfScenario,
+                                                         //MIO Container
+                                                         int mioId, 
+                                                         int mioRange, 
+                                                         int mioBearing, 
+                                                         int mioRangeRate, 
+                                                         //Lane Container
+                                                         int lane,
+                                                         //Pair ID Container
+                                                         int forwardId, 
+                                                         int backwardId, 
+                                                         int ackFlag,
+                                                         //Merge Container
+                                                         int mergeRequest,
+                                                         int mergeSafeToMerge,
+                                                         int mergeFlag,
+                                                         int mergeFlagTail,
+                                                         int mergeFlagHead,
+                                                         //Intersection Container
+                                                         int platoonId,
+                                                         int distanceTravelledCz,
+                                                         int intention,
+                                                         int counter){
 
         VehicleContainerHighFrequency vehicleContainerHighFrequency =
-            new VehicleContainerHighFrequency();
+            new VehicleContainerHighFrequency(new VehicleRearAxleLocation(rearAxleLocation),
+                                              new ControllerType(controllerType),
+                                              new VehicleResponseTime(new VehicleResponseTimeConstant(responseTimeConstant),
+                                                                      new VehicleResponseTimeDelay(responseTimeDelay)),
+                                              new TargetLongitudonalAcceleration(targetLongAcc),
+                                              new TimeHeadway(timeHeadway),
+                                              new CruiseSpeed(cruiseSpeed));
 
         VehicleContainerLowFrequency vehicleContainerLowFrequency =
             (containerMask & (1<<7)) != 0 ?
-            new VehicleContainerLowFrequency()
+            VehicleContainerLowFrequency.builder()
+            .participantsReady((lfMask & (1<<7)) != 0 ? new ParticipantsReady(participantsReady) : null)
+            .startPlatoon((lfMask & (1<<6)) != 0 ? new StartPlatoon(startPlatoon) : null)
+            .endOfScenario((lfMask & (1<<5)) != 0 ? new EndOfScenario(endOfScenario) : null)
+            .create()
             : null;
 
         MostImportantObjectContainer mostImportantObjectContainer =
-            new MostImportantObjectContainer();
+            new MostImportantObjectContainer(new StationID(mioId),
+                                             new MioRange(mioRange),
+                                             new MioBearing(mioBearing),
+                                             new MioRangeRate(mioRangeRate));       
 
         LaneObject laneObject =
-            new LaneObject();
+            new LaneObject(new Lane(lane));
 
         PairIdObject pairIdObject =
-            new PairIdObject();
+            new PairIdObject(new StationID(forwardId),
+                             new StationID(backwardId),
+                             new AcknowledgeFlag(ackFlag));
 
         MergeObject mergeObject =
-            new MergeObject();
+            new MergeObject(new MergeRequest(mergeRequest),
+                            new MergeSafeToMerge(mergeSafeToMerge),
+                            new MergeFlag(mergeFlag),
+                            new MergeFlagTail(mergeFlagTail),
+                            new MergeFlagHead(mergeFlagHead));
 
         ScenarioObject scenarioObject =            
-            new ScenarioObject();
+            new ScenarioObject(new PlatoonID(platoonId),
+                               new DistanceTravelledCZ(distanceTravelledCz),
+                               new Intention(intention),
+                               new Counter(counter));
 
         IclmParameters iclmParameters =
             new IclmParameters(vehicleContainerHighFrequency,
