@@ -107,8 +107,10 @@ import net.gcdc.camdenm.CoopIts.YawRateValue;
 */
 import net.gcdc.camdenm.CoopIts.*;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
+import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
 
 import net.gcdc.camdenm.Iclcm.*;
+//import net.gcdc.camdenm.Iclcm.MessageID_iCLCM;
 
 import net.gcdc.geonetworking.LinkLayerUdpToEthernet;
 import net.gcdc.geonetworking.LongPositionVector;
@@ -314,11 +316,12 @@ public class VehicleAdapter {
                                        .create()
                                        );
             return new Cam(
-                    new ItsPduHeader(new MessageId(MessageId.cam)),
+                           new ItsPduHeader(new ProtocolVersion(1),
+                                            new MessageId(MessageId.cam),
+                                            new StationID(STATION_ID)),
                     new CoopAwareness(
                             new GenerationDeltaTime(genDeltaTimeMillis * GenerationDeltaTime.oneMilliSec),
-                            new CamParameters(
-                                              basicContainer,
+                            new CamParameters(basicContainer,
                                               highFrequencyContainer,
                                               lowFrequencyContainer,
                                               specialVehicleContainer)));
@@ -462,7 +465,9 @@ public class VehicleAdapter {
                                                               alacarteContainer);
 
         Denm denm = new Denm(
-                             new ItsPduHeader(new MessageId(MessageId.denm)),
+                             new ItsPduHeader(new ProtocolVersion(1),
+                                              new MessageId(MessageId.denm),
+                                              new StationID(STATION_ID)),
                              decentralizedEnvironmentalNotificationMessage);
 
         logger.debug("Created DENM: " + denm);
@@ -570,17 +575,20 @@ public class VehicleAdapter {
                                mergeObject,
                                scenarioObject);
 
+        //TODO: GenerationDeltaTime isn't part of the iCLCM spec in D3.2
         IgameCooperativeLaneChangeMessageBody igameCooperativeLaneChangeMessageBody =
             new IgameCooperativeLaneChangeMessageBody(new GenerationDeltaTime(),
                                                       iclmParameters);
                                                                                  
         IgameCooperativeLaneChangeMessage igameCooperativeLaneChangeMessage =
-            new IgameCooperativeLaneChangeMessage(new ItsPduHeader(),
+            new IgameCooperativeLaneChangeMessage(new ItsPduHeader(new ProtocolVersion(1),
+                                                                   //TODO: Import ID from Iclcm class instead
+                                                                   new MessageId(10),
+                                                                   new StationID(STATION_ID)),
                                                   igameCooperativeLaneChangeMessageBody);
 
         return igameCooperativeLaneChangeMessage;
     }
-
 
     private Runnable receiveFromSimulinkLoop = new Runnable() {
         byte[] buffer = new byte[MAX_UDP_LENGTH];
