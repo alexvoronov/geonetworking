@@ -73,7 +73,7 @@ public class ICLCMTest {
 		byte[] encoded_highFrequency=UperEncoder.encode(new VehicleContainerHighFrequency());
 		logger.debug("hex: {}", getStringByteCode(encoded_highFrequency));
 		logger.debug("bin out: {}", UperEncoder.hexStringFromBytes(encoded_highFrequency));
-		assertEquals("000000001F40000000",UperEncoder.hexStringFromBytes(encoded_highFrequency));
+		assertEquals("0003E9FA7E8DA67120",UperEncoder.hexStringFromBytes(encoded_highFrequency));
 		
 		
 	}
@@ -83,7 +83,7 @@ public class ICLCMTest {
 		byte[] encoded_highVelocity=UperEncoder.encode(new VehicleContainerHighFrequency());
 		logger.debug("hex: {}", getStringByteCode(encoded_highVelocity));
 		logger.debug("bin out: {}", UperEncoder.hexStringFromBytes(encoded_highVelocity));
-		assertEquals("000000001F40000000",UperEncoder.hexStringFromBytes(encoded_highVelocity));
+		assertEquals("0003E9FA7E8DA67120",UperEncoder.hexStringFromBytes(encoded_highVelocity));
 		
 		VehicleContainerHighFrequency vf_filled = new VehicleContainerHighFrequency(
 				new VehicleRearAxleLocation(4095),
@@ -130,7 +130,7 @@ public class ICLCMTest {
 		byte[] encoded_empty = UperEncoder.encode(mioContainerDefault);
 		logger.debug("bin: {}", UperEncoder.hexStringFromBytes(encoded_empty));
 		logger.debug("");
-		assertEquals("00000000FFFF623FFFE0",UperEncoder.hexStringFromBytes(encoded_empty));
+		assertEquals("00000000FFFFC47FFFE0",UperEncoder.hexStringFromBytes(encoded_empty));
 	}
 	
 	@Test public void test_encodeLaneObject(){
@@ -171,7 +171,7 @@ public class ICLCMTest {
 		byte[] encoded_empty = UperEncoder.encode(so);
 		logger.debug("bin: {}", UperEncoder.hexStringFromBytes(encoded_empty));
 		logger.debug("");
-		assertEquals(UperEncoder.hexStringFromBytes(encoded_empty),"00000000");
+		assertEquals("02000000",UperEncoder.hexStringFromBytes(encoded_empty));
 	}
 	
 	@Test public void test_encodeIclmParameters(){
@@ -209,25 +209,25 @@ public class ICLCMTest {
 		logger.debug("binary scenarioObject: {}", UperEncoder.hexStringFromBytes(UperEncoder.encode(scenarioObject)));
 		//Parameters: 1*33 bytes: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 		logger.debug("parameters: {}", UperEncoder.hexStringFromBytes(UperEncoder.encode(parameters)));
-		assertEquals("800000000FA000000000000001FFFEC47FFFD8000000000000000000000000",UperEncoder.hexStringFromBytes(encoded_empty));
+		assertEquals("8001F4FD3F46D3389000000001FFFF88FFFFD8000000000000000000400000",UperEncoder.hexStringFromBytes(encoded_empty));
 	}
 	
 	@Test public void test_encodeIgameCooperativeLaneChangeMessageBody(){
 		GenerationDeltaTime generationDeltaTime = new GenerationDeltaTime();
 		IclmParameters iclmParameters = new IclmParameters();
-		IgameCooperativeLaneChangeMessageBody body_default = new IgameCooperativeLaneChangeMessageBody();
-		IgameCooperativeLaneChangeMessageBody body_filled = new IgameCooperativeLaneChangeMessageBody(generationDeltaTime,iclmParameters);
+		IgameCooperativeLaneChangeMessageBody body_ctor1 = new IgameCooperativeLaneChangeMessageBody();
+		IgameCooperativeLaneChangeMessageBody body_ctor2 = new IgameCooperativeLaneChangeMessageBody(generationDeltaTime,iclmParameters);
 		
-		byte[] encoded_empty = UperEncoder.encode(body_default);
-		logger.debug("bin: {}", UperEncoder.hexStringFromBytes(encoded_empty));
+		byte[] encoded_ctor1 = UperEncoder.encode(body_ctor1);
+		logger.debug("bin: {}", UperEncoder.hexStringFromBytes(encoded_ctor1));
 		logger.debug("");
 		//1*35 bytes
-		assertEquals("0064000000000FA00000000000000FFFF623FFFEC0000000000000000000000000",UperEncoder.hexStringFromBytes(encoded_empty));
+		assertEquals("00640001F4FD3F46D338900000000FFFFC47FFFEC0000000000000000002000000",UperEncoder.hexStringFromBytes(encoded_ctor1));
 		
-		byte[] encoded_filled = UperEncoder.encode(body_filled);
-		logger.debug("bin: {}", UperEncoder.hexStringFromBytes(encoded_filled));
+		byte[] encoded_ctor2 = UperEncoder.encode(body_ctor2);
+		logger.debug("bin: {}", UperEncoder.hexStringFromBytes(encoded_ctor2));
 		logger.debug("");
-		assertEquals("0064000000000FA00000000000000FFFF623FFFEC0000000000000000000000000",UperEncoder.hexStringFromBytes(encoded_filled));
+		assertEquals("00640001F4FD3F46D338900000000FFFFC47FFFEC0000000000000000002000000",UperEncoder.hexStringFromBytes(encoded_ctor2));
 	}
 	
     @Test public void test_IgameCooperativeLaneChangeMessage() {
@@ -254,8 +254,28 @@ public class ICLCMTest {
     	logger.debug("bin default: {}", UperEncoder.hexStringFromBytes(encoded_default));
         logger.debug("bin filled: {}", UperEncoder.hexStringFromBytes(encoded_filled));
 
-        assertEquals("010A000000000064000000000FA00000000000000FFFF623FFFEC0000000000000000000000000",UperEncoder.hexStringFromBytes(encoded_filled));
-        }
+        assertEquals("010A0000000000640001F4FD3F46D338900000000FFFFC47FFFEC0000000000000000002000000",UperEncoder.hexStringFromBytes(encoded_filled));
+    }
+    /**
+     * Test the correct recoding of several 'valid' messages
+     */
+    @Test public void test_KnownMessages(){
+		String[] encodedStrings = {
+				"01 0A 00 00 00 01 4F 8B 00 05 F4 FD 3F 46 D3 38 90 00 00 00 1F FF FC 47 FF FE C0 00 00 00 40 00 00 00 40 03 00 00 00",
+				"01 0A 00 00 00 03 8F 28 A5 86 32 02 94 A0 24 D0 29 00 00 00 01 05 DC 00 18 4A F0 00 00 00 04 00 00 00 0A 10 10 20 84",
+				"01 0A 00 00 00 03 EB 7B A5 86 32 02 94 A0 24 D0 2F 00 00 00 00 82 EE 00 0C 25 78 00 00 00 02 00 00 00 05 E8 10 10 4E",
+				"01 0A 00 00 00 0B 0D A4 00 07 F4 FD 3F 46 D3 38 90 00 00 00 2F FF FC 47 FF FE C0 00 00 00 40 00 00 00 40 03 00 00 00",
+				"010A00000002007B8326320C9F401406400000001607D102F031F00000007800000087E0200938",
+				"010A00000000000080000000000000000000000000000000000000000000000000000000000000",//min ranges
+				"010AFFFFFFFFFFFFFFFFF4FD3F46D33891FFFFFFFFFFFF88FFFFDFFFFFFFFFFFFFFFFFFFD38858"//max ranges
+		};
+		for(String s: encodedStrings){
+			String input = s.replace(" ", "");
+			IgameCooperativeLaneChangeMessage asMessage = UperEncoder.decode(UperEncoder.bytesFromHexString(input), IgameCooperativeLaneChangeMessage.class);
+			byte[] asBytes = UperEncoder.encode(asMessage);
+			assertEquals(UperEncoder.hexStringFromBytes(asBytes),input);
+		}
+    }
     
 	/**
 	 * Utility: Byte array to readable hexadecimal representation
