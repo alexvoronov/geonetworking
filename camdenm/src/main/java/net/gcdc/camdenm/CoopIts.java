@@ -469,6 +469,10 @@ public class CoopIts {
 		public Altitude getAltitude() {
 			return altitude;
 		}
+		@Override
+		public String toString(){
+			return "ReferencePosition("+latitude+", "+longitude+", "+positionConfidenceEllipse+", "+altitude+")";
+		}
     }
 
     @Sequence
@@ -763,6 +767,10 @@ public class CoopIts {
 		public HeadingValue getSemiMajorOrientation() {
 			return semiMajorOrientation;
 		}
+		@Override
+		public String toString(){
+			return "PosConfidenceEllipse("+semiMajorConfidence+", "+semiMinorConfidence+", "+semiMajorOrientation+")";
+		}
     }
 
     @IntRange(minValue = 0, maxValue = 4095)
@@ -790,6 +798,10 @@ public class CoopIts {
 		}
 		public AltitudeConfidence getAltitudeConfidence() {
 			return altitudeConfidence;
+		}
+		@Override
+		public String toString(){
+			return "Altitude("+altitudeValue+", "+altitudeConfidence+")";
 		}
     }
 
@@ -2040,6 +2052,9 @@ public class CoopIts {
 		public DecentralizedEnvironmentalNotificationMessage getDenm() {
 			return denm;
 		}
+		public String toString(){
+			return "Denm("+header+", "+denm+")";
+		}
     }
 
     @Sequence
@@ -2054,7 +2069,7 @@ public class CoopIts {
         public DecentralizedEnvironmentalNotificationMessage(ManagementContainer management) {
             this(management, null, null, null);
         }
-
+        
         public DecentralizedEnvironmentalNotificationMessage(
                 ManagementContainer management,
                 SituationContainer situation,
@@ -2087,6 +2102,13 @@ public class CoopIts {
 		public AlacarteContainer getAlacarte() {
 			return alacarte;
 		}
+		@Override
+        public String toString(){
+        	return "Denmbody("+management+", "
+        			+(situation!=null?situation.toString():"SituationContainer(null)")+", "
+        			+(location!=null?location.toString():"LocationContainer(null)")+", "
+        			+(alacarte!=null?alacarte.toString():"AlacarteContainer(null)")+")";
+        }
     }
 
     @Sequence
@@ -2103,6 +2125,16 @@ public class CoopIts {
         @Asn1Optional TransmissionInterval transmissionInterval;
         StationType stationType;
 
+        @Override
+        public String toString(){
+        	return "ManagementContainer("+actionID+", "+detectionTime+", "+ referenceTime+", "+ eventPosition+", "+ stationType+", "
+        			+(termination!=null?termination.toString():"Termination(null)")+", "
+        			+(relevanceDistance!=null?relevanceDistance.toString():"RelevanceDistance(null)")+", "
+        			+(relevanceTrafficDirection!=null?relevanceTrafficDirection.toString():"RelevanceTrafficDirection(null)")+", "
+		        	+(validityDuration!=null?validityDuration.toString():"ValidityDuration(null)")+", "
+		        	+(transmissionInterval!=null?transmissionInterval.toString():"TransmissionInterval(null)")+")";
+        }
+        
         public ManagementContainer() {
             this.actionID = new ActionID();
             this.detectionTime = new TimestampIts();
@@ -2249,6 +2281,10 @@ public class CoopIts {
 
 		public SequenceNumber getSequenceNumber() {
 			return sequenceNumber;
+		}
+		@Override
+		public String toString(){
+			return "ActionID("+originatingStationID+", "+sequenceNumber+")";
 		}
     }
 

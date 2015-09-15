@@ -272,6 +272,8 @@ public class Iclcm {
 		public MioRangeRate getMioRangeRate() {
 			return mioRangeRate;
 		}
+		
+		@Override public String toString() { return "MostImportantObjectContainer(" + mioID + ", " + mioRange + ", " + mioBearing + ", " +mioRangeRate + ")"; }
 	}
 	@Sequence
     public static class LaneObject{
@@ -281,6 +283,7 @@ public class Iclcm {
 		public Lane getLane() {
 			return lane;
 		}
+		@Override public String toString() { return "LaneObject(" + lane + ")"; }
 	}
 	
 	@Sequence
@@ -303,6 +306,8 @@ public class Iclcm {
 		public AcknowledgeFlag getAcknowledgeFlag() {
 			return acknowledgeFlag;
 		}
+		
+		@Override public String toString() { return "PairIdObject(" + forwardID +", "+backwardID+", "+acknowledgeFlag+ ")"; }
 	}
 	
 	@Sequence
@@ -336,6 +341,7 @@ public class Iclcm {
 		public MergeFlagHead getMergeFlagHead() {
 			return mergeFlagHead;
 		}
+		@Override public String toString() { return "MergeObject(" + mergeRequest +", "+mergeSafeToMerge+", "+mergeFlag+ ", "+mergeFlagTail+", "+mergeFlagHead+ ")"; }
 		
 	}
 	@Sequence
@@ -364,6 +370,7 @@ public class Iclcm {
 		public Counter getCounterIntersection() {
 			return counterIntersection;
 		}
+		@Override public String toString() { return "ScenarioObject(" + platoonID +", "+distanceTravelledCZ+", "+intention+ ", "+counterIntersection+ ")"; }
 	}
 	
 	@Sequence
@@ -381,6 +388,7 @@ public class Iclcm {
 		public VehicleResponseTimeDelay getVehicleResponseTimeDelay() {
 			return vehicleResponseTimeDelay;
 		}
+		@Override public String toString() { return "VehicleResponseTime(" + vehicleResponseTimeConstant +", "+vehicleResponseTimeDelay+")"; }
 	}
 
 	@IntRange(minValue = 0, maxValue = 4095)
@@ -400,6 +408,16 @@ public class Iclcm {
 		
 		public ControllerType() { this(manual); }
 		public ControllerType(int value) { super(value); }
+		
+		@Override public String toString() {
+			switch((int)value){
+			case manual: return "manual";
+			case cc: return "cc";
+			case acc: return "acc";
+			case cacc: return "cacc";
+			default: return "Unkown";
+			}
+		}
 	}
 	
 	@IntRange(minValue = 0, maxValue = 1001)
@@ -407,7 +425,7 @@ public class Iclcm {
 		public static final int oneSecond = 100;
 		public static final int unavailable = 1001;
 		
-		public VehicleResponseTimeConstant() { this(0); }
+		public VehicleResponseTimeConstant() { this(unavailable); }
 		public VehicleResponseTimeConstant(int value) { super(value); }
 	}
 	
@@ -416,7 +434,7 @@ public class Iclcm {
 		public static final int oneSecond = 100;
 		public static final int unavailable = 1001;
 		
-		public VehicleResponseTimeDelay() { this(0); }
+		public VehicleResponseTimeDelay() { this(unavailable); }
 		public VehicleResponseTimeDelay(int value) { super(value); }
 	}
 	
@@ -425,7 +443,7 @@ public class Iclcm {
 		public static final int oneMeterPerSecondSquared = 100;
 		public static final int unavailable = 1001;
 		
-		public TargetLongitudonalAcceleration() { this(0); }
+		public TargetLongitudonalAcceleration() { this(unavailable); }
 		public TargetLongitudonalAcceleration(int value) { super(value); }
 	}
 	
@@ -440,11 +458,11 @@ public class Iclcm {
 	
 	@IntRange(minValue = -1571, maxValue = 1572)
 	public static class MioBearing extends Asn1Integer {
-		public static double zeroRadians = 0;
-		public static double oneRadianRight = 500;
-		public static double unavailable = 1572;
+		public static final int zeroRadians = 0;
+		public static final int oneRadianRight = 500;
+		public static final int unavailable = 1572;
 		
-		public MioBearing() { this(0); }
+		public MioBearing() { this(unavailable); }
 		public MioBearing(int value) { super(value); }
 	}
 	
@@ -463,7 +481,7 @@ public class Iclcm {
 		public static final int oneSecond = 10;
 		public static final int unavailable = 361;
 		
-		public TimeHeadway() { this(0); }
+		public TimeHeadway() { this(unavailable); }
 		public TimeHeadway(int value) { super(value); }
 	}
 	
@@ -472,7 +490,7 @@ public class Iclcm {
 		public static final int oneMeterPerSecond = 100;
 		public static final int unavailable = 5001;
 		
-		public CruiseSpeed() { this(0); }
+		public CruiseSpeed() { this(unavailable); }
 		public CruiseSpeed(int value) { super(value); }
 	}
 	
@@ -483,6 +501,7 @@ public class Iclcm {
 		
 		public MergeRequest() { this(noMergeRequest); }
 		public MergeRequest(int value) { super(value); }
+		@Override public String toString(){ return value==noMergeRequest?"MergeRequest(no)":"MergeRequest(yes)";}
 	}
 	
 	@IntRange(minValue = 0, maxValue = 1)
@@ -492,6 +511,8 @@ public class Iclcm {
 		
 		public MergeSafeToMerge() { this(notSafe); }
 		public MergeSafeToMerge(int value) { super(value); }
+		
+		@Override public String toString(){ return value==notSafe?"MergeSafeToMerge(not safe)":"MergeSafeToMerge(safe)";}
 	}
 	
 	@IntRange(minValue = 0, maxValue = 1)
@@ -517,7 +538,7 @@ public class Iclcm {
 		public static final int notFirstVehicle = 0;
 		public static final int firstVehicle = 1;
 		
-		public MergeFlagHead() { this(0); }
+		public MergeFlagHead() { this(notFirstVehicle); }
 		public MergeFlagHead(int value) { super(value); }
 	}
 	
@@ -527,7 +548,7 @@ public class Iclcm {
 		public static final int platoonB = 2;
 		public static final int notUsed = 3;
 		
-		public PlatoonID() { this(1); }
+		public PlatoonID() { this(notUsed); }
 		public PlatoonID(int value) { super(value); }
 	}
 	
@@ -545,7 +566,7 @@ public class Iclcm {
 		public static final int turnLeft = 2;
 		public static final int turnRight = 3;
 		
-		public Intention() { this(1); }
+		public Intention() { this(straightNoTurning); }
 		public Intention(int value) { super(value); }
 	}
 	
@@ -565,7 +586,7 @@ public class Iclcm {
 		public static final int noVehicles = 0;
 		public static final int oneVehicle = 1;
 		
-		public Counter() { this(0); }
+		public Counter() { this(noVehicles); }
 		public Counter(int value) { super(value); }
 	}
 
@@ -574,7 +595,7 @@ public class Iclcm {
 		public static final int acknowledged = 1;
 		public static final int notAcknowledged = 0;
 		
-		public AcknowledgeFlag() { this(0); }
+		public AcknowledgeFlag() { this(notAcknowledged); }
 		public AcknowledgeFlag(int value) { super(value); }
 	}
 	
@@ -583,7 +604,7 @@ public class Iclcm {
 		public static final int notReady = 0;
 		public static final int ready  =1;
 		
-		public ParticipantsReady() { this(0); }
+		public ParticipantsReady() { this(notReady); }
 		public ParticipantsReady(int value) { super(value); }
 	}
 	
@@ -592,7 +613,7 @@ public class Iclcm {
 		public static final int startPlatoonAAtSpeed80kph = 0;
 		public static final int startPlatoonBAtSpeed60kph = 1;
 		
-		public StartPlatoon() { this(0); }
+		public StartPlatoon() { this(startPlatoonAAtSpeed80kph); }
 		public StartPlatoon(int value) { super(value); }
 	}
 	
