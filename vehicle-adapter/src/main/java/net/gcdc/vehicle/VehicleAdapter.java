@@ -499,7 +499,9 @@ public class VehicleAdapter {
 
             //Need to update the mask since it has been changed
             buffer.put(3+20*4+1, alacarteMask);
-        }else buffer.put(new byte[1+3*4]);                                       
+        }else buffer.put(new byte[1+3*4]);
+
+        buffer.put(1, containerMask);        
     }
 
     private int denm_sequence_number = 0;
@@ -649,7 +651,82 @@ public class VehicleAdapter {
     }
 
     public void gcdcmToSimulink(IgameCooperativeLaneChangeMessage iCLCM, byte[] packetBuffer){
+        ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
+        IgameCooperativeLaneChangeMessageBody iclcm = iCLCM.getIclm();        
+        //TODO: Add generationDeltaTime
+        IclmParameters iclmParameters = iclcm.getIclmParameters();
+        byte containerMask = 0;
+        buffer.put(containerMask);        
+
+        /* VehicleContainerHighFrequency */
+        VehicleContainerHighFrequency vehicleContainerHighFrequency = iclmParameters.getVehicleContainerHighFrequency();
+        buffer.putInt((int) vehicleContainerHighFrequency.getVehicleRearAxleLocation().value);        
+        buffer.getInt((int) vehicleContainerHighFrequency.getControllerType().value);        
+        buffer.getInt((int) vehicleContainerHighFrequency.getVehicleResponseTime().getVehicleResponseTimeConstant().value);
+        buffer.getInt((int) vehicleContainerHighFrequency.getVehicleResponseTime().getVehicleResponseTimeDelay().value);
+        buffer.getInt((int) vehicleContainerHighFrequency.getTargetLongitudinalAcceleration().value);        
+        buffer.getInt((int) vehicleContainerHighFrequency.getTimeHeadway().value);
+        buffer.getInt((int) vehicleContainerHighFrequency.getCruisespeed().value);        
+
+        /* VehicleContainerLowFrequency */
+        VehicleContainerLowFrequency lowFrequencyContainer = null;
+        if(iclmParameters.hasLowFrequencyContainer()){
+            containerMask += (1<<7);
+            lowFrequencyContainer = iclmParameters.getLowFrequencyContainer();
+            byte lowFrequencyMask = 0;            
+            buffer.put(lowFrequencyMask);
+
+            if(lowFrequencyContainer.hasParticipantsReady()){
+                lowFrequencyMask += (1<<7);                
+                buffer.putInt((int) lowFrequencyContainer.getParticipantsReady().value);                
+            }else buffer.putInt(0);            
+
+            if(lowFrequencyContainer.hasStartPlatoon()){
+                lowFrequencyMask += (1<<6);                                
+		buffer.putInt((int) lowFrequencyContainer.getStartPlatoon().value);                
+            }else buffer.putInt(0);            
+
+            if(lowFrequencyContainer.hasEndOfScenario()){
+                lowFrequencyMask += (1<<5);                                
+		buffer.putInt((int) lowFrequencyContainer.getEndOfScenario().value);                
+            }
+
+            buffer.put(2, lowFrequencyMask);            
+        }else buffer.put(new byte[1+3*4]);
         
+        /* MostImportantObjectContainer */
+        MostImportantObjectContainer mostImportantObjectContainer = iclmParameters.getMostImportantObjectContainer();
+        buffer.putInt((int) mostImportantObjectContainer.getMioID().value);        
+        buffer.putInt((int) mostImportantObjectContainer.getMioRange().value);        
+        buffer.putInt((int) mostImportantObjectContainer.getMioBearing().value());        
+        buffer.putInt((int) mostImportantObjectContainer.getMioRangeRate().value());        
+
+        /* LaneObject */
+        LaneObject laneObject = iclmParameters.getLaneObject();
+        buffer.putInt((int) laneObject.getLane().value());        
+
+        /* PairIdObject */
+        PairIdObject pairIdObject = iclmParameters.getPairIdObject();
+        buffer.putInt((int) pairIdObject.getForwardID().value);       
+        buffer.putInt((int) pairIdObject.getBackwardID().value);        
+        buffer.putInt((int) pairIdObject.getAcknowledgeFlag().value);        
+
+        /* MergeObject */
+        MergeObject mergeObject = iclmParameters.getMergeObject();
+        buffer.putInt((int) mergeObject.getMergeRequest().value);        
+        buffer.putInt((int) mergeObject.getMergeSafeToMerge().value);        
+        buffer.putInt((int) mergeObject.getMergeFlag().value);        
+        buffer.putInt((int) mergeObject.getMergeFlagTail().value);        
+        buffer.putInt((int) mergeObject.getMergeFlagHead().value);        
+
+        /* ScenarioObject */
+        ScenarioObject scenarioObject = iclmParameters.getScenarioObject();
+        buffer.putInt((int) scenarioObject.getPlatoonID().value);        
+        buffer.putInt((int) scenarioObject.getDistanceTravelledCZ().value);        
+        buffer.putInt((int) scenarioObject.getIntention().value);        
+        buffer.putInt((int) scenarioObject.getCounterIntersection().value);
+
+        buffer.put(1, containerMask);        
     }
 
     public IgameCooperativeLaneChangeMessage createGcdcm(byte containerMask,
