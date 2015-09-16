@@ -225,28 +225,40 @@ public class VehicleAdapter {
          */
         if(cam.getCam().getCamParameters().getLowFrequencyContainer() != null) containerMask = 1;
 
-        buffer.put(containerMask);
-        buffer.putInt((int) cam.getCam().getGenerationDeltaTime().value);
-        buffer.put((byte) cam.getCam().getCamParameters().getBasicContainer().getStationType().value);
-        buffer.put((byte) cam.getCam().getCamParameters().getLowFrequencyContainer().getBasicVehicleContainerLowFrequency().getVehicleRole().value());
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleLength().getVehicleLengthValue().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleWidth().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLatitude().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLongitude().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMajorConfidence().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMinorConfidence().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMajorOrientation().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getHeading().getHeadingValue().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getHeading().getHeadingConfidence().value);        
-        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getAltitude().getAltitudeValue().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getSpeed().getSpeedValue().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getSpeed().getSpeedConfidence().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getYawRate().getYawRateValue().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getYawRate().getYawRateConfidence().value());
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
-                      getLongitudinalAccelerationValue().value());
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
-                      getLongitudinalAccelerationConfidence().value());
+        /* TODO: How much sanity checking do you want here? We want to
+         * check for null values for sure, but other than that the
+         * vehicle control system probably knows best on how to handle
+         * werid values.
+         */
+
+        try{
+            buffer.put(containerMask);
+            buffer.putInt((int) cam.getCam().getGenerationDeltaTime().value);
+            buffer.put((byte) cam.getCam().getCamParameters().getBasicContainer().getStationType().value);
+            buffer.put((byte) cam.getCam().getCamParameters().getLowFrequencyContainer().getBasicVehicleContainerLowFrequency().getVehicleRole().value());
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleLength().getVehicleLengthValue().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleWidth().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLatitude().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLongitude().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMajorConfidence().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMinorConfidence().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMajorOrientation().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getHeading().getHeadingValue().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getHeading().getHeadingConfidence().value);        
+            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getAltitude().getAltitudeValue().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getSpeed().getSpeedValue().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getSpeed().getSpeedConfidence().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getYawRate().getYawRateValue().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getYawRate().getYawRateConfidence().value());
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
+                          getLongitudinalAccelerationValue().value());
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
+                          getLongitudinalAccelerationConfidence().value());
+
+        }catch(NullPointerException e){
+            logger.error("NullPointerException when creating local CAM");
+            System.exit(1);
+        }
 
         
     }
@@ -327,6 +339,7 @@ public class VehicleAdapter {
                                               specialVehicleContainer)));
     }
 
+
     public Denm simulinkToDenm(byte[] receivedData){
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
 
@@ -364,14 +377,129 @@ public class VehicleAdapter {
                               buffer.getInt(),  /* temperature */
                               buffer.getInt()); /* positioningSolutionType */
             
-        }catch(BufferOverflowException e){
+        }catch(BufferUnderflowException e){
             logger.error("Failed to create DENM from Simulink message: " + e);
             return null;
         }
     }
 
-    public byte[] denmToSimulink(){
-        return null;
+    /* Unpack a DENM and create a local DENM for sending to Simulink.
+     */
+    /* TODO: Read through this method again since I've probably made
+     * some mistake somewhere.
+     */
+    public void denmToSimulink(Denm denmPacket, byte[] packetBuffer){
+        ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
+
+        DecentralizedEnvironmentalNotificationMessage denm = denmPacket.getDenm();
+        byte containerMask = 0;
+        buffer.put(containerMask);        
+
+        /* ManagementContainer */
+        ManagementContainer managementContainer = denm.getManagement();
+        byte managementMask = 0;
+        buffer.put(managementMask);        
+        
+        buffer.putInt((int) managementContainer.getActionID().getOriginatingStationID().value);       
+        buffer.putInt((int) managementContainer.getDetectionTime().value);
+        buffer.putInt((int) managementContainer.getReferenceTime().value);
+
+        if(managementContainer.hasTermination()){
+            managementMask += (1<<7);            
+            buffer.putInt((int) managementContainer.getTermination().value());
+        }else buffer.putInt(0);        
+        
+        buffer.putInt((int) managementContainer.getEventPosition().getLatitude().value);
+        buffer.putInt((int) managementContainer.getEventPosition().getLongitude().value);
+        buffer.putInt((int) managementContainer.getEventPosition().getPositionConfidenceEllipse().getSemiMajorConfidence().value);
+        buffer.putInt((int) managementContainer.getEventPosition().getPositionConfidenceEllipse().getSemiMinorConfidence().value);
+        buffer.putInt((int) managementContainer.getEventPosition().getPositionConfidenceEllipse().getSemiMajorOrientation().value);
+        buffer.putInt((int) managementContainer.getEventPosition().getAltitude().getAltitudeValue().value);
+
+        if(managementContainer.hasRelevanceDistance()){
+            managementMask += (1<<6);            
+            buffer.putInt((int) managementContainer.getRelevanceDistance().value());
+        }else buffer.putInt(0);
+
+        if(managementContainer.hasRelevanceTrafficDirection()){
+            managementMask += (1<<5);            
+            buffer.putInt((int) managementContainer.getRelevanceTrafficDirection().value());
+        }else buffer.putInt(0);
+
+        if(managementContainer.hasValidityDuration()){
+            managementMask += (1<<4);            
+            buffer.putInt((int) managementContainer.getValidityDuration().value);
+        }else buffer.putInt(0);
+        
+        if(managementContainer.hasTransmissionInterval()){
+            managementMask += (1<<3);            
+            buffer.putInt((int) managementContainer.getTransmissionInterval().value);
+        }else buffer.putInt(0);        
+        
+        buffer.putInt((int) managementContainer.getStationType().value);
+
+        //Need to update the mask since it has been changed
+        buffer.put(2, managementMask);        
+
+        //SituationContainer isn't used for GCDC16
+        SituationContainer situationContainer = null;
+
+        /* LocationContainer */
+        LocationContainer locationContainer = null;        
+        if(denm.hasLocation()){
+            containerMask += (1<<7);            
+            locationContainer = denm.getLocation();
+            byte locationMask = 0;
+            buffer.put(locationMask);
+            
+            if(locationContainer.hasEventSpeed()){                
+                locationMask += (1<<7);                
+                buffer.putInt((int) locationContainer.getEventSpeed().getSpeedValue().value);
+                buffer.putInt((int) locationContainer.getEventSpeed().getSpeedConfidence().value);
+            }else buffer.put(new byte[2*4]);
+            
+            if(locationContainer.hasEventSpeed()){                
+                locationMask += (1<<6);                
+                buffer.putInt((int) locationContainer.getEventPositionHeading().getHeadingValue().value);
+                buffer.putInt((int) locationContainer.getEventPositionHeading().getHeadingConfidence().value);                
+            }else buffer.put(new byte[2*4]);
+
+            if(locationContainer.hasEventSpeed()){                
+                locationMask += (1<<5);                
+                buffer.putInt((int) locationContainer.getRoadType().value());                          
+            }else buffer.putInt(0);
+
+            //Need to update the mask since it has been changed
+            buffer.put(2+15*4+1, locationMask);            
+        }else buffer.put(new byte[1+5*4]);        
+        
+
+        /* AlacarteContainer */
+        AlacarteContainer alacarteContainer = null;        
+        if(denm.hasAlacarte()){
+            containerMask += (1<<6);            
+            alacarteContainer = denm.getAlacarte();
+            byte alacarteMask = 0;
+            buffer.put(alacarteMask);            
+
+            if(alacarteContainer.hasLanePosition()){
+                alacarteMask += (1<<7);
+                buffer.putInt((int) alacarteContainer.getLanePosition().value);                
+            }else buffer.putInt(0);
+
+            if(alacarteContainer.hasExternalTemperature()){
+                alacarteMask += (1<<6);
+                buffer.putInt((int) alacarteContainer.getExternalTemperature().value);                
+            }else buffer.putInt(0);
+
+            if(alacarteContainer.hasPositioningSolution()){
+                alacarteMask += (1<<5);
+                buffer.putInt((int) alacarteContainer.getPositioningSolution().value());
+            }else buffer.putInt(0);
+
+            //Need to update the mask since it has been changed
+            buffer.put(3+20*4+1, alacarteMask);
+        }else buffer.put(new byte[1+3*4]);                                       
     }
 
     private int denm_sequence_number = 0;
@@ -474,14 +602,54 @@ public class VehicleAdapter {
         return denm;
     }
 
-    //TODO: GCDCM messages have been added to the library. Still needs
-    //to be implemented though!
     public IgameCooperativeLaneChangeMessage simulinkToGcdcm(byte[] packet){
-        return null;
+        ByteBuffer buffer = ByteBuffer.wrap(packet);
+
+        try{
+            return createGcdcm(buffer.get(),    //containerMask
+                               //HW Container
+                               buffer.getInt(), //rearAxleLocation
+                               buffer.getInt(), //controllerType
+                               buffer.getInt(), //responseTimeconstant
+                               buffer.getInt(), //responseTimeDelay
+                               buffer.getInt(), //targetLongAcc
+                               buffer.getInt(), //timeHeadway
+                               buffer.getInt(), //cruiseSpeed
+                               //LF Container
+                               buffer.get(),    //lfMask
+                               buffer.getInt(), //participantsReady
+                               buffer.getInt(), //startPlatoon
+                               buffer.getInt(), //endOfScenario
+                               //MIO Container
+                               buffer.getInt(), //mioId
+                               buffer.getInt(), //mioRange
+                               buffer.getInt(), //mioBearing
+                               buffer.getInt(), //mioRangeRate
+                               //Lane container
+                               buffer.getInt(), //lane
+                               //Pair ID container
+                               buffer.getInt(), //forwardId
+                               buffer.getInt(), //backwardId
+                               buffer.getInt(), //ackFlag
+                               //Merge container
+                               buffer.getInt(), //mergeRequest
+                               buffer.getInt(), //mergeSafeToMerge
+                               buffer.getInt(), //mergeFlag
+                               buffer.getInt(), //mergeFlagTail
+                               buffer.getInt(), //mergeFlagHead
+                               //Intersection Container
+                               buffer.getInt(), //platoonId
+                               buffer.getInt(), //distanceTravelledCz
+                               buffer.getInt(), //intention
+                               buffer.getInt());//counter
+        }catch(BufferUnderflowException e){
+            logger.error("Failed to create iCLCM from Simulink message: " + e);
+            return null;
+        }
     }
 
-    public byte[] gcdcmToSimulink(){
-        return null;
+    public void gcdcmToSimulink(IgameCooperativeLaneChangeMessage iCLCM, byte[] packetBuffer){
+        
     }
 
     public IgameCooperativeLaneChangeMessage createGcdcm(byte containerMask,
