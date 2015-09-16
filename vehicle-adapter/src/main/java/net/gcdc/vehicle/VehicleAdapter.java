@@ -107,6 +107,10 @@ import net.gcdc.camdenm.CoopIts.YawRateValue;
 */
 import net.gcdc.camdenm.CoopIts.*;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
+import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
+
+import net.gcdc.camdenm.Iclcm.*;
+//import net.gcdc.camdenm.Iclcm.MessageID_iCLCM;
 
 import net.gcdc.geonetworking.LinkLayerUdpToEthernet;
 import net.gcdc.geonetworking.LongPositionVector;
@@ -161,9 +165,6 @@ public class VehicleAdapter {
      * Please note that this is the first draft and that everything
      * may change :)
      */
-    //TODO: Decision on if to include low frequency container should
-    //be made in Simulink instead. Use a container bit mask.
-    private int lastLowFreqContainer = 0;
     public Cam simulinkToCam(byte[] receivedData){
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
 
@@ -176,8 +177,8 @@ public class VehicleAdapter {
             }
             byte containerMask = buffer.get();
             int genDeltaTimeMillis = buffer.getInt();
-            byte stationType = buffer.get();
-            byte vehicleRole = buffer.get();
+            int stationType = buffer.getInt();
+            int vehicleRole = buffer.getInt();
             int vehicleLength = buffer.getInt();
             int vehicleWidth = buffer.getInt();
             int latitude = buffer.getInt();
@@ -194,22 +195,20 @@ public class VehicleAdapter {
                                 buffer.getInt(), /* semiMinorAxisConfidence */
                                 buffer.getInt(), /* semiMajorOrientation */
                                 buffer.getInt(), /* heading */
-                                buffer.get(),    /* headingConfidence */
+                                buffer.getInt(), /* headingConfidence */
                                 buffer.getInt(), /* altitude */
                                 buffer.getInt(), /* speed */
-                                buffer.get(),    /* speedConfidence */
+                                buffer.getInt(), /* speedConfidence */
                                 buffer.getInt(), /* yawRate */
-                                buffer.get(),    /* yawRateConfidence */
+                                buffer.getInt(), /* yawRateConfidence */
                                 buffer.getInt(), /* longitudinalAcceleration */
-                                buffer.get());   /* longitudinalAccelerationConfidence */ 
-
-            lastLowFreqContainer = genDeltaTimeMillis;
+                                buffer.getInt());/* longitudinalAccelerationConfidence */ 
             
             //TODO: Thread crashes when running this...
             //vehiclePositionProvider.updatePosition(latitude, longitude);
             return cam;
             
-        }catch(BufferOverflowException e){
+        }catch(BufferUnderflowException e){
             logger.error("Failed to create CAM from Simulink message: " + e);
             return null;
         }
@@ -226,34 +225,48 @@ public class VehicleAdapter {
          */
         if(cam.getCam().getCamParameters().getLowFrequencyContainer() != null) containerMask = 1;
 
-        buffer.put(containerMask);
-        buffer.putInt((int) cam.getCam().getGenerationDeltaTime().value);
-        buffer.put((byte) cam.getCam().getCamParameters().getBasicContainer().getStationType().value);
-        buffer.put((byte) cam.getCam().getCamParameters().getLowFrequencyContainer().getBasicVehicleContainerLowFrequency().getVehicleRole().value());
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleLength().getVehicleLengthValue().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleWidth().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLatitude().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLongitude().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMajorConfidence().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMinorConfidence().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMajorOrientation().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getHeading().getHeadingValue().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getHeading().getHeadingConfidence().value);        
-        buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getAltitude().getAltitudeValue().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getSpeed().getSpeedValue().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getSpeed().getSpeedConfidence().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getYawRate().getYawRateValue().value);
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getYawRate().getYawRateConfidence().value());
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
-                      getLongitudinalAccelerationValue().value());
-        buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
-                      getLongitudinalAccelerationConfidence().value());
+        /* TODO: How much sanity checking do you want here? We want to
+         * check for null values for sure, but other than that the
+         * vehicle control system probably knows best on how to handle
+         * werid values.
+         */
+
+        try{
+            buffer.put(containerMask);
+            buffer.putInt((int) cam.getCam().getGenerationDeltaTime().value);
+            buffer.put((byte) cam.getCam().getCamParameters().getBasicContainer().getStationType().value);
+            buffer.put((byte) cam.getCam().getCamParameters().getLowFrequencyContainer().getBasicVehicleContainerLowFrequency().getVehicleRole().value());
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleLength().getVehicleLengthValue().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleWidth().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLatitude().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLongitude().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMajorConfidence().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMinorConfidence().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMajorOrientation().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getHeading().getHeadingValue().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getHeading().getHeadingConfidence().value);        
+            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getAltitude().getAltitudeValue().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getSpeed().getSpeedValue().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getSpeed().getSpeedConfidence().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getYawRate().getYawRateValue().value);
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getYawRate().getYawRateConfidence().value());
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
+                          getLongitudinalAccelerationValue().value());
+            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
+                          getLongitudinalAccelerationConfidence().value());
+
+        }catch(NullPointerException e){
+            logger.error("NullPointerException when creating local CAM");
+            System.exit(1);
+        }
+
+        
     }
 
     public Cam createCam(boolean withLowFreq,
                          int genDeltaTimeMillis,
-                         byte stationType,
-                         byte vehicleRole,
+                         int stationType,
+                         int vehicleRole,
                          int vehicleLength,
                          int vehicleWidth,
                          int latitude,
@@ -262,21 +275,24 @@ public class VehicleAdapter {
                          int semiMinorAxisConfidence,
                          int semiMajorOrientation,
                          int heading,
-                         byte headingConfidence,                         
+                         int headingConfidence,                         
                          int altitude,
                          int speed,
-                         byte speedConfidence,
+                         int speedConfidence,
                          int yawRate,
-                         byte yawRateConfidence,
+                         int yawRateConfidence,
                          int longitudinalAcceleration,
-                         byte longitudinalAccelerationConfidence){
+                         int longitudinalAccelerationConfidence){
 
 
         LowFrequencyContainer lowFrequencyContainer = withLowFreq ?
             new LowFrequencyContainer(
                                       new BasicVehicleContainerLowFrequency(
                                                                             VehicleRole.fromCode(vehicleRole),
-                                                                            null,
+                                                                            //TODO: Implement ExteriorLights in LMS?
+                                                                            ExteriorLights.builder()
+                                                                            .set(false, false, false, false, false, false, false, false)
+                                                                            .create(),
                                                                             new PathHistory()
                                                                             ))
             :
@@ -286,50 +302,43 @@ public class VehicleAdapter {
         SpecialVehicleContainer specialVehicleContainer = null;
 
         BasicContainer basicContainer =
-            new BasicContainer(
-                               new StationType(stationType),
-                               new ReferencePosition(
-                                                     new Latitude(latitude),
+            new BasicContainer(new StationType(stationType),
+                               new ReferencePosition(new Latitude(latitude),
                                                      new Longitude(longitude),
-                                                     new PosConfidenceEllipse(
-                                                                              new SemiAxisLength(semiMajorAxisConfidence),
+                                                     new PosConfidenceEllipse(new SemiAxisLength(semiMajorAxisConfidence),
                                                                               new SemiAxisLength(semiMinorAxisConfidence),
                                                                               new HeadingValue(semiMajorOrientation)),
-                                                     new Altitude(
-                                                                  new AltitudeValue(altitude),
+                                                     new Altitude(new AltitudeValue(altitude),
                                                                   AltitudeConfidence.unavailable)));
         
         HighFrequencyContainer highFrequencyContainer =
             new HighFrequencyContainer(BasicVehicleContainerHighFrequency.builder()
-                                       .heading(new Heading(
-                                                            new HeadingValue(heading),
+                                       .heading(new Heading(new HeadingValue(heading),
                                                             new HeadingConfidence(headingConfidence)))
-                                       .speed(new Speed(
-                                                        new SpeedValue(speed),
+                                       .speed(new Speed(new SpeedValue(speed),
                                                         new SpeedConfidence(speedConfidence)))
-                                       .vehicleLength(new VehicleLength(
-                                                                        new VehicleLengthValue(vehicleLength),
+                                       .vehicleLength(new VehicleLength(new VehicleLengthValue(vehicleLength),
                                                                         VehicleLengthConfidenceIndication.unavailable))
                                        .vehicleWidth(new VehicleWidth(vehicleWidth))
-                                       .longitudinalAcceleration(new LongitudinalAcceleration(
-                                                                                              new LongitudinalAccelerationValue(longitudinalAcceleration),
+                                       .longitudinalAcceleration(new LongitudinalAcceleration(new LongitudinalAccelerationValue(longitudinalAcceleration),
                                                                                               new AccelerationConfidence(longitudinalAccelerationConfidence)))
-                                       .yawRate(new YawRate(
-                                                            new YawRateValue(yawRate),
+                                       .yawRate(new YawRate(new YawRateValue(yawRate),
                                                             //TODO: This code is slow. Cache YawRateConfidence.values() if it's a problem.
                                                             YawRateConfidence.values()[yawRateConfidence]))
                                        .create()
                                        );
             return new Cam(
-                    new ItsPduHeader(new MessageId(MessageId.cam)),
+                           new ItsPduHeader(new ProtocolVersion(1),
+                                            new MessageId(MessageId.cam),
+                                            new StationID(STATION_ID)),
                     new CoopAwareness(
                             new GenerationDeltaTime(genDeltaTimeMillis * GenerationDeltaTime.oneMilliSec),
-                            new CamParameters(
-                                              basicContainer,
+                            new CamParameters(basicContainer,
                                               highFrequencyContainer,
                                               lowFrequencyContainer,
                                               specialVehicleContainer)));
     }
+
 
     public Denm simulinkToDenm(byte[] receivedData){
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
@@ -368,14 +377,131 @@ public class VehicleAdapter {
                               buffer.getInt(),  /* temperature */
                               buffer.getInt()); /* positioningSolutionType */
             
-        }catch(BufferOverflowException e){
+        }catch(BufferUnderflowException e){
             logger.error("Failed to create DENM from Simulink message: " + e);
             return null;
         }
     }
 
-    public byte[] denmToSimulink(){
-        return null;
+    /* Unpack a DENM and create a local DENM for sending to Simulink.
+     */
+    /* TODO: Read through this method again since I've probably made
+     * some mistake somewhere.
+     */
+    public void denmToSimulink(Denm denmPacket, byte[] packetBuffer){
+        ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
+
+        DecentralizedEnvironmentalNotificationMessage denm = denmPacket.getDenm();
+        byte containerMask = 0;
+        buffer.put(containerMask);        
+
+        /* ManagementContainer */
+        ManagementContainer managementContainer = denm.getManagement();
+        byte managementMask = 0;
+        buffer.put(managementMask);        
+        
+        buffer.putInt((int) managementContainer.getActionID().getOriginatingStationID().value);       
+        buffer.putInt((int) managementContainer.getDetectionTime().value);
+        buffer.putInt((int) managementContainer.getReferenceTime().value);
+
+        if(managementContainer.hasTermination()){
+            managementMask += (1<<7);            
+            buffer.putInt((int) managementContainer.getTermination().value());
+        }else buffer.putInt(0);        
+        
+        buffer.putInt((int) managementContainer.getEventPosition().getLatitude().value);
+        buffer.putInt((int) managementContainer.getEventPosition().getLongitude().value);
+        buffer.putInt((int) managementContainer.getEventPosition().getPositionConfidenceEllipse().getSemiMajorConfidence().value);
+        buffer.putInt((int) managementContainer.getEventPosition().getPositionConfidenceEllipse().getSemiMinorConfidence().value);
+        buffer.putInt((int) managementContainer.getEventPosition().getPositionConfidenceEllipse().getSemiMajorOrientation().value);
+        buffer.putInt((int) managementContainer.getEventPosition().getAltitude().getAltitudeValue().value);
+
+        if(managementContainer.hasRelevanceDistance()){
+            managementMask += (1<<6);            
+            buffer.putInt((int) managementContainer.getRelevanceDistance().value());
+        }else buffer.putInt(0);
+
+        if(managementContainer.hasRelevanceTrafficDirection()){
+            managementMask += (1<<5);            
+            buffer.putInt((int) managementContainer.getRelevanceTrafficDirection().value());
+        }else buffer.putInt(0);
+
+        if(managementContainer.hasValidityDuration()){
+            managementMask += (1<<4);            
+            buffer.putInt((int) managementContainer.getValidityDuration().value);
+        }else buffer.putInt(0);
+        
+        if(managementContainer.hasTransmissionInterval()){
+            managementMask += (1<<3);            
+            buffer.putInt((int) managementContainer.getTransmissionInterval().value);
+        }else buffer.putInt(0);        
+        
+        buffer.putInt((int) managementContainer.getStationType().value);
+
+        //Need to update the mask since it has been changed
+        buffer.put(2, managementMask);        
+
+        //SituationContainer isn't used for GCDC16
+        SituationContainer situationContainer = null;
+
+        /* LocationContainer */
+        LocationContainer locationContainer = null;        
+        if(denm.hasLocation()){
+            containerMask += (1<<7);            
+            locationContainer = denm.getLocation();
+            byte locationMask = 0;
+            buffer.put(locationMask);
+            
+            if(locationContainer.hasEventSpeed()){                
+                locationMask += (1<<7);                
+                buffer.putInt((int) locationContainer.getEventSpeed().getSpeedValue().value);
+                buffer.putInt((int) locationContainer.getEventSpeed().getSpeedConfidence().value);
+            }else buffer.put(new byte[2*4]);
+            
+            if(locationContainer.hasEventSpeed()){                
+                locationMask += (1<<6);                
+                buffer.putInt((int) locationContainer.getEventPositionHeading().getHeadingValue().value);
+                buffer.putInt((int) locationContainer.getEventPositionHeading().getHeadingConfidence().value);                
+            }else buffer.put(new byte[2*4]);
+
+            if(locationContainer.hasEventSpeed()){                
+                locationMask += (1<<5);                
+                buffer.putInt((int) locationContainer.getRoadType().value());                          
+            }else buffer.putInt(0);
+
+            //Need to update the mask since it has been changed
+            buffer.put(2+15*4+1, locationMask);            
+        }else buffer.put(new byte[1+5*4]);        
+        
+
+        /* AlacarteContainer */
+        AlacarteContainer alacarteContainer = null;        
+        if(denm.hasAlacarte()){
+            containerMask += (1<<6);            
+            alacarteContainer = denm.getAlacarte();
+            byte alacarteMask = 0;
+            buffer.put(alacarteMask);            
+
+            if(alacarteContainer.hasLanePosition()){
+                alacarteMask += (1<<7);
+                buffer.putInt((int) alacarteContainer.getLanePosition().value);                
+            }else buffer.putInt(0);
+
+            if(alacarteContainer.hasExternalTemperature()){
+                alacarteMask += (1<<6);
+                buffer.putInt((int) alacarteContainer.getExternalTemperature().value);                
+            }else buffer.putInt(0);
+
+            if(alacarteContainer.hasPositioningSolution()){
+                alacarteMask += (1<<5);
+                buffer.putInt((int) alacarteContainer.getPositioningSolution().value());
+            }else buffer.putInt(0);
+
+            //Need to update the mask since it has been changed
+            buffer.put(3+20*4+1, alacarteMask);
+        }else buffer.put(new byte[1+3*4]);
+
+        buffer.put(1, containerMask);        
     }
 
     private int denm_sequence_number = 0;
@@ -407,27 +533,6 @@ public class VehicleAdapter {
                            int positioningSolutionType){
 
         /* Management container */
-        //TODO: Move these declarations inside the builder instead?
-        /*
-        TimestampIts detectionTime = new TimestampIts(detectionTime);
-        TimestampIts referenceTime = new TimestampIts(referenceTime);
-        Termination termination = Termination.values()[termination];
-        ReferencePosition eventPosition =
-            new ReferencePosition(new Latitude(latitude),
-                                  new Longitude(longitude),
-                                  new PosConfidenceEllipse(
-                                                           new SemiAxisLength(semiMajorConfidence),
-                                                           new SemiAxisLength(semiMinorConfidence),
-                                                           new HeadingValue(semiMajorOrientation)),
-                                  new Altitude(new AltitudeValue(altitude),
-                                               AltitudeConfidence.unavailable));
-        RelevanceDistance relevanceDistance = RelevanceDistance.values()[relevanceDistance];
-        RelevanceTrafficDirection relevanceTrafficDirection = RelevanceTrafficDirection.values()[relevanceTrafficDirection];
-        ValidityDuration validityDuration = new ValidityDuration(validityDuration);
-        TransmissionInterval transmissionInterval = new TransmissionInterval(transmissionInterval);
-        StationType stationType = new StationType(stationType);
-        */
-
         ManagementContainer managementContainer =
             ManagementContainer.builder()
             .actionID(new ActionID(new StationID(STATION_ID), new SequenceNumber(denm_sequence_number++)))
@@ -453,7 +558,9 @@ public class VehicleAdapter {
         SituationContainer situationContainer = (containerMask & (1<<7)) != 0 ?
             new SituationContainer(new InformationQuality(informationQuality),
                                    new CauseCode(new CauseCodeType(causeCode), new SubCauseCodeType(subCauseCode)),
-                                   (situationMask & (1<<7)) != 0 ? new CauseCode(new CauseCodeType(linkedCauseCode), new SubCauseCodeType(linkedSubCauseCode)) : null,
+                                   (situationMask & (1<<7)) != 0 ? new CauseCode(new CauseCodeType(linkedCauseCode),
+                                                                                 new SubCauseCodeType(linkedSubCauseCode))
+                                   : null,
                                    //TODO: Add EventHistory to SituationContainer
                                    null)
             :null;
@@ -488,27 +595,245 @@ public class VehicleAdapter {
                                                               alacarteContainer);
 
         Denm denm = new Denm(
-                             new ItsPduHeader(new MessageId(MessageId.denm)),
+                             new ItsPduHeader(new ProtocolVersion(1),
+                                              new MessageId(MessageId.denm),
+                                              new StationID(STATION_ID)),
                              decentralizedEnvironmentalNotificationMessage);
 
         logger.debug("Created DENM: " + denm);
         return denm;
     }
 
-    //TODO: GCDCM messages needs to be added to the library
-    /*
-    public Gcdcm simulinkToGcdcm(byte[] packet){
+    public IgameCooperativeLaneChangeMessage simulinkToGcdcm(byte[] packet){
+        ByteBuffer buffer = ByteBuffer.wrap(packet);
 
+        try{
+            return createGcdcm(buffer.get(),    //containerMask
+                               //HW Container
+                               buffer.getInt(), //rearAxleLocation
+                               buffer.getInt(), //controllerType
+                               buffer.getInt(), //responseTimeconstant
+                               buffer.getInt(), //responseTimeDelay
+                               buffer.getInt(), //targetLongAcc
+                               buffer.getInt(), //timeHeadway
+                               buffer.getInt(), //cruiseSpeed
+                               //LF Container
+                               buffer.get(),    //lfMask
+                               buffer.getInt(), //participantsReady
+                               buffer.getInt(), //startPlatoon
+                               buffer.getInt(), //endOfScenario
+                               //MIO Container
+                               buffer.getInt(), //mioId
+                               buffer.getInt(), //mioRange
+                               buffer.getInt(), //mioBearing
+                               buffer.getInt(), //mioRangeRate
+                               //Lane container
+                               buffer.getInt(), //lane
+                               //Pair ID container
+                               buffer.getInt(), //forwardId
+                               buffer.getInt(), //backwardId
+                               buffer.getInt(), //ackFlag
+                               //Merge container
+                               buffer.getInt(), //mergeRequest
+                               buffer.getInt(), //mergeSafeToMerge
+                               buffer.getInt(), //mergeFlag
+                               buffer.getInt(), //mergeFlagTail
+                               buffer.getInt(), //mergeFlagHead
+                               //Intersection Container
+                               buffer.getInt(), //platoonId
+                               buffer.getInt(), //distanceTravelledCz
+                               buffer.getInt(), //intention
+                               buffer.getInt());//counter
+        }catch(BufferUnderflowException e){
+            logger.error("Failed to create iCLCM from Simulink message: " + e);
+            return null;
+        }
     }
 
-    public byte[] gcdcmToSimulink(){
-        return null;
+    public void gcdcmToSimulink(IgameCooperativeLaneChangeMessage iCLCM, byte[] packetBuffer){
+        ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
+        IgameCooperativeLaneChangeMessageBody iclcm = iCLCM.getIclm();        
+        //TODO: Add generationDeltaTime
+        IclmParameters iclmParameters = iclcm.getIclmParameters();
+        byte containerMask = 0;
+        buffer.put(containerMask);        
+
+        /* VehicleContainerHighFrequency */
+        VehicleContainerHighFrequency vehicleContainerHighFrequency = iclmParameters.getVehicleContainerHighFrequency();
+        buffer.putInt((int) vehicleContainerHighFrequency.getVehicleRearAxleLocation().value);        
+        buffer.getInt((int) vehicleContainerHighFrequency.getControllerType().value);        
+        buffer.getInt((int) vehicleContainerHighFrequency.getVehicleResponseTime().getVehicleResponseTimeConstant().value);
+        buffer.getInt((int) vehicleContainerHighFrequency.getVehicleResponseTime().getVehicleResponseTimeDelay().value);
+        buffer.getInt((int) vehicleContainerHighFrequency.getTargetLongitudinalAcceleration().value);        
+        buffer.getInt((int) vehicleContainerHighFrequency.getTimeHeadway().value);
+        buffer.getInt((int) vehicleContainerHighFrequency.getCruisespeed().value);        
+
+        /* VehicleContainerLowFrequency */
+        VehicleContainerLowFrequency lowFrequencyContainer = null;
+        if(iclmParameters.hasLowFrequencyContainer()){
+            containerMask += (1<<7);
+            lowFrequencyContainer = iclmParameters.getLowFrequencyContainer();
+            byte lowFrequencyMask = 0;            
+            buffer.put(lowFrequencyMask);
+
+            if(lowFrequencyContainer.hasParticipantsReady()){
+                lowFrequencyMask += (1<<7);                
+                buffer.putInt((int) lowFrequencyContainer.getParticipantsReady().value);                
+            }else buffer.putInt(0);            
+
+            if(lowFrequencyContainer.hasStartPlatoon()){
+                lowFrequencyMask += (1<<6);                                
+		buffer.putInt((int) lowFrequencyContainer.getStartPlatoon().value);                
+            }else buffer.putInt(0);            
+
+            if(lowFrequencyContainer.hasEndOfScenario()){
+                lowFrequencyMask += (1<<5);                                
+		buffer.putInt((int) lowFrequencyContainer.getEndOfScenario().value);                
+            }
+
+            buffer.put(2, lowFrequencyMask);            
+        }else buffer.put(new byte[1+3*4]);
+        
+        /* MostImportantObjectContainer */
+        MostImportantObjectContainer mostImportantObjectContainer = iclmParameters.getMostImportantObjectContainer();
+        buffer.putInt((int) mostImportantObjectContainer.getMioID().value);        
+        buffer.putInt((int) mostImportantObjectContainer.getMioRange().value);        
+        buffer.putInt((int) mostImportantObjectContainer.getMioBearing().value());        
+        buffer.putInt((int) mostImportantObjectContainer.getMioRangeRate().value());        
+
+        /* LaneObject */
+        LaneObject laneObject = iclmParameters.getLaneObject();
+        buffer.putInt((int) laneObject.getLane().value());        
+
+        /* PairIdObject */
+        PairIdObject pairIdObject = iclmParameters.getPairIdObject();
+        buffer.putInt((int) pairIdObject.getForwardID().value);       
+        buffer.putInt((int) pairIdObject.getBackwardID().value);        
+        buffer.putInt((int) pairIdObject.getAcknowledgeFlag().value);        
+
+        /* MergeObject */
+        MergeObject mergeObject = iclmParameters.getMergeObject();
+        buffer.putInt((int) mergeObject.getMergeRequest().value);        
+        buffer.putInt((int) mergeObject.getMergeSafeToMerge().value);        
+        buffer.putInt((int) mergeObject.getMergeFlag().value);        
+        buffer.putInt((int) mergeObject.getMergeFlagTail().value);        
+        buffer.putInt((int) mergeObject.getMergeFlagHead().value);        
+
+        /* ScenarioObject */
+        ScenarioObject scenarioObject = iclmParameters.getScenarioObject();
+        buffer.putInt((int) scenarioObject.getPlatoonID().value);        
+        buffer.putInt((int) scenarioObject.getDistanceTravelledCZ().value);        
+        buffer.putInt((int) scenarioObject.getIntention().value);        
+        buffer.putInt((int) scenarioObject.getCounterIntersection().value);
+
+        buffer.put(1, containerMask);        
     }
 
-    public Gcdcm createGcdcm(){
+    public IgameCooperativeLaneChangeMessage createGcdcm(byte containerMask,
+                                                         //HW Container
+                                                         int rearAxleLocation,
+                                                         int controllerType,
+                                                         int responseTimeConstant,
+                                                         int responseTimeDelay,
+                                                         int targetLongAcc,
+                                                         int timeHeadway,
+                                                         int cruiseSpeed,
+                                                         //LF Container
+                                                         byte lfMask, 
+                                                         int participantsReady,
+                                                         int startPlatoon,
+                                                         int endOfScenario,
+                                                         //MIO Container
+                                                         int mioId, 
+                                                         int mioRange, 
+                                                         int mioBearing, 
+                                                         int mioRangeRate, 
+                                                         //Lane Container
+                                                         int lane,
+                                                         //Pair ID Container
+                                                         int forwardId, 
+                                                         int backwardId, 
+                                                         int ackFlag,
+                                                         //Merge Container
+                                                         int mergeRequest,
+                                                         int mergeSafeToMerge,
+                                                         int mergeFlag,
+                                                         int mergeFlagTail,
+                                                         int mergeFlagHead,
+                                                         //Intersection Container
+                                                         int platoonId,
+                                                         int distanceTravelledCz,
+                                                         int intention,
+                                                         int counter){
 
+        VehicleContainerHighFrequency vehicleContainerHighFrequency =
+            new VehicleContainerHighFrequency(new VehicleRearAxleLocation(rearAxleLocation),
+                                              new ControllerType(controllerType),
+                                              new VehicleResponseTime(new VehicleResponseTimeConstant(responseTimeConstant),
+                                                                      new VehicleResponseTimeDelay(responseTimeDelay)),
+                                              new TargetLongitudonalAcceleration(targetLongAcc),
+                                              new TimeHeadway(timeHeadway),
+                                              new CruiseSpeed(cruiseSpeed));
+
+        VehicleContainerLowFrequency vehicleContainerLowFrequency =
+            (containerMask & (1<<7)) != 0 ?
+            VehicleContainerLowFrequency.builder()
+            .participantsReady((lfMask & (1<<7)) != 0 ? new ParticipantsReady(participantsReady) : null)
+            .startPlatoon((lfMask & (1<<6)) != 0 ? new StartPlatoon(startPlatoon) : null)
+            .endOfScenario((lfMask & (1<<5)) != 0 ? new EndOfScenario(endOfScenario) : null)
+            .create()
+            : null;
+
+        MostImportantObjectContainer mostImportantObjectContainer =
+            new MostImportantObjectContainer(new StationID(mioId),
+                                             new MioRange(mioRange),
+                                             new MioBearing(mioBearing),
+                                             new MioRangeRate(mioRangeRate));       
+
+        LaneObject laneObject =
+            new LaneObject(new Lane(lane));
+
+        PairIdObject pairIdObject =
+            new PairIdObject(new StationID(forwardId),
+                             new StationID(backwardId),
+                             new AcknowledgeFlag(ackFlag));
+
+        MergeObject mergeObject =
+            new MergeObject(new MergeRequest(mergeRequest),
+                            new MergeSafeToMerge(mergeSafeToMerge),
+                            new MergeFlag(mergeFlag),
+                            new MergeFlagTail(mergeFlagTail),
+                            new MergeFlagHead(mergeFlagHead));
+
+        ScenarioObject scenarioObject =            
+            new ScenarioObject(new PlatoonID(platoonId),
+                               new DistanceTravelledCZ(distanceTravelledCz),
+                               new Intention(intention),
+                               new Counter(counter));
+
+        IclmParameters iclmParameters =
+            new IclmParameters(vehicleContainerHighFrequency,
+                               vehicleContainerLowFrequency,
+                               mostImportantObjectContainer,
+                               laneObject,
+                               pairIdObject,
+                               mergeObject,
+                               scenarioObject);
+
+        //TODO: GenerationDeltaTime isn't part of the iCLCM spec in D3.2
+        IgameCooperativeLaneChangeMessageBody igameCooperativeLaneChangeMessageBody =
+            new IgameCooperativeLaneChangeMessageBody(new GenerationDeltaTime(),
+                                                      iclmParameters);
+                                                                                 
+        IgameCooperativeLaneChangeMessage igameCooperativeLaneChangeMessage =
+            new IgameCooperativeLaneChangeMessage(new ItsPduHeader(new ProtocolVersion(1),
+                                                                   //TODO: Import ID from Iclcm class instead
+                                                                   new MessageId(10),
+                                                                   new StationID(STATION_ID)),
+                                                  igameCooperativeLaneChangeMessageBody);
+
+        return igameCooperativeLaneChangeMessage;
     }
-    */
 
     private Runnable receiveFromSimulinkLoop = new Runnable() {
         byte[] buffer = new byte[MAX_UDP_LENGTH];

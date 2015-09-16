@@ -214,7 +214,9 @@ public class Iclcm {
 		+", startPlatoon= "+(startPlatoon!= null? startPlatoon : "null")
 		+", endOfScenario= "+(endOfScenario!= null? endOfScenario : "null")
 		+")";};
-		
+
+            public static Builder builder() { return new Builder(); }
+            
 		public static class Builder{
 			private VehicleContainerLowFrequency val = new VehicleContainerLowFrequency();
             private boolean created = false;
