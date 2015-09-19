@@ -168,41 +168,45 @@ public class VehicleAdapter {
     public Cam simulinkToCam(byte[] receivedData){
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
 
-
         try{
             byte messageId = buffer.get();
             if(messageId != MessageId.cam){
                 logger.error("Incorrect local CAM received: " + receivedData);
                 return null;
             }
-            byte containerMask = buffer.get();
-            int genDeltaTimeMillis = buffer.getInt();
+
+
+            /* Unpack up til longitude here since we need them to
+             * update the position stored in the vehicle adapter.
+             */
+            int stationId = buffer.getInt();
+            int genDeltaTimeMillis = buffer.getInt();            
+            byte containerMask = buffer.get();            
             int stationType = buffer.getInt();
-            int vehicleRole = buffer.getInt();
-            int vehicleLength = buffer.getInt();
-            int vehicleWidth = buffer.getInt();
             int latitude = buffer.getInt();
-            int longitude = buffer.getInt();
-            Cam cam = createCam((containerMask & (1<<7)) != 0,
+            int longitude = buffer.getInt();            
+
+            Cam cam = createCam(stationId,
                                 genDeltaTimeMillis,
+                                containerMask,
                                 stationType,
-                                vehicleRole,
-                                vehicleLength,
-                                vehicleWidth,
                                 latitude,
                                 longitude,
                                 buffer.getInt(), /* semiMajorAxisConfidence */
                                 buffer.getInt(), /* semiMinorAxisConfidence */
-                                buffer.getInt(), /* semiMajorOrientation */
+                                buffer.getInt(), /* semiMajorOrientation */                                
+                                buffer.getInt(), /* altitude */
                                 buffer.getInt(), /* heading */
                                 buffer.getInt(), /* headingConfidence */
-                                buffer.getInt(), /* altitude */
                                 buffer.getInt(), /* speed */
                                 buffer.getInt(), /* speedConfidence */
+                                buffer.getInt(), /* VehicleLength */
+                                buffer.getInt(), /* VehicleWidth */                                
+                                buffer.getInt(), /* longitudinalAcceleration */
+                                buffer.getInt(), /* longitudinalAccelerationConfidence */
                                 buffer.getInt(), /* yawRate */
                                 buffer.getInt(), /* yawRateConfidence */
-                                buffer.getInt(), /* longitudinalAcceleration */
-                                buffer.getInt());/* longitudinalAccelerationConfidence */ 
+                                buffer.getInt());/* vehicleRole */                                    
             
             //TODO: Thread crashes when running this...
             //vehiclePositionProvider.updatePosition(latitude, longitude);
@@ -216,26 +220,67 @@ public class VehicleAdapter {
 
     /* Unpack a CAM message and create a Simulink message.
      */
-    public void camToSimulink(Cam cam, byte[] packetBuffer) throws BufferOverflowException{
+    //TODO: Add messageID and stationID
+    public void camToSimulink(Cam camPacket, byte[] packetBuffer) throws BufferOverflowException{
         ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
+
+        CoopAwareness cam = camPacket.getCam();
+        ItsPduHeader header = camPacket.getHeader();
+        GenerationDeltaTime generationDeltaTime = cam.getGenerationDeltaTime();         
+        CamParameters camParameters = cam.getCamParameters();
+
+        buffer.put((byte) header.getMessageID().value);
+        buffer.putInt((int)header.getStationID().value);
+        //TODO: Is generationdeltatime an int or long?
+        buffer.putInt((int) generationDeltaTime.value);
         byte containerMask = 0;
+        buffer.put(containerMask);
+
+        /* BasicContainer */
+        BasicContainer basicContainer = camParameters.getBasicContainer();
+        buffer.putInt((int) basicContainer.getStationType().value);
+        buffer.putInt((int) basicContainer.getReferencePosition().getLatitude().value);
+        buffer.putInt((int) basicContainer.getReferencePosition().getLongitude().value);
+        buffer.putInt((int) basicContainer.getReferencePosition().getPositionConfidenceEllipse().getSemiMajorConfidence().value);
+        buffer.putInt((int) basicContainer.getReferencePosition().getPositionConfidenceEllipse().getSemiMinorConfidence().value);
+        buffer.putInt((int) basicContainer.getReferencePosition().getPositionConfidenceEllipse().getSemiMajorOrientation().value);
+        buffer.putInt((int) basicContainer.getReferencePosition().getAltitude().getAltitudeValue().value);
         
-        /* If there's a lowFrequencyContainer present, set the
-         * container mask to 1.
-         */
-        if(cam.getCam().getCamParameters().getLowFrequencyContainer() != null) containerMask = 1;
+        /* HighFrequencyContainer */
+        HighFrequencyContainer highFrequencyContainer = camParameters.getHighFrequencyContainer();
+        BasicVehicleContainerHighFrequency basicVehicleContainerHighFrequency = highFrequencyContainer.getBasicVehicleContainerHighFrequency();
 
-        /* TODO: How much sanity checking do you want here? We want to
-         * check for null values for sure, but other than that the
-         * vehicle control system probably knows best on how to handle
-         * werid values.
-         */
+        buffer.putInt((int) basicVehicleContainerHighFrequency.getHeading().getHeadingValue().value);
+        buffer.putInt((int) basicVehicleContainerHighFrequency.getHeading().getHeadingConfidence().value);
+        buffer.putInt((int) basicVehicleContainerHighFrequency.getSpeed().getSpeedValue().value);
+        buffer.putInt((int) basicVehicleContainerHighFrequency.getSpeed().getSpeedConfidence().value);
+        buffer.putInt((int) basicVehicleContainerHighFrequency.getVehicleLength().getVehicleLengthValue().value);
+        buffer.putInt((int) basicVehicleContainerHighFrequency.getVehicleWidth().value);
+        buffer.putInt((int) basicVehicleContainerHighFrequency.getLongitudinalAcceleration().getLongitudinalAccelerationValue().value());
+        buffer.putInt((int) basicVehicleContainerHighFrequency.getLongitudinalAcceleration().getLongitudinalAccelerationConfidence().value());
+        buffer.putInt((int) basicVehicleContainerHighFrequency.getYawRate().getYawRateValue().value);
+        buffer.putInt((int) basicVehicleContainerHighFrequency.getYawRate().getYawRateConfidence().value());
 
+
+        /* LowFrequencyContainer */
+        LowFrequencyContainer lowFrequencyContainer = null;
+        if(camParameters.hasLowFrequencyContainer()){
+            containerMask += (1<<7);
+            lowFrequencyContainer = camParameters.getLowFrequencyContainer();
+            BasicVehicleContainerLowFrequency basicVehicleContainerLowFrequency = lowFrequencyContainer.getBasicVehicleContainerLowFrequency();
+            buffer.putInt((int) basicVehicleContainerLowFrequency.getVehicleRole().value());
+        }else buffer.putInt(0);
+
+        //Replace container mask
+        buffer.put(1+2*4+1, containerMask);
+
+        /*
         try{
             buffer.put(containerMask);
             buffer.putInt((int) cam.getCam().getGenerationDeltaTime().value);
             buffer.put((byte) cam.getCam().getCamParameters().getBasicContainer().getStationType().value);
             buffer.put((byte) cam.getCam().getCamParameters().getLowFrequencyContainer().getBasicVehicleContainerLowFrequency().getVehicleRole().value());
+
             buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleLength().getVehicleLengthValue().value);
             buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleWidth().value);
             buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLatitude().value);
@@ -259,33 +304,33 @@ public class VehicleAdapter {
             logger.error("NullPointerException when creating local CAM");
             System.exit(1);
         }
+        */
 
-        
     }
 
-    public Cam createCam(boolean withLowFreq,
+    public Cam createCam(int stationId,
                          int genDeltaTimeMillis,
+                         byte containerMask,
                          int stationType,
-                         int vehicleRole,
-                         int vehicleLength,
-                         int vehicleWidth,
                          int latitude,
-                         int longitude,
+                         int longitude,                         
                          int semiMajorAxisConfidence,
                          int semiMinorAxisConfidence,
                          int semiMajorOrientation,
-                         int heading,
-                         int headingConfidence,                         
                          int altitude,
+                         int heading,
+                         int headingConfidence,
                          int speed,
                          int speedConfidence,
+                         int vehicleLength,
+                         int vehicleWidth,
+                         int longitudinalAcceleration,
+                         int longitudinalAccelerationConfidence,
                          int yawRate,
                          int yawRateConfidence,
-                         int longitudinalAcceleration,
-                         int longitudinalAccelerationConfidence){
+                         int vehicleRole){                         
 
-
-        LowFrequencyContainer lowFrequencyContainer = withLowFreq ?
+        LowFrequencyContainer lowFrequencyContainer = (containerMask & (1<<7)) != 0 ?
             new LowFrequencyContainer(
                                       new BasicVehicleContainerLowFrequency(
                                                                             VehicleRole.fromCode(vehicleRole),
@@ -350,7 +395,8 @@ public class VehicleAdapter {
                 return null;
             }
             
-            return createDenm(buffer.get(),     /* containerMask */
+            return createDenm(buffer.getInt(),  /* stationID */
+                              buffer.get(),     /* containerMask */
                               buffer.get(),     /* managementMask */
                               buffer.getLong(), /* detectionTime */
                               buffer.getLong(), /* referenceTime */
@@ -392,6 +438,11 @@ public class VehicleAdapter {
         ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
 
         DecentralizedEnvironmentalNotificationMessage denm = denmPacket.getDenm();
+        ItsPduHeader header = denmPacket.getHeader();
+        buffer.put((byte) header.getMessageID().value);
+        buffer.putInt((int)header.getStationID().value);
+
+        
         byte containerMask = 0;
         buffer.put(containerMask);        
 
@@ -439,7 +490,7 @@ public class VehicleAdapter {
         buffer.putInt((int) managementContainer.getStationType().value);
 
         //Need to update the mask since it has been changed
-        buffer.put(2, managementMask);        
+        buffer.put(1+4+1+1, managementMask);        
 
         //SituationContainer isn't used for GCDC16
         SituationContainer situationContainer = null;
@@ -470,7 +521,7 @@ public class VehicleAdapter {
             }else buffer.putInt(0);
 
             //Need to update the mask since it has been changed
-            buffer.put(2+15*4+1, locationMask);            
+            buffer.put(6+15*4+1, locationMask);            
         }else buffer.put(new byte[1+5*4]);        
         
 
@@ -498,14 +549,15 @@ public class VehicleAdapter {
             }else buffer.putInt(0);
 
             //Need to update the mask since it has been changed
-            buffer.put(3+20*4+1, alacarteMask);
+            buffer.put(7+20*4+1, alacarteMask);
         }else buffer.put(new byte[1+3*4]);
 
-        buffer.put(1, containerMask);        
+        buffer.put(6, containerMask);        
     }
 
     private int denm_sequence_number = 0;
-    public Denm createDenm(byte containerMask,
+    public Denm createDenm(int stationId,
+                           byte containerMask,
                            byte managementMask,
                            long detectionTime,
                            long referenceTime,
@@ -569,7 +621,7 @@ public class VehicleAdapter {
         
         /* TODO: Local message set needs support for variable length
          * packets in order to add the Traces in the location
-         * container. LocationContainer is not used in GCDC16 though.
+         * container. Will not be implemented for GCDC16.
          */
         LocationContainer locationContainer = (containerMask & (1<<6)) != 0 ?
             new LocationContainer()
@@ -578,13 +630,13 @@ public class VehicleAdapter {
         /* Alacarte container */
         AlacarteContainer alacarteContainer = (containerMask & (1<<5)) != 0 ?
             new AlacarteContainer((alacarteMask & (1<<7)) != 0 ? new LanePosition(lanePosition) : null,
-                                  //TODO: Change the constructor to a builder before implementing
+                                  //TODO: Currently no plans of implementing.                                  
                                   (alacarteMask & (1<<6)) != 0 ? new ImpactReductionContainer() : null,
                                   (alacarteMask & (1<<5)) != 0 ? new Temperature(temperature) : null,
-                                  //TODO: Change the constructor to a builder before implementing
+                                  //TODO: Currently no plans of implementing.                                  
                                   (alacarteMask & (1<<4)) != 0 ? new RoadWorksContainerExtended() : null,
                                   (alacarteMask & (1<<3)) != 0 ? PositioningSolutionType.values()[positioningSolutionType] : null,
-                                  //TODO: Implement
+                                  //TODO: Currently no plans of implementing.
                                   (alacarteMask & (1<<2)) != 0 ? new StationaryVehicleContainer() : null)                                  
             :null;
                                                                                
@@ -608,7 +660,8 @@ public class VehicleAdapter {
         ByteBuffer buffer = ByteBuffer.wrap(packet);
 
         try{
-            return createGcdcm(buffer.get(),    //containerMask
+            return createGcdcm(buffer.getInt(), //stationId
+                               buffer.get(),    //containerMask
                                //HW Container
                                buffer.getInt(), //rearAxleLocation
                                buffer.getInt(), //controllerType
@@ -652,8 +705,10 @@ public class VehicleAdapter {
 
     public void gcdcmToSimulink(IgameCooperativeLaneChangeMessage iCLCM, byte[] packetBuffer){
         ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
-        IgameCooperativeLaneChangeMessageBody iclcm = iCLCM.getIclm();        
-        //TODO: Add generationDeltaTime
+        IgameCooperativeLaneChangeMessageBody iclcm = iCLCM.getIclm();
+        ItsPduHeader header = iCLCM.getHeader();
+        buffer.put((byte) header.getMessageID().value);
+        buffer.putInt((int)header.getStationID().value);
         IclmParameters iclmParameters = iclcm.getIclmParameters();
         byte containerMask = 0;
         buffer.put(containerMask);        
@@ -691,7 +746,7 @@ public class VehicleAdapter {
 		buffer.putInt((int) lowFrequencyContainer.getEndOfScenario().value);                
             }
 
-            buffer.put(2, lowFrequencyMask);            
+            buffer.put(1+4+1+1, lowFrequencyMask);            
         }else buffer.put(new byte[1+3*4]);
         
         /* MostImportantObjectContainer */
@@ -726,10 +781,11 @@ public class VehicleAdapter {
         buffer.putInt((int) scenarioObject.getIntention().value);        
         buffer.putInt((int) scenarioObject.getCounterIntersection().value);
 
-        buffer.put(1, containerMask);        
+        buffer.put(1+4+1, containerMask);        
     }
 
-    public IgameCooperativeLaneChangeMessage createGcdcm(byte containerMask,
+    public IgameCooperativeLaneChangeMessage createGcdcm(int stationId,
+                                                         byte containerMask,
                                                          //HW Container
                                                          int rearAxleLocation,
                                                          int controllerType,
