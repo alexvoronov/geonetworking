@@ -131,7 +131,7 @@ public class VehicleAdapter {
 
     private final static short PORT_CAM  = 2001;
     private final static short PORT_DENM = 2002;
-    private final static short PORT_GCDCM = 2003;
+    private final static short PORT_ICLCM = 2003;
 
     /* GCDC requires the non-standard max rate of 25Hz */
     private final static long CAM_INTERVAL_MIN_MS = 40;
@@ -274,6 +274,8 @@ public class VehicleAdapter {
         //Replace container mask
         buffer.put(1+2*4+1, containerMask);
 
+        /* Old code. Will remain as a comment for a week or so for
+         * reference. */
         /*
         try{
             buffer.put(containerMask);
@@ -617,8 +619,7 @@ public class VehicleAdapter {
                                    null)
             :null;
 
-        /* Location container */
-        
+        /* Location container */        
         /* TODO: Local message set needs support for variable length
          * packets in order to add the Traces in the location
          * container. Will not be implemented for GCDC16.
@@ -656,11 +657,11 @@ public class VehicleAdapter {
         return denm;
     }
 
-    public IgameCooperativeLaneChangeMessage simulinkToGcdcm(byte[] packet){
+    public IgameCooperativeLaneChangeMessage simulinkToIclcm(byte[] packet){
         ByteBuffer buffer = ByteBuffer.wrap(packet);
 
         try{
-            return createGcdcm(buffer.getInt(), //stationId
+            return createIclcm(buffer.getInt(), //stationId
                                buffer.get(),    //containerMask
                                //HW Container
                                buffer.getInt(), //rearAxleLocation
@@ -703,7 +704,7 @@ public class VehicleAdapter {
         }
     }
 
-    public void gcdcmToSimulink(IgameCooperativeLaneChangeMessage iCLCM, byte[] packetBuffer){
+    public void iclcmToSimulink(IgameCooperativeLaneChangeMessage iCLCM, byte[] packetBuffer){
         ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
         IgameCooperativeLaneChangeMessageBody iclcm = iCLCM.getIclm();
         ItsPduHeader header = iCLCM.getHeader();
@@ -784,7 +785,7 @@ public class VehicleAdapter {
         buffer.put(1+4+1, containerMask);        
     }
 
-    public IgameCooperativeLaneChangeMessage createGcdcm(int stationId,
+    public IgameCooperativeLaneChangeMessage createIclcm(int stationId,
                                                          byte containerMask,
                                                          //HW Container
                                                          int rearAxleLocation,
@@ -919,21 +920,21 @@ public class VehicleAdapter {
 
                         /* TODO: How does GeoNetworking addressing work in
                          * GCDC16? For now let's just broadcast
-                         * everything in a 200m radius.
+                         * everything in a large radius.
                          */
-                        send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), (double) 200)));
+                        send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), (double) 20000)));
                         break;
                     }
-
-                        /*
-                          case MessageId.gcdcm:
-                          //TODO: Gcdcm is not included in the library yet.
-                          break;
-                        */
+                        
+                    case 10: { //TODO: Replace with MessageId.iclcm
+                        logger.debug("CREATING iCLCM");
+                        IgameCooperativeLaneChangeMessage iclcm = simulinkToIclcm(receivedData);
+                        send(iclcm);
+                        break;
+                    }
                         
                     default:
                         //fallthrough
-                        logger.debug("Reached default in receiveFromSimulink switch");
                     }
                 }
             } catch (IOException e) {
@@ -941,15 +942,16 @@ public class VehicleAdapter {
                 System.exit(1);
             }
         }
-    };
+        };
+
 
     private Runnable sendToSimulinkLoop = new Runnable() {
-        byte[] buffer = new byte[MAX_UDP_LENGTH];
-        private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-        @Override public void run() {
-            try {
-                BtpPacket btpPacket = btpSocket.receive();
-                switch (btpPacket.destinationPort()) {
+            byte[] buffer = new byte[MAX_UDP_LENGTH];
+            private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            @Override public void run() {
+                try {
+                    BtpPacket btpPacket = btpSocket.receive();
+                    switch (btpPacket.destinationPort()) {
                     case PORT_CAM: {
                         Cam cam;
                         try {
@@ -967,31 +969,53 @@ public class VehicleAdapter {
                             logger.warn("Can't decode cam", e);
                         }
                         break;
-                    } case PORT_DENM: {
-                        Denm denm;
-                        try {
-                            denm = UperEncoder.decode(btpPacket.payload(), Denm.class);
+                    }
 
-                            // TODO: Fill in the buffer for packet.
+                    case PORT_DENM: {
+                          Denm denm;
+                          try {
+                              denm = UperEncoder.decode(btpPacket.payload(), Denm.class);
+                              denmToSimulink(denm, buffer);
+
+                              packet.setPort(DEFAULT_SIMULINK_UDP_PORT);
+                              try {
+                                  rcvSocket.send(packet);
+                              } catch (IOException e) {
+                                  logger.warn("Failed to send packet to Simulink", e);
+                              }
+                          } catch (IllegalArgumentException | UnsupportedOperationException e) {
+                              logger.warn("Can't decode denm", e);
+                          }
+                          break;                          
+                      }
+
+                    case PORT_ICLCM: {
+                        IgameCooperativeLaneChangeMessage iclcm;
+                        try {
+                            //TODO: iCLCM isn't added to the decoder yet
+                            iclcm = UperEncoder.decode(btpPacket.payload(), IgameCooperativeLaneChangeMessage.class);
+                            iclcmToSimulink(iclcm, buffer);
 
                             packet.setPort(DEFAULT_SIMULINK_UDP_PORT);
                             try {
-                                rcvSocket.send(packet);
-                            } catch (IOException e) {
-                                logger.warn("Failed to send packet to Simulink", e);
+                                rcvSocket.send(packet);                                
+                            } catch(IOException e) {
+                                logger.warn("Failed to send iCLCM to Simulink", e);
                             }
-                        } catch (IllegalArgumentException | UnsupportedOperationException e) {
-                            logger.warn("Can't decode denm", e);
+                        } catch(IllegalArgumentException | UnsupportedOperationException e){
+                            logger.warn("Can't decode iclcm", e);
                         }
                         break;
-                    } default:
-                        // Ignore.
+                        }
+
+                    default:
+                        //fallthrough
+                    }
+                } catch (InterruptedException e) {
+                    logger.warn("BTP socket receive was interrupted", e);
                 }
-            } catch (InterruptedException e) {
-                logger.warn("BTP socket receive was interrupted", e);
             }
-        }
-    };
+        };
 
     public void send(Cam cam) {
         byte[] bytes;
@@ -1025,11 +1049,24 @@ public class VehicleAdapter {
         }
     }
 
-    /*
-    private void send(Gcdcm gcdcm){
-
+    //TODO: iCLCM isn't added to the encoder
+    private void send(IgameCooperativeLaneChangeMessage iclcm){
+        byte[] bytes;
+        try {
+            bytes = UperEncoder.encode(iclcm);
+        } catch (IllegalArgumentException | UnsupportedOperationException e) {
+            logger.error("Failed to encode iCLCM", e);
+            return;
+        }
+        BtpPacket packet = BtpPacket.singleHop(bytes, PORT_ICLCM);
+        try {
+            btpSocket.send(packet);
+        } catch (IOException e) {
+            logger.warn("failed to send iclcm", e);
+        }        
     }
-    */
+
+
 
     public static class SocketAddressFromString {  // Public, otherwise JewelCLI can't access it!
         private final InetSocketAddress address;
@@ -1117,7 +1154,7 @@ public class VehicleAdapter {
         executor.submit(sendToSimulinkLoop);
     }
     
-    //TODO: Clean up main class and look through the CLI options.
+    //TODO: Load options from config file instead of from arguments
     public static void main(String[] args) throws IOException {
         logger.info("Starting vehicle adapter...");
 
