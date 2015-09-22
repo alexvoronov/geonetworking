@@ -194,7 +194,7 @@ public class VehicleAdapter {
                                 longitude,
                                 buffer.getInt(), /* semiMajorAxisConfidence */
                                 buffer.getInt(), /* semiMinorAxisConfidence */
-                                buffer.getInt(), /* semiMajorOrientation */                                
+                                buffer.getInt(), /* semiMajorOrientation */
                                 buffer.getInt(), /* altitude */
                                 buffer.getInt(), /* heading */
                                 buffer.getInt(), /* headingConfidence */
@@ -272,7 +272,7 @@ public class VehicleAdapter {
         }else buffer.putInt(0);
 
         //Replace container mask
-        buffer.put(1+2*4+1, containerMask);
+        buffer.put(1+2*4, containerMask);
 
         /* Old code. Will remain as a comment for a week or so for
          * reference. */
@@ -453,9 +453,9 @@ public class VehicleAdapter {
         byte managementMask = 0;
         buffer.put(managementMask);        
         
-        buffer.putInt((int) managementContainer.getActionID().getOriginatingStationID().value);       
-        buffer.putInt((int) managementContainer.getDetectionTime().value);
-        buffer.putInt((int) managementContainer.getReferenceTime().value);
+        //buffer.putInt((int) managementContainer.getActionID().getOriginatingStationID().value);       
+        buffer.putLong((long) managementContainer.getDetectionTime().value);
+        buffer.putLong((long) managementContainer.getReferenceTime().value);
 
         if(managementContainer.hasTermination()){
             managementMask += (1<<7);            
@@ -492,7 +492,7 @@ public class VehicleAdapter {
         buffer.putInt((int) managementContainer.getStationType().value);
 
         //Need to update the mask since it has been changed
-        buffer.put(1+4+1+1, managementMask);        
+        buffer.put(1+4+1, managementMask);        
 
         //SituationContainer isn't used for GCDC16
         SituationContainer situationContainer = null;
@@ -523,7 +523,7 @@ public class VehicleAdapter {
             }else buffer.putInt(0);
 
             //Need to update the mask since it has been changed
-            buffer.put(6+15*4+1, locationMask);            
+            buffer.put(6+15*4, locationMask);            
         }else buffer.put(new byte[1+5*4]);        
         
 
@@ -551,10 +551,10 @@ public class VehicleAdapter {
             }else buffer.putInt(0);
 
             //Need to update the mask since it has been changed
-            buffer.put(7+20*4+1, alacarteMask);
+            buffer.put(7+20*4, alacarteMask);
         }else buffer.put(new byte[1+3*4]);
 
-        buffer.put(6, containerMask);        
+        buffer.put(5, containerMask);        
     }
 
     private int denm_sequence_number = 0;
