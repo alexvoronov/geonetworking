@@ -470,7 +470,7 @@ public class Iclcm {
 	
 	@IntRange(minValue = -32767, maxValue = 32767)
 	public static class MioRangeRate extends Asn1Integer {
-		public static final int zeroMeterPerSecond = 32765;
+		public static final int zeroMeterPerSecond = 0;
 		public static final int oneMeterPerSecond = 100;
 		public static final int unavailable = 32767;
 		
