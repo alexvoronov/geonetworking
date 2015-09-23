@@ -35,7 +35,7 @@ import org.junit.Test;
 
 //TODO: This needs some cleaning up
 public class VehicleAdapterTest{
-    public static final int MAX_PACKET_LENGTH = 200;
+    public static final int MAX_PACKET_LENGTH = 2000;
     VehicleAdapter va;
     public static VehiclePositionProvider vehiclePositionProvider;
 
@@ -124,9 +124,9 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(20); //vehicleWidth
         byteBuffer.putInt(0); //longitudinalAcc
         byteBuffer.putInt(1); //longitudinalAccConf
-        byteBuffer.putInt(0); //yawRateValue
+        byteBuffer.putInt(YawRateValue.unavailable); //yawRateValue
         byteBuffer.putInt(1); //yawRateConfidence        
-        byteBuffer.putInt(0); //vehicleRole
+        byteBuffer.putInt(VehicleRole.taxi.value()); //vehicleRole
 
         Cam cam = va.simulinkToCam(buffer);
 
@@ -135,7 +135,7 @@ public class VehicleAdapterTest{
        
         for(int i = 0;i < buffer.length;i++){
             if(buffer[i] != received[i]){
-                System.out.println("CAM ELEMENT " + i + ":\t" + buffer[i] + " != " + received[i]);
+                System.out.println("[ERROR] CAM ELEMENT " + i + ":\tExpected " + buffer[i] + " GOT " + received[i]);
             }
         }
 
@@ -151,32 +151,32 @@ public class VehicleAdapterTest{
         //TODO: Replace all zeroes with non-zero values
         byteBuffer.put((byte) 1); //messageId
         byteBuffer.putInt(1337); //stationID
-        byteBuffer.put((byte) 0); //containerMask
+        byteBuffer.put((byte) 160); //containerMask
         byteBuffer.put((byte) 64); //managementMask
         byteBuffer.putLong(1); //detectionTime
         byteBuffer.putLong(2); //referenceTime
         byteBuffer.putInt(0); //termination
-        byteBuffer.putInt(0); //latitude
-        byteBuffer.putInt(0); //longtitude
-        byteBuffer.putInt(0); //semiMajorConfidence
-        byteBuffer.putInt(0); //semiMinorConfidence
-        byteBuffer.putInt(0); //semiMajorOrientation
-        byteBuffer.putInt(0); //altitude
+        byteBuffer.putInt(Latitude.unavailable); //latitude
+        byteBuffer.putInt(Longitude.unavailable); //longtitude
+        byteBuffer.putInt(SemiAxisLength.unavailable); //semiMajorConfidence
+        byteBuffer.putInt(SemiAxisLength.unavailable); //semiMinorConfidence
+        byteBuffer.putInt(HeadingValue.unavailable); //semiMajorOrientation
+        byteBuffer.putInt(AltitudeValue.unavailable); //altitude
         byteBuffer.putInt(0); //relevanceDistance
         byteBuffer.putInt(0); //relevanceTrafficDirection
         byteBuffer.putInt(0); //validityDuration
         byteBuffer.putInt(0); //transmissionIntervall
-        byteBuffer.putInt(0); //stationType
-        byteBuffer.put((byte) 0);    //situationMask
-        byteBuffer.putInt(0); //informationQuality
-        byteBuffer.putInt(0); //causeCode
-        byteBuffer.putInt(0); //subCauseCode
+        byteBuffer.putInt(net.gcdc.camdenm.CoopIts.StationType.passengerCar); //stationType
+        byteBuffer.put((byte) 128);    //situationMask
+        byteBuffer.putInt(4); //informationQuality
+        byteBuffer.putInt(CauseCodeType.dangerousSituation); //causeCode
+        byteBuffer.putInt(2); //subCauseCode
         byteBuffer.putInt(0); //linkedCuaseCode
         byteBuffer.putInt(0); //linkedSubCauseCode
-        byteBuffer.put((byte) 0);    //alacarteMask
+        byteBuffer.put((byte) 8);    //alacarteMask
         byteBuffer.putInt(0); //lanePosition
         byteBuffer.putInt(0); //temperature
-        byteBuffer.putInt(0); //positioningSolutionType        
+        byteBuffer.putInt(5); //positioningSolutionType        
 
         Denm denm = va.simulinkToDenm(buffer);
         byte[] received = new byte[MAX_PACKET_LENGTH];
@@ -185,7 +185,7 @@ public class VehicleAdapterTest{
         
         for(int i = 0;i < buffer.length;i++){
             if(buffer[i] != received[i]){
-                System.out.println("DENM ELEMENT " + i + ":\t" + buffer[i] + " != " + received[i]);
+                System.out.println("[ERROR] DENM ELEMENT " + i + ":\t Expected " + buffer[i] + " Got " + received[i]);
             }
         }
 
@@ -201,36 +201,36 @@ public class VehicleAdapterTest{
         //TODO: Replace all zeroes with non-zero values
         byteBuffer.put((byte) 10); //messageID
         byteBuffer.putInt(1337); //stationID
-        byteBuffer.put((byte) 0); //containerMask
-        byteBuffer.putInt(0); //rearAxleLocation
+        byteBuffer.put((byte) 128); //containerMask
+        byteBuffer.putInt(100); //rearAxleLocation
         byteBuffer.putInt(0); //controllerType
-        byteBuffer.putInt(0); //responseTimeConstant
-        byteBuffer.putInt(0); //responseTimeDelay
-        byteBuffer.putInt(0); //targetLongAcc
-        byteBuffer.putInt(0); //timeHeadway
-        byteBuffer.putInt(0); //cruiseSpeed
-        byteBuffer.putInt(0); //lowFrequencyMask
-        byteBuffer.putInt(0); //participantsReady
+        byteBuffer.putInt(1001); //responseTimeConstant
+        byteBuffer.putInt(1001); //responseTimeDelay
+        byteBuffer.putInt(TargetLongitudonalAcceleration.unavailable); //targetLongAcc
+        byteBuffer.putInt(TimeHeadway.unavailable); //timeHeadway
+        byteBuffer.putInt(CruiseSpeed.unavailable); //cruiseSpeed
+        byteBuffer.put((byte) 128); //lowFrequencyMask
+        byteBuffer.putInt(1); //participantsReady
         byteBuffer.putInt(0); //startPlatoon
         byteBuffer.putInt(0); //endOfScenario
-        byteBuffer.putInt(0); //mioID
-        byteBuffer.putInt(0); //mioRange
-        byteBuffer.putInt(0); //mioBearing
-        byteBuffer.putInt(0); //mioRangeRate
-        byteBuffer.putInt(0); //lane
+        byteBuffer.putInt(255); //mioID
+        byteBuffer.putInt((int) MioRange.unavailable); //mioRange
+        byteBuffer.putInt((int) MioBearing.unavailable); //mioBearing
+        byteBuffer.putInt((int) MioRangeRate.unavailable); //mioRangeRate
+        byteBuffer.putInt(3); //lane
         byteBuffer.putInt(0); //forwardID
         byteBuffer.putInt(0); //backwardID
         byteBuffer.putInt(0); //ackFlag
         byteBuffer.putInt(0); //mergeRequest
         byteBuffer.putInt(0); //safeToMerge
-        byteBuffer.putInt(0); //flag
+        byteBuffer.putInt(1); //flag
         byteBuffer.putInt(0); //flagTail
-        byteBuffer.putInt(0); //flagHead
-        byteBuffer.putInt(0); //platoonID
-        byteBuffer.putInt(0); //distanceTravelledCz
-        byteBuffer.putInt(0); //intention
-        byteBuffer.putInt(0); //counter      
-
+        byteBuffer.putInt(1); //flagHead
+        byteBuffer.putInt(254); //platoonID
+        byteBuffer.putInt(100); //distanceTravelledCz
+        byteBuffer.putInt(2); //intention
+        byteBuffer.putInt(6);
+        
         IgameCooperativeLaneChangeMessage iclcm = va.simulinkToIclcm(buffer);
         byte[] received = new byte[MAX_PACKET_LENGTH];
         va.iclcmToSimulink(iclcm, received);
@@ -238,7 +238,7 @@ public class VehicleAdapterTest{
         
         for(int i = 0;i < buffer.length;i++){
             if(buffer[i] != received[i]){
-                System.out.println("iCLCM ELEMENT " + i + ":\t" + buffer[i] + " != " + received[i]);
+                System.out.println("[ERROR] iCLCM ELEMENT " + i + ":\t Expected " + buffer[i] + " Got " + received[i]);
             }
         }
 

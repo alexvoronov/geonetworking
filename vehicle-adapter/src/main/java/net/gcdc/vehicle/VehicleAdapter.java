@@ -414,13 +414,13 @@ public class VehicleAdapter {
                               buffer.getInt(),  /* ValidityDuration */
                               buffer.getInt(),  /* transmissionInterval */
                               buffer.getInt(),  /* stationType */
-                              buffer.getInt(),  /* situationMask */
+                              buffer.get(),     /* situationMask */
                               buffer.getInt(),  /* informationQuality */
                               buffer.getInt(),  /* causeCode */
                               buffer.getInt(),  /* subCauseCode */
                               buffer.getInt(),  /* linkedCauseCode */
                               buffer.getInt(),  /* linkedSubCauseCode */
-                              buffer.getInt(),  /* alacarteMask */
+                              buffer.get(),     /* alacarteMask */
                               buffer.getInt(),  /* lanePosition*/
                               buffer.getInt(),  /* temperature */
                               buffer.getInt()); /* positioningSolutionType */
@@ -446,10 +446,13 @@ public class VehicleAdapter {
 
         
         byte containerMask = 0;
-        buffer.put(containerMask);        
+        buffer.put(containerMask);
+
+        int headerLength = 1+4+1;
 
         /* ManagementContainer */
         ManagementContainer managementContainer = denm.getManagement();
+        int managementLength = 1 + 2*8 + 12*4;        
         byte managementMask = 0;
         buffer.put(managementMask);        
         
@@ -492,15 +495,38 @@ public class VehicleAdapter {
         buffer.putInt((int) managementContainer.getStationType().value);
 
         //Need to update the mask since it has been changed
-        buffer.put(1+4+1, managementMask);        
+        buffer.put(headerLength, managementMask);        
 
-        //SituationContainer isn't used for GCDC16
+        //buffer.put((byte) 254);        
+        /* SituationContainer */
         SituationContainer situationContainer = null;
+        int situationLength = 1 + 5*4;
+        if(denm.hasSituation()){
+            containerMask += (1<<7);
+            situationContainer = denm.getSituation();
+            byte situationMask = 0;
+            buffer.put(situationMask);
 
+            buffer.putInt((int) situationContainer.getInformationQuality().value);
+            buffer.putInt((int) situationContainer.getEventType().getCauseCode().value);
+            buffer.putInt((int) situationContainer.getEventType().getSubCauseCode().value);
+
+            if(situationContainer.hasLinkedCause()){
+                situationMask += (1<<7);
+                buffer.putInt((int) situationContainer.getLinkedCause().getCauseCode().value);
+                buffer.putInt((int) situationContainer.getLinkedCause().getSubCauseCode().value);
+            }else buffer.put(new byte[2*4]);
+
+            buffer.put(headerLength + managementLength, situationMask);
+        }else buffer.put(new byte[situationLength]);                
+
+        /* Not used for GCDC16 */
+        int locationLength = 0;
         /* LocationContainer */
-        LocationContainer locationContainer = null;        
+        /*
+        LocationContainer locationContainer = null;
         if(denm.hasLocation()){
-            containerMask += (1<<7);            
+            containerMask += (1<<6);            
             locationContainer = denm.getLocation();
             byte locationMask = 0;
             buffer.put(locationMask);
@@ -523,14 +549,15 @@ public class VehicleAdapter {
             }else buffer.putInt(0);
 
             //Need to update the mask since it has been changed
-            buffer.put(6+15*4, locationMask);            
-        }else buffer.put(new byte[1+5*4]);        
-        
+            buffer.put(headerLength + managementLength + situationLength, locationMask);
+        }else buffer.put(new byte[locationLength]);
+        */
 
         /* AlacarteContainer */
-        AlacarteContainer alacarteContainer = null;        
+        AlacarteContainer alacarteContainer = null;
+        int alacarteLength = 1 + 3*4;
         if(denm.hasAlacarte()){
-            containerMask += (1<<6);            
+            containerMask += (1<<5);            
             alacarteContainer = denm.getAlacarte();
             byte alacarteMask = 0;
             buffer.put(alacarteMask);            
@@ -541,20 +568,20 @@ public class VehicleAdapter {
             }else buffer.putInt(0);
 
             if(alacarteContainer.hasExternalTemperature()){
-                alacarteMask += (1<<6);
+                alacarteMask += (1<<5);
                 buffer.putInt((int) alacarteContainer.getExternalTemperature().value);                
             }else buffer.putInt(0);
 
             if(alacarteContainer.hasPositioningSolution()){
-                alacarteMask += (1<<5);
+                alacarteMask += (1<<3);
                 buffer.putInt((int) alacarteContainer.getPositioningSolution().value());
             }else buffer.putInt(0);
 
             //Need to update the mask since it has been changed
-            buffer.put(7+20*4, alacarteMask);
-        }else buffer.put(new byte[1+3*4]);
+            buffer.put(headerLength + managementLength + situationLength + locationLength, alacarteMask);
+        }else buffer.put(new byte[alacarteLength]);
 
-        buffer.put(5, containerMask);        
+        buffer.put(headerLength - 1, containerMask);
     }
 
     private int denm_sequence_number = 0;
@@ -661,6 +688,7 @@ public class VehicleAdapter {
         ByteBuffer buffer = ByteBuffer.wrap(packet);
 
         try{
+            byte messageId = buffer.get();
             return createIclcm(buffer.getInt(), //stationId
                                buffer.get(),    //containerMask
                                //HW Container
@@ -709,22 +737,26 @@ public class VehicleAdapter {
         IgameCooperativeLaneChangeMessageBody iclcm = iCLCM.getIclm();
         ItsPduHeader header = iCLCM.getHeader();
         buffer.put((byte) header.getMessageID().value);
-        buffer.putInt((int)header.getStationID().value);
+        buffer.putInt((int) header.getStationID().value);
         IclmParameters iclmParameters = iclcm.getIclmParameters();
         byte containerMask = 0;
         buffer.put(containerMask);        
+        int headerLength = 2+4;
+        
 
         /* VehicleContainerHighFrequency */
+        int highFrequencyLength = 7*4;
         VehicleContainerHighFrequency vehicleContainerHighFrequency = iclmParameters.getVehicleContainerHighFrequency();
         buffer.putInt((int) vehicleContainerHighFrequency.getVehicleRearAxleLocation().value);        
-        buffer.getInt((int) vehicleContainerHighFrequency.getControllerType().value);        
-        buffer.getInt((int) vehicleContainerHighFrequency.getVehicleResponseTime().getVehicleResponseTimeConstant().value);
-        buffer.getInt((int) vehicleContainerHighFrequency.getVehicleResponseTime().getVehicleResponseTimeDelay().value);
-        buffer.getInt((int) vehicleContainerHighFrequency.getTargetLongitudinalAcceleration().value);        
-        buffer.getInt((int) vehicleContainerHighFrequency.getTimeHeadway().value);
-        buffer.getInt((int) vehicleContainerHighFrequency.getCruisespeed().value);        
+        buffer.putInt((int) vehicleContainerHighFrequency.getControllerType().value);        
+        buffer.putInt((int) vehicleContainerHighFrequency.getVehicleResponseTime().getVehicleResponseTimeConstant().value);
+        buffer.putInt((int) vehicleContainerHighFrequency.getVehicleResponseTime().getVehicleResponseTimeDelay().value);
+        buffer.putInt((int) vehicleContainerHighFrequency.getTargetLongitudinalAcceleration().value);        
+        buffer.putInt((int) vehicleContainerHighFrequency.getTimeHeadway().value);
+        buffer.putInt((int) vehicleContainerHighFrequency.getCruisespeed().value);        
 
         /* VehicleContainerLowFrequency */
+        int lowFrequencyLength = 1 + 3*4;        
         VehicleContainerLowFrequency lowFrequencyContainer = null;
         if(iclmParameters.hasLowFrequencyContainer()){
             containerMask += (1<<7);
@@ -745,12 +777,13 @@ public class VehicleAdapter {
             if(lowFrequencyContainer.hasEndOfScenario()){
                 lowFrequencyMask += (1<<5);                                
 		buffer.putInt((int) lowFrequencyContainer.getEndOfScenario().value);                
-            }
+            }else buffer.putInt(0);
 
-            buffer.put(1+4+1+1, lowFrequencyMask);            
-        }else buffer.put(new byte[1+3*4]);
+            buffer.put(headerLength + highFrequencyLength, lowFrequencyMask);            
+        }else buffer.put(new byte[lowFrequencyLength]);
         
         /* MostImportantObjectContainer */
+        int mioLength = 4*4;
         MostImportantObjectContainer mostImportantObjectContainer = iclmParameters.getMostImportantObjectContainer();
         buffer.putInt((int) mostImportantObjectContainer.getMioID().value);        
         buffer.putInt((int) mostImportantObjectContainer.getMioRange().value);        
@@ -758,16 +791,19 @@ public class VehicleAdapter {
         buffer.putInt((int) mostImportantObjectContainer.getMioRangeRate().value());        
 
         /* LaneObject */
+        int laneLength = 1*4;
         LaneObject laneObject = iclmParameters.getLaneObject();
         buffer.putInt((int) laneObject.getLane().value());        
 
         /* PairIdObject */
+        int pairIdLength = 3*4;
         PairIdObject pairIdObject = iclmParameters.getPairIdObject();
         buffer.putInt((int) pairIdObject.getForwardID().value);       
         buffer.putInt((int) pairIdObject.getBackwardID().value);        
         buffer.putInt((int) pairIdObject.getAcknowledgeFlag().value);        
 
         /* MergeObject */
+        int mergeLength =5*4;
         MergeObject mergeObject = iclmParameters.getMergeObject();
         buffer.putInt((int) mergeObject.getMergeRequest().value);        
         buffer.putInt((int) mergeObject.getMergeSafeToMerge().value);        
@@ -776,13 +812,14 @@ public class VehicleAdapter {
         buffer.putInt((int) mergeObject.getMergeFlagHead().value);        
 
         /* ScenarioObject */
+        int scenarioLength = 4*4;
         ScenarioObject scenarioObject = iclmParameters.getScenarioObject();
         buffer.putInt((int) scenarioObject.getPlatoonID().value);        
         buffer.putInt((int) scenarioObject.getDistanceTravelledCZ().value);        
         buffer.putInt((int) scenarioObject.getIntention().value);        
         buffer.putInt((int) scenarioObject.getCounterIntersection().value);
 
-        buffer.put(1+4+1, containerMask);        
+        buffer.put(headerLength - 1, containerMask);
     }
 
     public IgameCooperativeLaneChangeMessage createIclcm(int stationId,
