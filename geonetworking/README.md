@@ -19,7 +19,7 @@ Implementation targets Java 7 at the moment, with some use of backported feature
 
 ### Building, Testing and Running
 
-[SBT](http://www.scala-sbt.org/) and [Maven](http://maven.apache.org/) are supported as a build tools. Since they are independent from each other, they might be out of sync sometime (please open an issue then). 
+[Maven](http://maven.apache.org/) is used as a build tool. There is also some support for [SBT](http://www.scala-sbt.org/).
 
 Most IDEs work with Maven projects directly, e.g. Eclipse supports Maven through [M2Eclipse](http://www.eclipse.org/m2e/). If you use SBT, you can generate Eclipse project files with ```sbt eclipse```.
 
@@ -34,6 +34,14 @@ or
 ```
 mvn test
 ```
+
+#### Using as a library
+Compile and install into the local maven repository:
+
+```
+mvn install
+```
+Examples of using `geonetworking` as a library, as well as a mechanism to send CAM messages, are in the [uppertester](https://github.com/alexvoronov/geonetworking/tree/master/uppertester). Another example is in the [Vehicle Adapter](https://github.com/alexvoronov/geonetworking/tree/master/vehicle-adapter). 
 
 #### Run with echo link layer
 Compile and run command-line client:
@@ -78,8 +86,6 @@ Stdout <---|    4000|<-------------------|         |<---|          |   |       |
 ### Related implementations
 
 This implementation was inspired by [DriveITS](https://github.com/Dimme/driveits). Another open-source implementation, now outdated, is [CarGeo6](http://www.cargeo6.org/).
-
-Some basic mechanism to send CAM messages exist in [gn-uppertester](https://github.com/alexvoronov/gn-uppertester), which was used to test this `geonetworking` implementation.
 
 
 ### Acknowledgements
