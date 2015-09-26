@@ -110,7 +110,6 @@ import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
 
 import net.gcdc.camdenm.Iclcm.*;
-//import net.gcdc.camdenm.Iclcm.MessageID_iCLCM;
 
 import net.gcdc.geonetworking.LinkLayerUdpToEthernet;
 import net.gcdc.geonetworking.LongPositionVector;
@@ -220,7 +219,6 @@ public class VehicleAdapter {
 
     /* Unpack a CAM message and create a Simulink message.
      */
-    //TODO: Add messageID and stationID
     public void camToSimulink(Cam camPacket, byte[] packetBuffer) throws BufferOverflowException{
         ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
 
@@ -231,10 +229,11 @@ public class VehicleAdapter {
 
         buffer.put((byte) header.getMessageID().value);
         buffer.putInt((int)header.getStationID().value);
-        //TODO: Is generationdeltatime an int or long?
         buffer.putInt((int) generationDeltaTime.value);
         byte containerMask = 0;
         buffer.put(containerMask);
+
+        int headerLength = 2*1+2*4;
 
         /* BasicContainer */
         BasicContainer basicContainer = camParameters.getBasicContainer();
@@ -272,42 +271,7 @@ public class VehicleAdapter {
         }else buffer.putInt(0);
 
         //Replace container mask
-        buffer.put(1+2*4, containerMask);
-
-        /* Old code. Will remain as a comment for a week or so for
-         * reference. */
-        /*
-        try{
-            buffer.put(containerMask);
-            buffer.putInt((int) cam.getCam().getGenerationDeltaTime().value);
-            buffer.put((byte) cam.getCam().getCamParameters().getBasicContainer().getStationType().value);
-            buffer.put((byte) cam.getCam().getCamParameters().getLowFrequencyContainer().getBasicVehicleContainerLowFrequency().getVehicleRole().value());
-
-            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleLength().getVehicleLengthValue().value);
-            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getVehicleWidth().value);
-            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLatitude().value);
-            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getLongitude().value);
-            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMajorConfidence().value);
-            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMinorConfidence().value);
-            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getPositionConfidenceEllipse().getSemiMajorOrientation().value);
-            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getHeading().getHeadingValue().value);
-            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getHeading().getHeadingConfidence().value);        
-            buffer.putInt((int) cam.getCam().getCamParameters().getBasicContainer().getReferencePosition().getAltitude().getAltitudeValue().value);
-            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getSpeed().getSpeedValue().value);
-            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getSpeed().getSpeedConfidence().value);
-            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getYawRate().getYawRateValue().value);
-            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getYawRate().getYawRateConfidence().value());
-            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
-                          getLongitudinalAccelerationValue().value());
-            buffer.putInt((int) cam.getCam().getCamParameters().getHighFrequencyContainer().getBasicVehicleContainerHighFrequency().getLongitudinalAcceleration().
-                          getLongitudinalAccelerationConfidence().value());
-
-        }catch(NullPointerException e){
-            logger.error("NullPointerException when creating local CAM");
-            System.exit(1);
-        }
-        */
-
+        buffer.put(headerLength - 1, containerMask);
     }
 
     public Cam createCam(int stationId,
@@ -387,6 +351,8 @@ public class VehicleAdapter {
     }
 
 
+    /* Unpack a local DENM and call the createDenm method with the
+     * unpacked values. */
     public Denm simulinkToDenm(byte[] receivedData){
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
 
@@ -432,9 +398,6 @@ public class VehicleAdapter {
     }
 
     /* Unpack a DENM and create a local DENM for sending to Simulink.
-     */
-    /* TODO: Read through this method again since I've probably made
-     * some mistake somewhere.
      */
     public void denmToSimulink(Denm denmPacket, byte[] packetBuffer){
         ByteBuffer buffer = ByteBuffer.wrap(packetBuffer);
@@ -497,7 +460,6 @@ public class VehicleAdapter {
         //Need to update the mask since it has been changed
         buffer.put(headerLength, managementMask);        
 
-        //buffer.put((byte) 254);        
         /* SituationContainer */
         SituationContainer situationContainer = null;
         int situationLength = 1 + 5*4;
@@ -921,8 +883,7 @@ public class VehicleAdapter {
                                                                                  
         IgameCooperativeLaneChangeMessage igameCooperativeLaneChangeMessage =
             new IgameCooperativeLaneChangeMessage(new ItsPduHeader(new ProtocolVersion(1),
-                                                                   //TODO: Import ID from Iclcm class instead
-                                                                   new MessageId(10),
+                                                                   new MessageId(net.gcdc.camdenm.Iclcm.MessageID_iCLCM),
                                                                    new StationID(STATION_ID)),
                                                   igameCooperativeLaneChangeMessageBody);
 
@@ -943,7 +904,7 @@ public class VehicleAdapter {
                     assert (receivedData.length == packet.getLength());
 
                     /* First byte is the MessageId */
-                    switch(receivedData[0]){
+                    switch(receivedData[0]){                        
                     case MessageId.cam: {
                         logger.debug("CREATING CAM");
                         Cam cam = simulinkToCam(receivedData);
@@ -963,7 +924,7 @@ public class VehicleAdapter {
                         break;
                     }
                         
-                    case 10: { //TODO: Replace with MessageId.iclcm
+                    case net.gcdc.camdenm.Iclcm.MessageID_iCLCM: {
                         logger.debug("CREATING iCLCM");
                         IgameCooperativeLaneChangeMessage iclcm = simulinkToIclcm(receivedData);
                         send(iclcm);
@@ -1149,8 +1110,8 @@ public class VehicleAdapter {
         public double speedMetersPerSecond;
         public double headingDegreesFromNorth;
 
-        //TODO: Remove once we have a proper address
-        Optional<Address> emptyAddress = Optional.empty();
+        //TODO: DEPRECATED. Replaced by proper address.
+        //Optional<Address> emptyAddress = Optional.empty();
 
         VehiclePositionProvider(Address address){
             this.address = address;
@@ -1170,7 +1131,7 @@ public class VehicleAdapter {
         }
 
         public LongPositionVector getLatestPosition(){
-            return new LongPositionVector(emptyAddress,
+            return new LongPositionVector(address,
                                           Instant.now(),
                                           position,
                                           isPositionConfident,
@@ -1212,12 +1173,14 @@ public class VehicleAdapter {
         
         MacAddress senderMac = opts.isMacAddress() ? opts.getMacAddress() : new MacAddress(0);
 
-        //TODO: Add a proper address
-        /* TODO: StationType is both a class in CoopITS and an ENUM in
-         * geonetworking 
-         */
-        vehiclePositionProvider = new VehiclePositionProvider(null);
+        //StationType is both a class in CoopITS and an ENUM in geonetworking
+        Address address = new Address(true, //isManual
+                                      net.gcdc.geonetworking.StationType.values()[5], //5 for passenger car
+                                      46, //countryCode
+                                      senderMac.value()); //lowLevelAddress
         
+        vehiclePositionProvider = new VehiclePositionProvider(address);
+                                              
         VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer,
                                                vehiclePositionProvider, senderMac);
     }
