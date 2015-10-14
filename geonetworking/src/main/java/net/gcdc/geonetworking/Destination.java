@@ -172,6 +172,45 @@ public abstract class Destination {
         @Override public Optional<Byte>   remainingHopLimit()  { return Optional.of((byte) 1);  }
     }
 
+    public static final class TopoScopedBroadcast extends Destination {
+        private final Optional<Double> maxLifetimeSeconds;
+        private final Optional<Byte> maxHopLimit;
+        private final Optional<Byte> remainingHopLimit;
+
+        private TopoScopedBroadcast(Optional<Double> maxLifetimeSeconds, Optional<Byte> maxHopLimit, Optional<Byte> remainingHopLimit) {
+            this.maxLifetimeSeconds = maxLifetimeSeconds;
+            this.maxHopLimit = maxHopLimit;
+            this.remainingHopLimit = remainingHopLimit;
+        }
+
+        @Override public DestinationType  typeAndSubtype()     { return DestinationType.MULTI_HOP; }
+        @Override public Optional<Double> maxLifetimeSeconds() { return maxLifetimeSeconds; }
+        @Override public Optional<Byte>   maxHopLimit()        { return maxHopLimit; }
+        @Override public Optional<Byte>   remainingHopLimit()  { return remainingHopLimit; }
+
+        public TopoScopedBroadcast withMaxLifetimeSeconds(double lifetimeSeconds) {
+            return new TopoScopedBroadcast(
+                Optional.of(lifetimeSeconds),
+                this.maxHopLimit,
+                this.remainingHopLimit
+            );
+        }
+        public TopoScopedBroadcast withMaxHopLimit(byte maxHopLimit) {
+            return new TopoScopedBroadcast(
+                this.maxLifetimeSeconds,
+                Optional.of(maxHopLimit),
+                this.remainingHopLimit
+            );
+        }
+        public TopoScopedBroadcast withRemainingHopLimit(byte remainingHopLimit) {
+            return new TopoScopedBroadcast(
+                this.maxLifetimeSeconds,
+                this.maxHopLimit,
+                Optional.of(remainingHopLimit)
+            );
+        }
+    }
+
     public static SingleHop singleHop() {
         Optional<Double> lifetime = Optional.empty();
         return new SingleHop(lifetime);
@@ -193,7 +232,12 @@ public abstract class Destination {
 
     public static Beacon beacon() { return new Beacon(); }
 
+    public static TopoScopedBroadcast toposcopedbroadcast() {
+        Optional<Double> emptyLifetime = Optional.empty();
+        Optional<Byte>   emptyHops     = Optional.empty();
+        return new TopoScopedBroadcast(emptyLifetime, emptyHops, emptyHops);
+    }
+
     // public static GeoUnicast geounicast(Address address) { }
 
-    // public static TopoScopedBroadcast toposcopedbroadcast(int maxHops) { }
 }

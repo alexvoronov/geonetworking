@@ -250,6 +250,33 @@ public class GeonetStation implements Runnable, AutoCloseable {
                             MacAddress.fromBytes(llSrcAddress), senderLpv);
                     break;
                 }
+                case MULTI_HOP: {  // TODO: test case.
+                    short sequenceNumber = buffer.getShort();
+                    buffer.getShort();  // Reserved 16-bit.
+                    LongPositionVector senderLpv = LongPositionVector.getFrom(buffer);
+                    byte[] upperPayload = new byte[commonHeader.payloadLength()];
+                    buffer.slice().get(upperPayload, 0, commonHeader.payloadLength());
+
+                    Destination.TopoScopedBroadcast destination = Destination.toposcopedbroadcast()
+                            .withMaxLifetimeSeconds(basicHeader.lifetime().asSeconds())
+                            .withMaxHopLimit(commonHeader.maximumHopLimit())
+                            .withRemainingHopLimit(basicHeader.remainingHopLimit());
+                    GeonetData indication = new GeonetData(
+                            commonHeader.nextHeader(),
+                            destination,
+                            Optional.of(commonHeader.trafficClass()),
+                            Optional.of(senderLpv),
+                            upperPayload
+                            );
+                    if (!isDuplicate(indication, sequenceNumber)) {
+                        sendToUpperLayer(indication);
+                    }
+                    locationTable.updateFromForwardedMessage(senderLpv.address().get(), senderLpv);
+                    forwardIfNecessary(indication, sequenceNumber, MacAddress.fromBytes(llSrcAddress));
+                    markAsSeen(indication, sequenceNumber);  // Duplicate packet detection.
+
+                    break;
+                }
                 case GEOBROADCAST_CIRCLE:
                 case GEOBROADCAST_ELLIPSE:
                 case GEOBROADCAST_RECTANGLE:
@@ -264,7 +291,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
                     Destination.Geobroadcast destination = Destination.geobroadcast(area)
                             .withMaxLifetimeSeconds(basicHeader.lifetime().asSeconds())
-                            .withRemainingHopLimit((basicHeader.remainingHopLimit()))
+                            .withRemainingHopLimit(basicHeader.remainingHopLimit())
                             .withMaxHopLimit(commonHeader.maximumHopLimit());
                     GeonetData indication = new GeonetData(
                             commonHeader.nextHeader(),
@@ -297,7 +324,6 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 case GEOANYCAST_ELLIPSE:
                 case GEOANYCAST_RECTANGLE:
                 case GEOUNICAST:
-                case MULTI_HOP:
                 case ANY:
                 default:
                     // Ignore for now.
@@ -432,6 +458,14 @@ public class GeonetStation implements Runnable, AutoCloseable {
         // We can't forward if we don't know who was the last forwarder.
         // Packets have only the original sender, so for the last forwarder we need MAC address from LL.
         if (!linkLayer.hasEthernetHeader()) { return; }
+
+        // Do not forward if remaining hop limit (RHL) is too low.
+        // TODO: is it 1 or 0 which is too low? Beacons are sent with RHL=1, but they are never
+        // forwarded. Does this imply that anything with RHL=1 should not be forwarded?
+        if (indication.destination.remainingHopLimit().orElse((byte) config.itsGnDefaultHopLimit)
+                <= 1) {
+            return;
+        }
 
         switch (config.itsGnGeoBroadcastForwardingAlgorithm) {
             case 0:
