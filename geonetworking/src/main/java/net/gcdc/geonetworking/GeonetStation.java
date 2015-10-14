@@ -280,6 +280,9 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 case GEOBROADCAST_CIRCLE:
                 case GEOBROADCAST_ELLIPSE:
                 case GEOBROADCAST_RECTANGLE:
+                case GEOANYCAST_CIRCLE:
+                case GEOANYCAST_ELLIPSE:
+                case GEOANYCAST_RECTANGLE:
                 {
                     short sequenceNumber = buffer.getShort();
                     buffer.getShort();  // Reserved 16-bit.
@@ -308,11 +311,12 @@ public class GeonetStation implements Runnable, AutoCloseable {
                     markAsSeen(indication, sequenceNumber);  // Duplicate packet detection.
                     break;
                 }
-                case BEACON:
+                case BEACON: {
                     LongPositionVector senderLpv = LongPositionVector.getFrom(buffer);
                     locationTable.updateFromDirectMessage(senderLpv.address().get(),
                             MacAddress.fromBytes(llSrcAddress), senderLpv);
                     break;
+                }
                 case LOCATION_SERVICE_REQUEST:
                 case LOCATION_SERVICE_REPLY:
                     // Do nothing.
@@ -320,10 +324,35 @@ public class GeonetStation implements Runnable, AutoCloseable {
                     logger.info("Ignoring Location Service {}",
                             commonHeader.typeAndSubtype().toString());
                     break;
-                case GEOANYCAST_CIRCLE:
-                case GEOANYCAST_ELLIPSE:
-                case GEOANYCAST_RECTANGLE:
-                case GEOUNICAST:
+                case GEOUNICAST: {
+                    short sequenceNumber = buffer.getShort();
+                    buffer.getShort();  // Reserved 16-bit.
+                    LongPositionVector senderLpv = LongPositionVector.getFrom(buffer);
+                    ShortPositionVector destSpv = ShortPositionVector.getFrom(buffer);
+                    byte[] upperPayload = new byte[commonHeader.payloadLength()];
+                    buffer.slice().get(upperPayload, 0, commonHeader.payloadLength());
+
+                    Destination.GeoUnicast destination = Destination.geounicast(destSpv.address())
+                            .withMaxLifetimeSeconds(basicHeader.lifetime().asSeconds())
+                            .withRemainingHopLimit(basicHeader.remainingHopLimit())
+                            .withMaxHopLimit(commonHeader.maximumHopLimit());
+                    GeonetData indication = new GeonetData(
+                            commonHeader.nextHeader(),
+                            destination,
+                            Optional.of(commonHeader.trafficClass()),
+                            Optional.of(senderLpv),
+                            upperPayload
+                            );
+                    final long myMac = (new Address(config.itsGnLoacalGnAddr)).lowLevelAddress();
+                    if (destSpv.address().lowLevelAddress() == myMac
+                            && !isDuplicate(indication, sequenceNumber)) {
+                        sendToUpperLayer(indication);
+                    }
+                    locationTable.updateFromForwardedMessage(senderLpv.address().get(), senderLpv);
+                    //forwardIfNecessary(indication, sequenceNumber, MacAddress.fromBytes(llSrcAddress));
+                    markAsSeen(indication, sequenceNumber);  // Duplicate packet detection.
+                    break;
+                }
                 case ANY:
                 default:
                     // Ignore for now.
@@ -464,6 +493,12 @@ public class GeonetStation implements Runnable, AutoCloseable {
         // forwarded. Does this imply that anything with RHL=1 should not be forwarded?
         if (indication.destination.remainingHopLimit().orElse((byte) config.itsGnDefaultHopLimit)
                 <= 1) {
+            return;
+        }
+
+        // Do not forward GeoAnycast if we are one of the recipients.
+        Destination.Geobroadcast destination = (Geobroadcast)indication.destination;
+        if (destination.isAnycast() && destination.area().contains(position())) {
             return;
         }
 

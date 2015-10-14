@@ -38,7 +38,7 @@ public final class Position {
         this.longitudeDegrees = longitudeDegrees;
     }
 
-    public static final int LENGTH = 8;
+    public static final int LENGTH = 2*4;  // Two 32-bit integers.
 
     public double lattitudeDegrees() { return lattitudeDegrees; }
     public double longitudeDegrees() { return longitudeDegrees; }

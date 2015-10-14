@@ -134,6 +134,7 @@ public abstract class Destination {
         @Override public Optional<Double> maxLifetimeSeconds() { return maxLifetimeSeconds; }
         @Override public Optional<Byte>   maxHopLimit()        { return maxHopLimit;        }
         @Override public Optional<Byte>   remainingHopLimit()  { return remainingHopLimit;  }
+        public boolean isAnycast() { return isAnycast; }
 
         public Geobroadcast withMaxLifetimeSeconds(double lifetimeSeconds) {
             return new Geobroadcast(
@@ -211,6 +212,51 @@ public abstract class Destination {
         }
     }
 
+    public static final class GeoUnicast extends Destination {
+        private final Address address;
+        private final Optional<Double> maxLifetimeSeconds;
+        private final Optional<Byte> maxHopLimit;
+        private final Optional<Byte> remainingHopLimit;
+
+        private GeoUnicast(Address address, Optional<Double> maxLifetimeSeconds, Optional<Byte> maxHopLimit, Optional<Byte> remainingHopLimit) {
+            this.address = address;
+            this.maxLifetimeSeconds = maxLifetimeSeconds;
+            this.maxHopLimit = maxHopLimit;
+            this.remainingHopLimit = remainingHopLimit;
+        }
+
+        @Override public DestinationType  typeAndSubtype()     { return DestinationType.GEOUNICAST; }
+        @Override public Optional<Double> maxLifetimeSeconds() { return maxLifetimeSeconds; }
+        @Override public Optional<Byte>   maxHopLimit()        { return maxHopLimit; }
+        @Override public Optional<Byte>   remainingHopLimit()  { return remainingHopLimit; }
+
+        public GeoUnicast withMaxLifetimeSeconds(double lifetimeSeconds) {
+            return new GeoUnicast(
+                this.address,
+                Optional.of(lifetimeSeconds),
+                this.maxHopLimit,
+                this.remainingHopLimit
+            );
+        }
+        public GeoUnicast withMaxHopLimit(byte maxHopLimit) {
+            return new GeoUnicast(
+                this.address,
+                this.maxLifetimeSeconds,
+                Optional.of(maxHopLimit),
+                this.remainingHopLimit
+            );
+        }
+        public GeoUnicast withRemainingHopLimit(byte remainingHopLimit) {
+            return new GeoUnicast(
+                this.address,
+                this.maxLifetimeSeconds,
+                this.maxHopLimit,
+                Optional.of(remainingHopLimit)
+            );
+        }
+    }
+
+
     public static SingleHop singleHop() {
         Optional<Double> lifetime = Optional.empty();
         return new SingleHop(lifetime);
@@ -238,6 +284,10 @@ public abstract class Destination {
         return new TopoScopedBroadcast(emptyLifetime, emptyHops, emptyHops);
     }
 
-    // public static GeoUnicast geounicast(Address address) { }
+    public static GeoUnicast geounicast(Address address) {
+        Optional<Double> emptyLifetime = Optional.empty();
+        Optional<Byte>   emptyHops     = Optional.empty();
+        return new GeoUnicast(address, emptyLifetime, emptyHops, emptyHops);
+    }
 
 }
