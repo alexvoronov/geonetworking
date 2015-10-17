@@ -144,11 +144,12 @@ public class VehicleAdapter {
     private final static int HIGH_DYNAMICS_CAM_COUNT = 4;
 
     public final static double CAM_LIFETIME_SECONDS = 0.9;
+    public final static double iCLCM_LIFETIME_SECONDS = 0.9;
 
     public final static int MAX_UDP_LENGTH = 65535;
 
     //TODO: Remove and use CLI arguments instead
-    public final static int DEFAULT_SIMULINK_UDP_PORT = 5000;
+    public static int DEFAULT_SIMULINK_UDP_PORT = 5000;
 
     public final static int STATION_ID = 1337;
 
@@ -920,7 +921,7 @@ public class VehicleAdapter {
                          * GCDC16? For now let's just broadcast
                          * everything in a large radius.
                          */
-                        send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), (double) 20000)));
+                        send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), Double.MAX_VALUE)));
                         break;
                     }
                         
@@ -1056,7 +1057,7 @@ public class VehicleAdapter {
             logger.error("Failed to encode iCLCM", e);
             return;
         }
-        BtpPacket packet = BtpPacket.singleHop(bytes, PORT_ICLCM);
+        BtpPacket packet = BtpPacket.singleHop(bytes, PORT_ICLCM, iCLCM_LIFETIME_SECONDS);
         try {
             btpSocket.send(packet);
         } catch (IOException e) {
@@ -1084,12 +1085,19 @@ public class VehicleAdapter {
     }
 
     private static interface CliOptions{
-
         @Option int getPortRcvFromSimulink();
-
-        @Option SocketAddressFromString getRemoteAddressForUdpLinkLayer();
+        @Option SocketAddressFromString getSimulinkAddress();
 
         @Option int getLocalPortForUdpLinkLayer();
+        @Option SocketAddressFromString getRemoteAddressForUdpLinkLayer();
+
+        @Option int getStationID();
+        @Option MacAddress getMacAddress();
+
+        /*
+
+
+
 
         @Option(helpRequest = true) boolean getHelp();
 
@@ -1098,6 +1106,7 @@ public class VehicleAdapter {
         @Option MacAddress getMacAddress();
 
         boolean isMacAddress();
+        */
     }
 
     /* PositionProvider is used by the beaconing service and for
@@ -1115,7 +1124,9 @@ public class VehicleAdapter {
 
         VehiclePositionProvider(Address address){
             this.address = address;
-            this.position = new Position(0, 0);
+            this.position = new Position(0, 0); //TODO: Replace with
+                                                //sane starting
+                                                //values.
             this.isPositionConfident = false;
             this.speedMetersPerSecond = 0;
             this.headingDegreesFromNorth = 0;
@@ -1158,21 +1169,24 @@ public class VehicleAdapter {
 
         //Parse CLI options
         CliOptions opts = CliFactory.parseArguments(CliOptions.class, args);
-        boolean hasEthernetHeader = opts.hasEthernetHeader();
+        //boolean hasEthernetHeader = opts.hasEthernetHeader();
 
+        /*
         if(!hasEthernetHeader && ! opts.isMacAddress()){
             logger.error("Can't have MAC address with no ethernet header support!");
             System.exit(1);
         }
+        */
 
         StationConfig config = new StationConfig();
         LinkLayer linkLayer =
             new LinkLayerUdpToEthernet(opts.getLocalPortForUdpLinkLayer(),
                                        opts.getRemoteAddressForUdpLinkLayer().asInetSocketAddress(),
-                                       opts.hasEthernetHeader());
+                                       true);
         
-        MacAddress senderMac = opts.isMacAddress() ? opts.getMacAddress() : new MacAddress(0);
-
+        //MacAddress senderMac = opts.isMacAddress() ? opts.getMacAddress() : new MacAddress(0);
+        MacAddress senderMac = opts.getMacAddress();
+        
         //StationType is both a class in CoopITS and an ENUM in geonetworking
         Address address = new Address(true, //isManual
                                       net.gcdc.geonetworking.StationType.values()[5], //5 for passenger car
@@ -1180,9 +1194,23 @@ public class VehicleAdapter {
                                       senderMac.value()); //lowLevelAddress
         
         vehiclePositionProvider = new VehiclePositionProvider(address);
-                                              
+
+        DEFAULT_SIMULINK_UDP_PORT = opts.getSimulinkAddress().asInetSocketAddress().getPort();
+
+
         VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer,
                                                vehiclePositionProvider, senderMac);
+        /*
+        @option int getSimulinkReceivePort();
+        @option SocketAddressFromString getUdpLinkLayerAddress();
+        @option int getSimulinkSendPort();
+        @option int getStationID();
+        @option MacAddress getMacAddress();
+
+        VehicleAdapter va = new VehicleAdapter(opts.getSimulinkReceivePort(), config, linklayer,
+                                               vehiclePositionProvider,
+                                               senderMac);
+        */
     }
 
 }
