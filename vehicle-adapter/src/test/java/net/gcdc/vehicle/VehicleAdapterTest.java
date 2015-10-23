@@ -229,7 +229,7 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(254); //platoonID
         byteBuffer.putInt(100); //distanceTravelledCz
         byteBuffer.putInt(2); //intention
-        byteBuffer.putInt(6);
+        byteBuffer.putInt(6); //counter
         
         IgameCooperativeLaneChangeMessage iclcm = va.simulinkToIclcm(buffer);
         byte[] received = new byte[MAX_PACKET_LENGTH];
