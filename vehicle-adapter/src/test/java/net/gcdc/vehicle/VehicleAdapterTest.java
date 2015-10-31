@@ -151,10 +151,11 @@ public class VehicleAdapterTest{
         //TODO: Replace all zeroes with non-zero values
         byteBuffer.put((byte) 1); //messageId
         byteBuffer.putInt(1337); //stationID
+        byteBuffer.putInt(1000); //generationDeltaTime
         byteBuffer.put((byte) 160); //containerMask
         byteBuffer.put((byte) 64); //managementMask
-        byteBuffer.putLong(1); //detectionTime
-        byteBuffer.putLong(2); //referenceTime
+        byteBuffer.putInt(1); //detectionTime
+        byteBuffer.putInt(2); //referenceTime
         byteBuffer.putInt(0); //termination
         byteBuffer.putInt(Latitude.unavailable); //latitude
         byteBuffer.putInt(Longitude.unavailable); //longtitude

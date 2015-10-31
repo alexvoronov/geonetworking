@@ -363,10 +363,11 @@ public class VehicleAdapter {
             }
             
             return createDenm(buffer.getInt(),  /* stationID */
+                              buffer.getInt(),  /* GenerationDeltaTime */
                               buffer.get(),     /* containerMask */
                               buffer.get(),     /* managementMask */
-                              buffer.getLong(), /* detectionTime */
-                              buffer.getLong(), /* referenceTime */
+                              buffer.getInt(),  /* detectionTime */
+                              buffer.getInt(),  /* referenceTime */
                               buffer.getInt(),  /* termination */
                               buffer.getInt(),  /* latitude */
                               buffer.getInt(),  /* longitude */
@@ -403,24 +404,25 @@ public class VehicleAdapter {
 
         DecentralizedEnvironmentalNotificationMessage denm = denmPacket.getDenm();
         ItsPduHeader header = denmPacket.getHeader();
+        ManagementContainer managementContainer = denm.getManagement();        
         buffer.put((byte) header.getMessageID().value);
-        buffer.putInt((int)header.getStationID().value);
+        buffer.putInt((int) header.getStationID().value);
+        buffer.putInt((int) managementContainer.getReferenceTime().value % 65536);
 
         
         byte containerMask = 0;
         buffer.put(containerMask);
 
-        int headerLength = 1+4+1;
+        int headerLength = 1+2*4+1;
 
         /* ManagementContainer */
-        ManagementContainer managementContainer = denm.getManagement();
-        int managementLength = 1 + 2*8 + 12*4;        
+        int managementLength = 1 + 14*4;
         byte managementMask = 0;
         buffer.put(managementMask);        
         
         //buffer.putInt((int) managementContainer.getActionID().getOriginatingStationID().value);       
-        buffer.putLong((long) managementContainer.getDetectionTime().value);
-        buffer.putLong((long) managementContainer.getReferenceTime().value);
+        buffer.putInt((int) managementContainer.getDetectionTime().value / 65536);
+        buffer.putInt((int) managementContainer.getReferenceTime().value / 65536);
 
         if(managementContainer.hasTermination()){
             managementMask += (1<<7);            
@@ -547,10 +549,11 @@ public class VehicleAdapter {
 
     private int denm_sequence_number = 0;
     public Denm createDenm(int stationId,
+                           int generationDeltaTime,
                            byte containerMask,
                            byte managementMask,
-                           long detectionTime,
-                           long referenceTime,
+                           int detectionTime,
+                           int referenceTime,
                            int termination,
                            int latitude,
                            int longitude,
@@ -578,8 +581,13 @@ public class VehicleAdapter {
         ManagementContainer managementContainer =
             ManagementContainer.builder()
             .actionID(new ActionID(new StationID(stationId), new SequenceNumber(denm_sequence_number++)))
-            .detectionTime(new TimestampIts(detectionTime))
-            .referenceTime(new TimestampIts(referenceTime))
+            /* Referencetime is sent in increments of 65536ms. So to
+             * get the current time we need to multiply with that and
+             * add the generationDeltaTime. This is a workaround for
+             * Simulink not supporting longs.
+             */
+            .detectionTime(new TimestampIts((long) detectionTime * 65536 + generationDeltaTime))
+            .referenceTime(new TimestampIts((long) referenceTime * 65536 + generationDeltaTime))
             .termination((managementMask & (1<<7)) != 0 ? Termination.values()[termination] : null)
             .eventPosition(new ReferencePosition(new Latitude(latitude),
                                                  new Longitude(longitude),
