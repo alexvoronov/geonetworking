@@ -151,8 +151,6 @@ public class VehicleAdapter {
     //TODO: Remove and use CLI arguments instead
     public static int DEFAULT_SIMULINK_UDP_PORT = 5000;
 
-    public final static int STATION_ID = 1337;
-
     public static final ExecutorService executor = Executors.newCachedThreadPool();
 
     public static VehiclePositionProvider vehiclePositionProvider;
@@ -342,7 +340,7 @@ public class VehicleAdapter {
             return new Cam(
                            new ItsPduHeader(new ProtocolVersion(1),
                                             new MessageId(MessageId.cam),
-                                            new StationID(STATION_ID)),
+                                            new StationID(stationId)),
                     new CoopAwareness(
                             new GenerationDeltaTime(genDeltaTimeMillis * GenerationDeltaTime.oneMilliSec),
                             new CamParameters(basicContainer,
@@ -579,7 +577,7 @@ public class VehicleAdapter {
         /* Management container */
         ManagementContainer managementContainer =
             ManagementContainer.builder()
-            .actionID(new ActionID(new StationID(STATION_ID), new SequenceNumber(denm_sequence_number++)))
+            .actionID(new ActionID(new StationID(stationId), new SequenceNumber(denm_sequence_number++)))
             .detectionTime(new TimestampIts(detectionTime))
             .referenceTime(new TimestampIts(referenceTime))
             .termination((managementMask & (1<<7)) != 0 ? Termination.values()[termination] : null)
@@ -640,7 +638,7 @@ public class VehicleAdapter {
         Denm denm = new Denm(
                              new ItsPduHeader(new ProtocolVersion(1),
                                               new MessageId(MessageId.denm),
-                                              new StationID(STATION_ID)),
+                                              new StationID(stationId)),
                              decentralizedEnvironmentalNotificationMessage);
 
         logger.debug("Created DENM: " + denm);
@@ -885,7 +883,7 @@ public class VehicleAdapter {
         IgameCooperativeLaneChangeMessage igameCooperativeLaneChangeMessage =
             new IgameCooperativeLaneChangeMessage(new ItsPduHeader(new ProtocolVersion(1),
                                                                    new MessageId(net.gcdc.camdenm.Iclcm.MessageID_iCLCM),
-                                                                   new StationID(STATION_ID)),
+                                                                   new StationID(stationId)),
                                                   igameCooperativeLaneChangeMessageBody);
 
         return igameCooperativeLaneChangeMessage;
@@ -1091,7 +1089,6 @@ public class VehicleAdapter {
         @Option int getLocalPortForUdpLinkLayer();
         @Option SocketAddressFromString getRemoteAddressForUdpLinkLayer();
 
-        @Option int getStationID();
         @Option MacAddress getMacAddress();
 
         /*
