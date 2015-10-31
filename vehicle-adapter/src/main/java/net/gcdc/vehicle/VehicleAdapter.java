@@ -683,7 +683,6 @@ public class VehicleAdapter {
                                //Pair ID container
                                buffer.getInt(), //forwardId
                                buffer.getInt(), //backwardId
-                               buffer.getInt(), //ackFlag
                                //Merge container
                                buffer.getInt(), //mergeRequest
                                buffer.getInt(), //mergeSafeToMerge
@@ -765,11 +764,10 @@ public class VehicleAdapter {
         buffer.putInt((int) laneObject.getLane().value());        
 
         /* PairIdObject */
-        int pairIdLength = 3*4;
+        int pairIdLength = 2*4;
         PairIdObject pairIdObject = iclmParameters.getPairIdObject();
-        buffer.putInt((int) pairIdObject.getForwardID().value);       
-        buffer.putInt((int) pairIdObject.getBackwardID().value);        
-        buffer.putInt((int) pairIdObject.getAcknowledgeFlag().value);        
+        buffer.putInt((int) pairIdObject.getForwardID().value);
+        buffer.putInt((int) pairIdObject.getBackwardID().value);
 
         /* MergeObject */
         int mergeLength =5*4;
@@ -816,7 +814,6 @@ public class VehicleAdapter {
                                                          //Pair ID Container
                                                          int forwardId, 
                                                          int backwardId, 
-                                                         int ackFlag,
                                                          //Merge Container
                                                          int mergeRequest,
                                                          int mergeSafeToMerge,
@@ -859,7 +856,7 @@ public class VehicleAdapter {
         PairIdObject pairIdObject =
             new PairIdObject(new StationID(forwardId),
                              new StationID(backwardId),
-                             new AcknowledgeFlag(ackFlag));
+                             new AcknowledgeFlag());
 
         MergeObject mergeObject =
             new MergeObject(new MergeRequest(mergeRequest),

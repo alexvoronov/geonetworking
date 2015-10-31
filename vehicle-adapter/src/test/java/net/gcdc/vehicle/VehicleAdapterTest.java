@@ -221,7 +221,6 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(3); //lane
         byteBuffer.putInt(0); //forwardID
         byteBuffer.putInt(0); //backwardID
-        byteBuffer.putInt(0); //ackFlag
         byteBuffer.putInt(0); //mergeRequest
         byteBuffer.putInt(0); //safeToMerge
         byteBuffer.putInt(1); //flag
