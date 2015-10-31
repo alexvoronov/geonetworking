@@ -130,7 +130,7 @@ public class VehicleAdapter {
 
     private final static short PORT_CAM  = 2001;
     private final static short PORT_DENM = 2002;
-    private final static short PORT_ICLCM = 2003;
+    private final static short PORT_ICLCM = 2010;
 
     /* GCDC requires the non-standard max rate of 25Hz */
     private final static long CAM_INTERVAL_MIN_MS = 40;
@@ -149,7 +149,9 @@ public class VehicleAdapter {
     public final static int MAX_UDP_LENGTH = 65535;
 
     //TODO: Remove and use CLI arguments instead
-    public static int DEFAULT_SIMULINK_UDP_PORT = 5000;
+    public static int simulink_cam_port = 5000;
+    public static int simulink_denm_port = simulink_cam_port + 1;
+    public static int simulink_iclcm_port = simulink_denm_port + 2;;    
 
     public static final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -961,7 +963,7 @@ public class VehicleAdapter {
                             camToSimulink(cam, buffer);
                             
 
-                            packet.setPort(DEFAULT_SIMULINK_UDP_PORT);
+                            packet.setPort(simulink_cam_port);
                             try {
                                 rcvSocket.send(packet);
                             } catch (IOException e) {
@@ -979,7 +981,7 @@ public class VehicleAdapter {
                               denm = UperEncoder.decode(btpPacket.payload(), Denm.class);
                               denmToSimulink(denm, buffer);
 
-                              packet.setPort(DEFAULT_SIMULINK_UDP_PORT);
+                              packet.setPort(simulink_denm_port);
                               try {
                                   rcvSocket.send(packet);
                               } catch (IOException e) {
@@ -994,11 +996,10 @@ public class VehicleAdapter {
                     case PORT_ICLCM: {
                         IgameCooperativeLaneChangeMessage iclcm;
                         try {
-                            //TODO: iCLCM isn't added to the decoder yet
                             iclcm = UperEncoder.decode(btpPacket.payload(), IgameCooperativeLaneChangeMessage.class);
                             iclcmToSimulink(iclcm, buffer);
 
-                            packet.setPort(DEFAULT_SIMULINK_UDP_PORT);
+                            packet.setPort(simulink_iclcm_port);
                             try {
                                 rcvSocket.send(packet);                                
                             } catch(IOException e) {
@@ -1051,7 +1052,6 @@ public class VehicleAdapter {
         }
     }
 
-    //TODO: iCLCM isn't added to the encoder
     private void send(IgameCooperativeLaneChangeMessage iclcm){
         byte[] bytes;
         try {
@@ -1197,7 +1197,7 @@ public class VehicleAdapter {
         
         vehiclePositionProvider = new VehiclePositionProvider(address);
 
-        DEFAULT_SIMULINK_UDP_PORT = opts.getSimulinkAddress().asInetSocketAddress().getPort();
+        simulink_cam_port = opts.getSimulinkAddress().asInetSocketAddress().getPort();
 
 
         VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer,
