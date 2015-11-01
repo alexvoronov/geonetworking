@@ -42,7 +42,11 @@ class SequenceCoder implements Decoder, Encoder {
             for (Field f : sorter.ordinaryFields) {
                 if ((UperEncoder.isMandatory(f) || f.get(obj) != null) && !UperEncoder.isTestInstrumentation(f)) {
                     UperEncoder.logger.debug("Field : {}", f.getName());
-                    UperEncoder.encode2(bitbuffer, f.get(obj), f.getAnnotations());
+                    try {
+                        UperEncoder.encode2(bitbuffer, f.get(obj), f.getAnnotations());
+                    } catch (IllegalArgumentException e) {
+                        throw new IllegalArgumentException("Illegal value for field " + f.getName(), e);
+                    }
                 }
             }
             // Extension fields.
@@ -65,7 +69,11 @@ class SequenceCoder implements Decoder, Encoder {
                 for (Field f : sorter.extensionFields) {
                     if (f.get(obj) != null) {
                         UperEncoder.logger.debug("Encoding extension field {}", f.getName());
-                        UperEncoder.encodeAsOpenType(bitbuffer, f.get(obj), f.getAnnotations());
+                        try {
+                            UperEncoder.encodeAsOpenType(bitbuffer, f.get(obj), f.getAnnotations());
+                        } catch (IllegalArgumentException e) {
+                            throw new IllegalArgumentException("Illegal value for extension field " + f.getName(), e);
+                        }
                     }
                 }
             }

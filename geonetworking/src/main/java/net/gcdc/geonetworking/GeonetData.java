@@ -34,6 +34,16 @@ public final class GeonetData {
         this.payload      = payload;
     }
 
+    public GeonetData withSender(final Optional<LongPositionVector> sender) {
+        return new GeonetData(this.protocol, this.destination, this.trafficClass, sender,
+                this.payload.clone());
+    }
+
+    public GeonetData withDestination(final Destination destination) {
+        return new GeonetData(this.protocol, destination, this.trafficClass, this.sender,
+                this.payload.clone());
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

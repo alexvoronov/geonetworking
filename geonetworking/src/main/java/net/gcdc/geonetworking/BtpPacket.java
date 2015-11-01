@@ -137,9 +137,8 @@ public class BtpPacket {
     public static final int HEADER_LENGTH = 4;
 
     private ByteBuffer putHeaderTo(ByteBuffer buffer) {
-        return sourcePort.isPresent() ?
-                buffer.putShort(sourcePort.get()).putShort(destinationPort) :
-                buffer.putShort(destinationPort).putShort(destinationPortInfo.orElse((short)0x00));
+        return buffer.putShort(destinationPort)
+                     .putShort(sourcePort.orElse(destinationPortInfo.orElse((short)0x00)));
     }
 
     public static BtpPacket fromGeonetData(GeonetData data) {
@@ -152,10 +151,9 @@ public class BtpPacket {
             case BTP_B: {  // Carries the source and the destination port.
                 boolean isA = data.protocol == UpperProtocolType.BTP_A;
                 Optional<Short> emptyPort = Optional.empty();
-                short port1 = buffer.getShort();
+                destinationPort = buffer.getShort();
                 short port2 = buffer.getShort();
-                sourcePort          = isA ? Optional.of(port1)  :         emptyPort;
-                destinationPort     = isA ?             port2   :             port1;
+                sourcePort          = isA ? Optional.of(port2)  :         emptyPort;
                 destinationPortInfo = isA ?           emptyPort : Optional.of(port2);
                 byte[] btpPayload = Arrays.copyOfRange(data.payload, HEADER_LENGTH,
                         data.payload.length);

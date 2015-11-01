@@ -460,7 +460,7 @@ public class ItsStation implements AutoCloseable {
                 return(new CamTriggerResult(REPLY_SUCCESS));
             } else if (message instanceof CamTriggerChangeSpeed) {
                 CamTriggerChangeSpeed typedMessage = (CamTriggerChangeSpeed) message;
-                logger.debug("change speed received by {} cm", typedMessage.speedVariation);
+                logger.debug("change speed received by {} cm/s", typedMessage.speedVariation);
                 position.setSpeed(position.getLatestPosition().speedMetersPerSecond() + 0.01 * typedMessage.speedVariation);
                 logger.debug("speed now {} m/s", position.getLatestPosition().speedMetersPerSecond());
                 return(new CamTriggerResult(REPLY_SUCCESS));
@@ -750,9 +750,10 @@ public class ItsStation implements AutoCloseable {
                                                 .heading(new Heading(
                                                         new HeadingValue((int)(lpv.headingDegreesFromNorth() * 10)),
                                                         new HeadingConfidence(HeadingConfidence.unavailable)))
-                                                .speed(new Speed(
+                                                .speed(lpv.speedMetersPerSecond() < 163.82 ? new Speed(
                                                         new SpeedValue((int)(SpeedValue.oneCentimeterPerSec * lpv.speedMetersPerSecond() * 100.0)),
-                                                        new SpeedConfidence(SpeedConfidence.unavailable)))
+                                                        new SpeedConfidence(SpeedConfidence.unavailable)):
+                                                            new Speed(new SpeedValue(SpeedValue.unavailable), new SpeedConfidence(SpeedConfidence.outOfRange)))
                                                 .driveDirection(DriveDirection.fromCode(driveDirection))
                                                 .curvature(new Curvature(
                                                         new CurvatureValue(curvature),

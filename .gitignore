@@ -17,3 +17,9 @@ bin/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+doc/img/stack.aux
+
+doc/img/stack.log
+
+doc/img/stack.pdf

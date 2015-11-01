@@ -46,4 +46,7 @@ public class StationConfig {
     /** Lifetime of location table entry in seconds */
     public int itsGnLifetimeLocTE = 20;
 
+    /** Default GeoBroadcast forwarding algorithm: 0 unspecified, 1 simple, 2 cbf, 3 advanced. */
+    public int itsGnGeoBroadcastForwardingAlgorithm = 0;
+
 }

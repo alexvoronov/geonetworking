@@ -3,6 +3,7 @@ package net.gcdc.geonetworking;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -114,22 +115,24 @@ public class LocationTable {
 
 
     /** Returns LongPositionVector or null. */
-    public LongPositionVector getPosition(MacAddress macAddress) {
+    public Position getPosition(MacAddress macAddress) {
         for (Entry entry: gnMap.values()) {
             if (entry.macAddress().equals(macAddress)) {
-                return entry.position();
+                return entry.position().position();
             }
         }
         return null;
     }
 
+
     // TODO: add a list of nodes-to-not-use (e.g. never return the last forwarder)
-    public Optional<MacAddress> closerThanMeTo(Position destination, Position me) {
+    public Optional<MacAddress> closerThanMeTo(Position destination, Position me, Set<MacAddress> blacklist) {
         Entry nearest = null;
         double shortestDistance = me.distanceInMetersTo(destination);
         for (Entry entry: gnMap.values()) {
             final double dist = entry.position().position().distanceInMetersTo(destination);
-            if (dist < shortestDistance && entry.macAddress() != null && entry.isNeighbour()) {
+            if (dist < shortestDistance && entry.macAddress() != null && entry.isNeighbour() &&
+                    !blacklist.contains(entry.macAddress())) {
                 shortestDistance = dist;
                 nearest = entry;
             }
