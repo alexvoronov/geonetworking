@@ -151,10 +151,11 @@ public class VehicleAdapterTest{
         //TODO: Replace all zeroes with non-zero values
         byteBuffer.put((byte) 1); //messageId
         byteBuffer.putInt(1337); //stationID
+        byteBuffer.putInt(1000); //generationDeltaTime
         byteBuffer.put((byte) 160); //containerMask
         byteBuffer.put((byte) 64); //managementMask
-        byteBuffer.putLong(1); //detectionTime
-        byteBuffer.putLong(2); //referenceTime
+        byteBuffer.putInt(1); //detectionTime
+        byteBuffer.putInt(2); //referenceTime
         byteBuffer.putInt(0); //termination
         byteBuffer.putInt(Latitude.unavailable); //latitude
         byteBuffer.putInt(Longitude.unavailable); //longtitude
@@ -220,7 +221,6 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(3); //lane
         byteBuffer.putInt(0); //forwardID
         byteBuffer.putInt(0); //backwardID
-        byteBuffer.putInt(0); //ackFlag
         byteBuffer.putInt(0); //mergeRequest
         byteBuffer.putInt(0); //safeToMerge
         byteBuffer.putInt(1); //flag
@@ -229,7 +229,7 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(254); //platoonID
         byteBuffer.putInt(100); //distanceTravelledCz
         byteBuffer.putInt(2); //intention
-        byteBuffer.putInt(6);
+        byteBuffer.putInt(6); //counter
         
         IgameCooperativeLaneChangeMessage iclcm = va.simulinkToIclcm(buffer);
         byte[] received = new byte[MAX_PACKET_LENGTH];

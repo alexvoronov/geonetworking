@@ -168,7 +168,7 @@ public final class LongPositionVector {
             );
     }
 
-    private static final long LEAP_SECONDS_SINCE_2004 = 3;  // Let's assume we're always in 2014.
+    private static final long LEAP_SECONDS_SINCE_2004 = 4;  // Let's assume we're always in 2015.
 
     /** Returns TAI milliseconds mod 2^32 for the given date.
      *
