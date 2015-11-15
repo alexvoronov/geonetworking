@@ -28,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import com.lexicalscope.jewel.cli.ArgumentValidationException;
 import com.lexicalscope.jewel.cli.CliFactory;
@@ -146,12 +148,15 @@ public class VehicleAdapter {
     public final static double CAM_LIFETIME_SECONDS = 0.9;
     public final static double iCLCM_LIFETIME_SECONDS = 0.9;
 
-    public final static int MAX_UDP_LENGTH = 65535;
+    //public final static int MAX_UDP_LENGTH = 65535;
+    public final static int MAX_UDP_LENGTH = 300;
 
     //TODO: Remove and use CLI arguments instead
     public static int simulink_cam_port = 5000;
     public static int simulink_denm_port = simulink_cam_port + 1;
-    public static int simulink_iclcm_port = simulink_denm_port + 2;;    
+    public static int simulink_iclcm_port = simulink_denm_port + 1;
+
+    public static InetAddress SIMULINK_ADDRESS;
 
     public static final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -949,70 +954,84 @@ public class VehicleAdapter {
         };
 
 
+    /* TODO: Clean up the sending packets to Simulink part.
+     */
     private Runnable sendToSimulinkLoop = new Runnable() {
             byte[] buffer = new byte[MAX_UDP_LENGTH];
             private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            //packet.setAddress(SIMULINK_ADDRESS.getAddress());
+            
             @Override public void run() {
+                try{
+                    InetAddress address = InetAddress.getByName("127.0.0.1");
+                    packet.setAddress(address);
+                }catch(UnknownHostException e){
+                    logger.error("Failed to create packet for sending to Simulink, terminating", e);
+                    System.exit(1);
+                }
+
                 try {
-                    BtpPacket btpPacket = btpSocket.receive();
-                    switch (btpPacket.destinationPort()) {
-                    case PORT_CAM: {
-                        Cam cam;
-                        try {
-                            cam = UperEncoder.decode(btpPacket.payload(), Cam.class);
-                            camToSimulink(cam, buffer);
+                    while(true){
+                        BtpPacket btpPacket = btpSocket.receive();
+                        switch (btpPacket.destinationPort()) {
+                        case PORT_CAM: {
+                            Cam cam;
+                            try {
+                                cam = UperEncoder.decode(btpPacket.payload(), Cam.class);
+                                camToSimulink(cam, buffer);
                             
 
-                            packet.setPort(simulink_cam_port);
-                            try {
-                                rcvSocket.send(packet);
-                            } catch (IOException e) {
-                                logger.warn("Failed to send packet to Simulink", e);
+                                packet.setPort(simulink_cam_port);
+                                try {
+                                    rcvSocket.send(packet);
+                                } catch (IOException e) {
+                                    logger.warn("Failed to send CAM to Simulink", e);
+                                }
+                            } catch (IllegalArgumentException | UnsupportedOperationException | BufferOverflowException e) {
+                                logger.warn("Can't decode cam", e);
                             }
-                        } catch (IllegalArgumentException | UnsupportedOperationException | BufferOverflowException e) {
-                            logger.warn("Can't decode cam", e);
+                            break;
                         }
-                        break;
-                    }
 
-                    case PORT_DENM: {
-                          Denm denm;
-                          try {
-                              denm = UperEncoder.decode(btpPacket.payload(), Denm.class);
-                              denmToSimulink(denm, buffer);
-
-                              packet.setPort(simulink_denm_port);
-                              try {
-                                  rcvSocket.send(packet);
-                              } catch (IOException e) {
-                                  logger.warn("Failed to send packet to Simulink", e);
-                              }
-                          } catch (IllegalArgumentException | UnsupportedOperationException e) {
-                              logger.warn("Can't decode denm", e);
-                          }
-                          break;                          
-                      }
-
-                    case PORT_ICLCM: {
-                        IgameCooperativeLaneChangeMessage iclcm;
-                        try {
-                            iclcm = UperEncoder.decode(btpPacket.payload(), IgameCooperativeLaneChangeMessage.class);
-                            iclcmToSimulink(iclcm, buffer);
-
-                            packet.setPort(simulink_iclcm_port);
+                        case PORT_DENM: {
+                            Denm denm;
                             try {
-                                rcvSocket.send(packet);                                
-                            } catch(IOException e) {
-                                logger.warn("Failed to send iCLCM to Simulink", e);
+                                denm = UperEncoder.decode(btpPacket.payload(), Denm.class);
+                                denmToSimulink(denm, buffer);
+
+                                packet.setPort(simulink_denm_port);
+                                try {
+                                    rcvSocket.send(packet);
+                                } catch (IOException e) {
+                                    logger.warn("Failed to send DENM to Simulink", e);
+                                }
+                            } catch (IllegalArgumentException | UnsupportedOperationException e) {
+                                logger.warn("Can't decode denm", e);
                             }
-                        } catch(IllegalArgumentException | UnsupportedOperationException e){
-                            logger.warn("Can't decode iclcm", e);
-                        }
-                        break;
+                            break;                          
                         }
 
-                    default:
-                        //fallthrough
+                        case PORT_ICLCM: {
+                            IgameCooperativeLaneChangeMessage iclcm;
+                            try {
+                                iclcm = UperEncoder.decode(btpPacket.payload(), IgameCooperativeLaneChangeMessage.class);
+                                iclcmToSimulink(iclcm, buffer);
+
+                                packet.setPort(simulink_iclcm_port);
+                                try {
+                                    rcvSocket.send(packet);                                
+                                } catch(IOException e) {
+                                    logger.warn("Failed to send iCLCM to Simulink", e);
+                                }
+                            } catch(IllegalArgumentException | UnsupportedOperationException e){
+                                logger.warn("Can't decode iclcm", e);
+                            }
+                            break;
+                        }
+
+                        default:
+                            //fallthrough
+                        }
                     }
                 } catch (InterruptedException e) {
                     logger.warn("BTP socket receive was interrupted", e);
@@ -1197,7 +1216,8 @@ public class VehicleAdapter {
         
         vehiclePositionProvider = new VehiclePositionProvider(address);
 
-        simulink_cam_port = opts.getSimulinkAddress().asInetSocketAddress().getPort();
+        //simulink_cam_port = opts.getSimulinkAddress().asInetSocketAddress().getPort();
+        //SIMULINK_ADDRESS = opts.getSimulinkAddress.asInetSocketAddress();
 
 
         VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer,
