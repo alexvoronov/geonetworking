@@ -1216,7 +1216,7 @@ public class VehicleAdapter {
         
         vehiclePositionProvider = new VehiclePositionProvider(address);
 
-        //simulink_cam_port = opts.getSimulinkAddress().asInetSocketAddress().getPort();
+        simulink_cam_port = opts.getSimulinkAddress().asInetSocketAddress().getPort();
         //SIMULINK_ADDRESS = opts.getSimulinkAddress.asInetSocketAddress();
 
 
