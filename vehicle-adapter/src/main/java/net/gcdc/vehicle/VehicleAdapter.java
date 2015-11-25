@@ -156,7 +156,7 @@ public class VehicleAdapter {
     public static int simulink_denm_port = simulink_cam_port + 1;
     public static int simulink_iclcm_port = simulink_denm_port + 1;
 
-    public static InetAddress SIMULINK_ADDRESS;
+    public static InetSocketAddress simulink_address;;
 
     public static final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -962,17 +962,14 @@ public class VehicleAdapter {
             //packet.setAddress(SIMULINK_ADDRESS.getAddress());
             
             @Override public void run() {
-                try{
-                    InetAddress address = InetAddress.getByName("127.0.0.1");
-                    packet.setAddress(address);
-                }catch(UnknownHostException e){
-                    logger.error("Failed to create packet for sending to Simulink, terminating", e);
-                    System.exit(1);
-                }
+
+                InetAddress address = simulink_address.getAddress();
+                packet.setAddress(address);
 
                 try {
                     while(true){
                         BtpPacket btpPacket = btpSocket.receive();
+                        logger.info("Sending packet to Simulink");
                         switch (btpPacket.destinationPort()) {
                         case PORT_CAM: {
                             Cam cam;
@@ -983,6 +980,7 @@ public class VehicleAdapter {
 
                                 packet.setPort(simulink_cam_port);
                                 try {
+                                    logger.debug("Sending packet to Simulink: " + address + ":" + simulink_cam_port);
                                     rcvSocket.send(packet);
                                 } catch (IOException e) {
                                     logger.warn("Failed to send CAM to Simulink", e);
@@ -1204,6 +1202,7 @@ public class VehicleAdapter {
             new LinkLayerUdpToEthernet(opts.getLocalPortForUdpLinkLayer(),
                                        opts.getRemoteAddressForUdpLinkLayer().asInetSocketAddress(),
                                        true);
+        simulink_address = opts.getSimulinkAddress().asInetSocketAddress();
         
         //MacAddress senderMac = opts.isMacAddress() ? opts.getMacAddress() : new MacAddress(0);
         MacAddress senderMac = opts.getMacAddress();
