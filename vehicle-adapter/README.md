@@ -5,13 +5,13 @@ This is the Chalmers team vehicle adapter that connects the GeoNetworking stack 
 Both the vehicle adapter and the local message set is still in development and everything is subject to change.
 
 ### Running
-The VA can be run on any computer with Java, and that is powerful enough. For development I recommend running it on the computer you're workin on. There's no need to run it on a separate machine until you need to communicate wirelessly.
+The vehicle adapter can be run on any computer with Java. For development I recommend running it on the computer you're working on. There's no need to run it on a separate machine until you need to communicate wirelessly.
 
-To run it simply install everything by using mvn install in the root directory and run the vehicle adapter using the run.sh script in the vehicle-adapter folder.
+To run it you first need the Maven build tool. When you have it installed you can compile the entire project simply by running mvn install in the root directory. Use the run.sh script in the vehicle-adapter folder to run the vehicle adapter application.
 
 
 ### Hardware and ITS-G5
-I'm running the stack on a PC Engines APU4D board with an AR9280-based network interface card. Follow these [instructions](https://github.com/ssinyagin/pcengines-apu-debian-cd) to get Debian running on the board.
+I'm running the stack on a PC Engines APU4D board with an AR9280-based network interface card. Follow these [instructions](https://github.com/ssinyagin/pcengines-apu-debian-cd) to get Debian running on the board. Using the binary releases provided is the easiest way of getting the board up and running.
 
 In order to setup the wireless you need to take care of the following:
 - Linux kernel with support for ITS-G5
@@ -22,5 +22,7 @@ In order to setup the wireless you need to take care of the following:
 - Modified CRDA that uses our modified wireless-regdb.
 
 Instructions for all of these steps are provided [here](https://gist.github.com/lisovy/80dde5a792e774a706a9#file-802-11p-on-linux-L19).
+
+Unfortunately the install process has been very inconsistent for me and I currently only have one out of three boards working properly.
 
 
