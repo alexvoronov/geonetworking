@@ -1106,6 +1106,10 @@ public class VehicleAdapter {
 
     private static interface CliOptions{
         @Option int getPortRcvFromSimulink();
+        @Option int getPortSendCam();
+        @Option int getPortSendDenm();
+        @Option int getPortSendIclcm();
+        
         @Option SocketAddressFromString getSimulinkAddress();
 
         @Option int getLocalPortForUdpLinkLayer();
@@ -1216,6 +1220,9 @@ public class VehicleAdapter {
         vehiclePositionProvider = new VehiclePositionProvider(address);
 
         simulink_cam_port = opts.getSimulinkAddress().asInetSocketAddress().getPort();
+        simulink_cam_port = opts.getPortSendCam();
+        simulink_denm_port = opts.getPortSendDenm();
+        simulink_iclcm_port = opts.getPortSendIclcm();
         //SIMULINK_ADDRESS = opts.getSimulinkAddress.asInetSocketAddress();
 
 
