@@ -151,12 +151,11 @@ public class VehicleAdapter {
     //public final static int MAX_UDP_LENGTH = 65535;
     public final static int MAX_UDP_LENGTH = 300;
 
-    //TODO: Remove and use CLI arguments instead
     public static int simulink_cam_port = 5000;
     public static int simulink_denm_port = simulink_cam_port + 1;
     public static int simulink_iclcm_port = simulink_denm_port + 1;
 
-    public static InetSocketAddress simulink_address;;
+    public static InetAddress simulink_address;
 
     public static final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -213,8 +212,7 @@ public class VehicleAdapter {
                                 buffer.getInt(), /* yawRateConfidence */
                                 buffer.getInt());/* vehicleRole */                                    
             
-            //TODO: Thread crashes when running this...
-            //vehiclePositionProvider.updatePosition(latitude, longitude);
+            vehiclePositionProvider.updatePosition(latitude, longitude);
             return cam;
             
         }catch(BufferUnderflowException e){
@@ -306,7 +304,6 @@ public class VehicleAdapter {
             new LowFrequencyContainer(
                                       new BasicVehicleContainerLowFrequency(
                                                                             VehicleRole.fromCode(vehicleRole),
-                                                                            //TODO: Implement ExteriorLights in LMS?
                                                                             ExteriorLights.builder()
                                                                             .set(false, false, false, false, false, false, false, false)
                                                                             .create(),
@@ -901,6 +898,8 @@ public class VehicleAdapter {
         return igameCooperativeLaneChangeMessage;
     }
 
+    /* Receive local CAM/DENM/iCLCM from Simulink, parse them and
+     * create the proper messages, and send them to the link layer. */
     private Runnable receiveFromSimulinkLoop = new Runnable() {
         byte[] buffer = new byte[MAX_UDP_LENGTH];
         private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -954,17 +953,14 @@ public class VehicleAdapter {
         };
 
 
-    /* TODO: Clean up the sending packets to Simulink part.
-     */
+    /* Receive incoming CAM/DENM/iCLCM to Simulink, convert them to
+     * their local representation, and send them to Simulink over UDP. */
     private Runnable sendToSimulinkLoop = new Runnable() {
             byte[] buffer = new byte[MAX_UDP_LENGTH];
             private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-            //packet.setAddress(SIMULINK_ADDRESS.getAddress());
             
             @Override public void run() {
-
-                InetAddress address = simulink_address.getAddress();
-                packet.setAddress(address);
+                packet.setAddress(simulink_address);
 
                 try {
                     while(true){
@@ -980,7 +976,6 @@ public class VehicleAdapter {
 
                                 packet.setPort(simulink_cam_port);
                                 try {
-                                    logger.debug("Sending packet to Simulink: " + address + ":" + simulink_cam_port);
                                     rcvSocket.send(packet);
                                 } catch (IOException e) {
                                     logger.warn("Failed to send CAM to Simulink", e);
@@ -1105,31 +1100,30 @@ public class VehicleAdapter {
     }
 
     private static interface CliOptions{
+        /* Port to receive messages from Simulink on */       
         @Option int getPortRcvFromSimulink();
+
+        /* Ports to send CAM, DENM, iCLCM messages on. These ports can
+         * be the same or different. */
         @Option int getPortSendCam();
         @Option int getPortSendDenm();
         @Option int getPortSendIclcm();
-        
-        @Option SocketAddressFromString getSimulinkAddress();
 
+        /* IP of Simulink */
+        //@Option SocketAddressFromString getSimulinkAddress();
+        @Option String getSimulinkAddress();
+
+        /* The local port and remote address for the link layer. The
+         * link layer can either run on the same machine or a separate
+         * one. */
         @Option int getLocalPortForUdpLinkLayer();
         @Option SocketAddressFromString getRemoteAddressForUdpLinkLayer();
 
+        /* Mac address to use when broadcasting. */
         @Option MacAddress getMacAddress();
 
-        /*
-
-
-
-
-        @Option(helpRequest = true) boolean getHelp();
-
-        @Option boolean hasEthernetHeader();
-
-        @Option MacAddress getMacAddress();
-
-        boolean isMacAddress();
-        */
+        /* Country code */
+        @Option int getCountryCode();
     }
 
     /* PositionProvider is used by the beaconing service and for
@@ -1142,14 +1136,9 @@ public class VehicleAdapter {
         public double speedMetersPerSecond;
         public double headingDegreesFromNorth;
 
-        //TODO: DEPRECATED. Replaced by proper address.
-        //Optional<Address> emptyAddress = Optional.empty();
-
         VehiclePositionProvider(Address address){
             this.address = address;
-            this.position = new Position(0, 0); //TODO: Replace with
-                                                //sane starting
-                                                //values.
+            this.position = new Position(0, 0);
             this.isPositionConfident = false;
             this.speedMetersPerSecond = 0;
             this.headingDegreesFromNorth = 0;
@@ -1158,6 +1147,7 @@ public class VehicleAdapter {
         //TODO: Is the formatting of lat/long the same as in the CAM message?
         public void updatePosition(int latitude, int longitude){
             this.position = new Position((double) latitude, (double) longitude);
+            logger.debug("VehiclePositionProvider position updated: " + this.position);
         }
 
         public Position getPosition(){
@@ -1186,59 +1176,35 @@ public class VehicleAdapter {
         executor.submit(sendToSimulinkLoop);
     }
     
-    //TODO: Load options from config file instead of from arguments
     public static void main(String[] args) throws IOException {
         logger.info("Starting vehicle adapter...");
 
         //Parse CLI options
         CliOptions opts = CliFactory.parseArguments(CliOptions.class, args);
-        //boolean hasEthernetHeader = opts.hasEthernetHeader();
-
-        /*
-        if(!hasEthernetHeader && ! opts.isMacAddress()){
-            logger.error("Can't have MAC address with no ethernet header support!");
-            System.exit(1);
-        }
-        */
 
         StationConfig config = new StationConfig();
         LinkLayer linkLayer =
             new LinkLayerUdpToEthernet(opts.getLocalPortForUdpLinkLayer(),
                                        opts.getRemoteAddressForUdpLinkLayer().asInetSocketAddress(),
                                        true);
-        simulink_address = opts.getSimulinkAddress().asInetSocketAddress();
+        simulink_address = InetAddress.getByName(opts.getSimulinkAddress());
         
-        //MacAddress senderMac = opts.isMacAddress() ? opts.getMacAddress() : new MacAddress(0);
         MacAddress senderMac = opts.getMacAddress();
         
         //StationType is both a class in CoopITS and an ENUM in geonetworking
         Address address = new Address(true, //isManual
                                       net.gcdc.geonetworking.StationType.values()[5], //5 for passenger car
-                                      46, //countryCode
+                                      opts.getCountryCode(), //countryCode
                                       senderMac.value()); //lowLevelAddress
         
         vehiclePositionProvider = new VehiclePositionProvider(address);
 
-        simulink_cam_port = opts.getSimulinkAddress().asInetSocketAddress().getPort();
         simulink_cam_port = opts.getPortSendCam();
         simulink_denm_port = opts.getPortSendDenm();
         simulink_iclcm_port = opts.getPortSendIclcm();
-        //SIMULINK_ADDRESS = opts.getSimulinkAddress.asInetSocketAddress();
 
 
         VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer,
                                                vehiclePositionProvider, senderMac);
-        /*
-        @option int getSimulinkReceivePort();
-        @option SocketAddressFromString getUdpLinkLayerAddress();
-        @option int getSimulinkSendPort();
-        @option int getStationID();
-        @option MacAddress getMacAddress();
-
-        VehicleAdapter va = new VehicleAdapter(opts.getSimulinkReceivePort(), config, linklayer,
-                                               vehiclePositionProvider,
-                                               senderMac);
-        */
     }
-
 }
