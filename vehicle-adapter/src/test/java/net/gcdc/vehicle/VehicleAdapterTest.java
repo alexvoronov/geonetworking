@@ -37,47 +37,6 @@ import org.junit.Test;
 public class VehicleAdapterTest{
     public static final int MAX_PACKET_LENGTH = 2000;
     VehicleAdapter va;
-    public static VehiclePositionProvider vehiclePositionProvider;
-
-    /* PositionProvider is used by the beaconing service and for
-     * creating the Geobroadcast address used for DENM messages.
-     */
-    public static class VehiclePositionProvider implements PositionProvider{
-        public Address address;        
-        public Position position;
-        public boolean isPositionConfident;
-        public double speedMetersPerSecond;
-        public double headingDegreesFromNorth;
-
-        //TODO: Remove once we have a proper address
-        Optional<Address> emptyAddress = Optional.empty();
-
-        VehiclePositionProvider(Address address){
-            this.address = address;
-            this.position = new Position(0, 0);
-            this.isPositionConfident = false;
-            this.speedMetersPerSecond = 0;
-            this.headingDegreesFromNorth = 0;
-        }
-
-        //TODO: Is the formatting of lat/long the same as in the CAM message?
-        public void updatePosition(int latitude, int longitude){
-            this.position = new Position((double) latitude, (double) longitude);
-        }
-
-        public Position getPosition(){
-            return position;
-        }
-
-        public LongPositionVector getLatestPosition(){
-            return new LongPositionVector(emptyAddress,
-                                          Instant.now(),
-                                          position,
-                                          isPositionConfident,
-                                          speedMetersPerSecond,
-                                          headingDegreesFromNorth);
-        }
-    }
 
     public void init() throws SocketException{
         StationConfig config = new StationConfig();
@@ -87,15 +46,15 @@ public class VehicleAdapterTest{
                                        true);
         
         MacAddress senderMac = new MacAddress(0);
-
-        //TODO: Add a proper address
-        /* TODO: StationType is both a class in CoopITS and an ENUM in
-         * geonetworking 
-         */
-        vehiclePositionProvider = new VehiclePositionProvider(null);
+        Address address = new Address(true, //isManual
+                                      net.gcdc.geonetworking.StationType.values()[5], //5 for passenger car
+                                      46, //countryCode
+                                      senderMac.value()); //lowLevelAddress
+        
+        va.vehiclePositionProvider = new VehicleAdapter.VehiclePositionProvider(address);
         
         va = new VehicleAdapter(0, config, linkLayer,
-                                vehiclePositionProvider, senderMac);
+                                va.vehiclePositionProvider, senderMac);
     }
     
     @Test
