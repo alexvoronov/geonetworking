@@ -7,7 +7,7 @@ A basic implementation of the [ETSI](http://en.wikipedia.org/wiki/ETSI) GeoNetwo
 
 Sending and receiving Single Hop Broadcast and GeoBroadcast is supported. Forwarding of GeoBroadcast packets is on the wishlist. There are currently no plans for GeoUnicast or Security.
 
-Code here is very much work in progress, it was not thoroughly tested or verified. Even API is expected to change when usage patterns emerge, feedback is welcome.
+The code here is not producton quality, but it was tested during ETSI ITS CMS 4 PlugTest in March 2015 and basic things just worked.
 
 
 ### Implementation
