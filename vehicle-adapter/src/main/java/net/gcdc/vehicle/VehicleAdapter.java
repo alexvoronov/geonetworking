@@ -175,7 +175,7 @@ public class VehicleAdapter {
         try{
             byte messageId = buffer.get();
             if(messageId != MessageId.cam){
-                logger.error("Incorrect local CAM received: " + receivedData);
+                logger.error("Incorrect local CAM received: {}", receivedData);
                 return null;
             }
 
@@ -216,7 +216,7 @@ public class VehicleAdapter {
             return cam;
             
         }catch(BufferUnderflowException e){
-            logger.error("Failed to create CAM from Simulink message: " + e);
+            logger.error("Failed to create CAM from Simulink message: ", e);
             return null;
         }
     }
@@ -331,11 +331,16 @@ public class VehicleAdapter {
                                                             new HeadingConfidence(headingConfidence)))
                                        .speed(new Speed(new SpeedValue(speed),
                                                         new SpeedConfidence(speedConfidence)))
+                                       //DriveDirection isn't part of the GCDC spec. Set to unavailable.
+                                       .driveDirection(DriveDirection.values()[2])
                                        .vehicleLength(new VehicleLength(new VehicleLengthValue(vehicleLength),
                                                                         VehicleLengthConfidenceIndication.unavailable))
                                        .vehicleWidth(new VehicleWidth(vehicleWidth))
                                        .longitudinalAcceleration(new LongitudinalAcceleration(new LongitudinalAccelerationValue(longitudinalAcceleration),
                                                                                               new AccelerationConfidence(longitudinalAccelerationConfidence)))
+                                       //Curvature and CurvatureCalculationMode isn't part of the GCDC spec. Set to unavailable.
+                                       .curvature(new Curvature())
+                                       .curvatureCalculationMode(CurvatureCalculationMode.values()[2])                                       
                                        .yawRate(new YawRate(new YawRateValue(yawRate),
                                                             //TODO: This code is slow. Cache YawRateConfidence.values() if it's a problem.
                                                             YawRateConfidence.values()[yawRateConfidence]))
@@ -362,7 +367,7 @@ public class VehicleAdapter {
         try{
             byte messageId = buffer.get();
             if(messageId != MessageId.denm){
-                logger.error("Incorrect local DENM received: " + receivedData);
+                logger.error("Incorrect local DENM received: {}", receivedData);
                 return null;
             }
             
@@ -396,7 +401,7 @@ public class VehicleAdapter {
                               buffer.getInt()); /* positioningSolutionType */
             
         }catch(BufferUnderflowException e){
-            logger.error("Failed to create DENM from Simulink message: " + e);
+            logger.error("Failed to create DENM from Simulink message: ", e);
             return null;
         }
     }
@@ -653,7 +658,7 @@ public class VehicleAdapter {
                                               new StationID(stationId)),
                              decentralizedEnvironmentalNotificationMessage);
 
-        logger.debug("Created DENM: " + denm);
+        logger.debug("Created DENM: {}", denm);
         return denm;
     }
 
@@ -699,7 +704,7 @@ public class VehicleAdapter {
                                buffer.getInt(), //intention
                                buffer.getInt());//counter
         }catch(BufferUnderflowException e){
-            logger.error("Failed to create iCLCM from Simulink message: " + e);
+            logger.error("Failed to create iCLCM from Simulink message: ", e);
             return null;
         }
     }
@@ -912,18 +917,23 @@ public class VehicleAdapter {
                                                              packet.getOffset(),
                                                              packet.getOffset() + packet.getLength());
                     assert (receivedData.length == packet.getLength());
+                    logger.debug("Received packet from vehicle control! ID: " + receivedData[0] + "Data: " + receivedData);
+                    /*
+                    for(int i = 0;i < receivedData.length;i++) System.out.printf("0x%02X ", receivedData[i]);
+                    System.out.println("");
+                    */
 
                     /* First byte is the MessageId */
                     switch(receivedData[0]){                        
                     case MessageId.cam: {
-                        logger.debug("CREATING CAM");
+                        logger.info("Received CAM from vehicle control.");
                         Cam cam = simulinkToCam(receivedData);
                         send(cam);
                         break;
                     }
 
                     case MessageId.denm: {
-                        logger.debug("CREATING DENM");
+                        logger.info("Received DENM from vehicle control.");
                         Denm denm = simulinkToDenm(receivedData);                  
 
                         /* TODO: How does GeoNetworking addressing work in
@@ -935,14 +945,19 @@ public class VehicleAdapter {
                     }
                         
                     case net.gcdc.camdenm.Iclcm.MessageID_iCLCM: {
-                        logger.debug("CREATING iCLCM");
+                        logger.info("Received iCLCM from vehicle control.");
                         IgameCooperativeLaneChangeMessage iclcm = simulinkToIclcm(receivedData);
                         send(iclcm);
                         break;
                     }
                         
                     default:
-                        //fallthrough
+                        logger.warn("Received incorrectly formated message! ID: {} Data: {}", 
+                                receivedData[0], receivedData);
+                        /*
+                        for(int i = 0;i < receivedData.length;i++) System.out.printf("0x%02X ", receivedData[i]);
+                        System.out.println("");
+                        */
                     }
                 }
             } catch (IOException e) {
@@ -965,9 +980,9 @@ public class VehicleAdapter {
                 try {
                     while(true){
                         BtpPacket btpPacket = btpSocket.receive();
-                        logger.info("Sending packet to Simulink");
                         switch (btpPacket.destinationPort()) {
                         case PORT_CAM: {
+                            logger.info("Forwarding CAM to vehicle control.");
                             Cam cam;
                             try {
                                 cam = UperEncoder.decode(btpPacket.payload(), Cam.class);
@@ -987,6 +1002,7 @@ public class VehicleAdapter {
                         }
 
                         case PORT_DENM: {
+                            logger.info("Forwarding DENM to vehicle control.");
                             Denm denm;
                             try {
                                 denm = UperEncoder.decode(btpPacket.payload(), Denm.class);
@@ -1005,6 +1021,7 @@ public class VehicleAdapter {
                         }
 
                         case PORT_ICLCM: {
+                            logger.info("Forwarding iCLCM to vehicle control.");
                             IgameCooperativeLaneChangeMessage iclcm;
                             try {
                                 iclcm = UperEncoder.decode(btpPacket.payload(), IgameCooperativeLaneChangeMessage.class);
@@ -1053,7 +1070,7 @@ public class VehicleAdapter {
         try {
             bytes = UperEncoder.encode(denm);
         } catch (IllegalArgumentException | UnsupportedOperationException e) {
-            logger.error("Failed to encode DENM", e);
+            logger.error("Failed to encode DENM {}, ignoring", denm, e);
             return;
         }
         BtpPacket packet = BtpPacket.customDestination(bytes, PORT_DENM, destination);
@@ -1069,14 +1086,14 @@ public class VehicleAdapter {
         try {
             bytes = UperEncoder.encode(iclcm);
         } catch (IllegalArgumentException | UnsupportedOperationException e) {
-            logger.error("Failed to encode iCLCM", e);
+            logger.error("Failed to encode iCLCM {}, ignoring", iclcm, e);
             return;
         }
         BtpPacket packet = BtpPacket.singleHop(bytes, PORT_ICLCM, iCLCM_LIFETIME_SECONDS);
         try {
             btpSocket.send(packet);
         } catch (IOException e) {
-            logger.warn("failed to send iclcm", e);
+            logger.warn("Failed to send iclcm", e);
         }        
     }
 
@@ -1147,7 +1164,7 @@ public class VehicleAdapter {
         //TODO: Is the formatting of lat/long the same as in the CAM message?
         public void updatePosition(int latitude, int longitude){
             this.position = new Position((double) latitude, (double) longitude);
-            logger.debug("VehiclePositionProvider position updated: " + this.position);
+            logger.debug("VehiclePositionProvider position updated: {}", this.position);
         }
 
         public Position getPosition(){
