@@ -148,9 +148,13 @@ public class VehicleAdapter {
     public final static double CAM_LIFETIME_SECONDS = 0.9;
     public final static double iCLCM_LIFETIME_SECONDS = 0.9;
 
-    //public final static int MAX_UDP_LENGTH = 65535;
     public final static int MAX_UDP_LENGTH = 300;
+    public final static int LOCAL_CAM_LENGTH = 81;
+    public final static int LOCAL_DENM_LENGTH = 0;
+    public final static int LOCAL_ICLCM_LENGTH = 0;;
 
+
+    /* Default port values */
     public static int simulink_cam_port = 5000;
     public static int simulink_denm_port = simulink_cam_port + 1;
     public static int simulink_iclcm_port = simulink_denm_port + 1;
@@ -160,6 +164,27 @@ public class VehicleAdapter {
     public static final ExecutorService executor = Executors.newCachedThreadPool();
 
     public static VehiclePositionProvider vehiclePositionProvider;
+
+    /* Methods for validating UDP buffers received from the vehicle control system. */
+
+
+    public boolean isValidLocalDenmBuffer(byte[] data){
+        if(data.length < LOCAL_DENM_LENGTH){
+            logger.error("Received local DENM is too short. Is: {} Should be: {}", 
+                data.length, LOCAL_DENM_LENGTH);
+            return false;
+        }        
+        return true;
+    }
+
+    public boolean isValidLocalIclcmBuffer(byte[] data){
+        if(data.length < LOCAL_ICLCM_LENGTH){
+            logger.error("Received local iCLCM is too short. Is: {} Should be: {}", 
+                data.length, LOCAL_ICLCM_LENGTH);
+            return false;
+        }        
+        return true;
+    }
 
     /* Unpack a message from Simulink and create a CAM message. The
      * Simulink message must be formatted according to the local
@@ -927,7 +952,10 @@ public class VehicleAdapter {
                     switch(receivedData[0]){                        
                     case MessageId.cam: {
                         logger.info("Received CAM from vehicle control.");
-                        Cam cam = simulinkToCam(receivedData);
+                        //Cam cam = simulinkToCam(receivedData); //Deprecated
+                        /* Parse buffer */
+                        LocalCam localCam = new LocalCam(receivedData);
+                        Cam cam = localCam.asCam();
                         send(cam);
                         break;
                     }
@@ -986,8 +1014,9 @@ public class VehicleAdapter {
                             Cam cam;
                             try {
                                 cam = UperEncoder.decode(btpPacket.payload(), Cam.class);
-                                camToSimulink(cam, buffer);
-                            
+                                LocalCam localCam = new LocalCam(cam);
+                                buffer = localCam.asByteArray();
+                                //camToSimulink(cam, buffer); //deprecated
 
                                 packet.setPort(simulink_cam_port);
                                 try {
@@ -1208,7 +1237,6 @@ public class VehicleAdapter {
         
         MacAddress senderMac = opts.getMacAddress();
         
-        //StationType is both a class in CoopITS and an ENUM in geonetworking
         Address address = new Address(true, //isManual
                                       net.gcdc.geonetworking.StationType.values()[5], //5 for passenger car
                                       opts.getCountryCode(), //countryCode
@@ -1220,8 +1248,7 @@ public class VehicleAdapter {
         simulink_denm_port = opts.getPortSendDenm();
         simulink_iclcm_port = opts.getPortSendIclcm();
 
-
-        VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer,
-                                               vehiclePositionProvider, senderMac);
+        /* Create the vehicle adapter. */
+        VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer, vehiclePositionProvider, senderMac);
     }
 }
