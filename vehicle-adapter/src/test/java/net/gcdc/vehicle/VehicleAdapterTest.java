@@ -32,6 +32,7 @@ import java.util.Arrays;
 import org.threeten.bp.Instant;
 
 import org.junit.Test;
+import org.junit.Assert;
 
 //TODO: This needs some cleaning up
 public class VehicleAdapterTest{
@@ -56,14 +57,24 @@ public class VehicleAdapterTest{
         va = new VehicleAdapter(0, config, linkLayer,
                                 va.vehiclePositionProvider, senderMac);
     }
+
+    String compareByteArrays(byte[] reference, byte[] comparison){
+        int minArrayLength = reference.length < comparison.length ? reference.length : comparison.length;
+        String difference = "";
+        /* Compare elements to find they points they differ at. */
+        for(int i = 0;i < minArrayLength;i++){
+            if(reference[i] != comparison[i]) difference += "BYTE " + i + " IS: " + comparison[i] + " SHOULD BE: " + reference[i] + "\n";
+        }
+        return difference;
+    }
     
     @Test
     public void testCam() throws SocketException{
-        if(va == null) init();
-        byte[] buffer = new byte[MAX_PACKET_LENGTH];
+        /* TODO: Get LOCAL_CAM_LENGTH from the LocalCam class instead. */
+        int LOCAL_CAM_LENGTH = 82;
+        byte[] buffer = new byte[LOCAL_CAM_LENGTH];
         ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
 
-        //TODO: Replace all zeroes with non-zero values
         byteBuffer.put((byte) 2); //messageID
         byteBuffer.putInt(1337); //stationID
         byteBuffer.putInt(1); //generationDeltaTime
@@ -71,34 +82,34 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(5); //stationType                
         byteBuffer.putInt(900000001); //latitude
         byteBuffer.putInt(1800000001); //longitude
-        byteBuffer.putInt(0); //semiMajorConfidence
-        byteBuffer.putInt(0); //semiMinorConfidence
-        byteBuffer.putInt(0); //semiMajorOrientation
-        byteBuffer.putInt(0); //altitude
+        byteBuffer.putInt(3424); //semiMajorConfidence
+        byteBuffer.putInt(324); //semiMinorConfidence
+        byteBuffer.putInt(23); //semiMajorOrientation
+        byteBuffer.putInt(5435); //altitude
         byteBuffer.putInt(1); //heading value
         byteBuffer.putInt(1); //headingConfidence
-        byteBuffer.putInt(0); //speedValue
+        byteBuffer.putInt(234); //speedValue
         byteBuffer.putInt(1); //speedConfidence        
         byteBuffer.putInt(40); //vehicleLength
         byteBuffer.putInt(20); //vehicleWidth
-        byteBuffer.putInt(0); //longitudinalAcc
+        byteBuffer.putInt(2344); //longitudinalAcc
         byteBuffer.putInt(1); //longitudinalAccConf
         byteBuffer.putInt(YawRateValue.unavailable); //yawRateValue
         byteBuffer.putInt(1); //yawRateConfidence        
         byteBuffer.putInt(VehicleRole.taxi.value()); //vehicleRole
 
-        Cam cam = va.simulinkToCam(buffer);
+        LocalCam localCamFromBuffer = new LocalCam(buffer);
+        Assert.assertArrayEquals("[ERROR] Creating a local CAM from an array and converting it back to an array didn't return the original array. See below which bytes differed.\n"
+                                 + compareByteArrays(buffer, localCamFromBuffer.asByteArray()),
+                                 buffer, localCamFromBuffer.asByteArray());
+        
+        Cam cam = localCamFromBuffer.asCam();
+        //TODO: Add check against verified coded CAM
 
-        byte[] received = new byte[MAX_PACKET_LENGTH];
-        va.camToSimulink(cam, received);
-       
-        for(int i = 0;i < buffer.length;i++){
-            if(buffer[i] != received[i]){
-                System.out.println("[ERROR] CAM ELEMENT " + i + ":\tExpected " + buffer[i] + " GOT " + received[i]);
-            }
-        }
-
-        assert(Arrays.equals(buffer, received));
+        LocalCam localCamFromProperCam = new LocalCam(cam);
+        Assert.assertArrayEquals("[ERROR] Creating a local CAM from a proper CAM and converting it back to an array didn't return the original array. See below which bytes differed.\n"
+                                 + compareByteArrays(buffer, localCamFromProperCam.asByteArray()),
+                                 buffer, localCamFromProperCam.asByteArray());
     }
 
     @Test
