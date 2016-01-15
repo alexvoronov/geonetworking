@@ -952,8 +952,6 @@ public class VehicleAdapter {
                     switch(receivedData[0]){                        
                     case MessageId.cam: {
                         logger.info("Received CAM from vehicle control.");
-                        //Cam cam = simulinkToCam(receivedData); //Deprecated
-                        /* Parse buffer */
                         LocalCam localCam = new LocalCam(receivedData);
                         Cam cam = localCam.asCam();
                         send(cam);
@@ -962,7 +960,8 @@ public class VehicleAdapter {
 
                     case MessageId.denm: {
                         logger.info("Received DENM from vehicle control.");
-                        Denm denm = simulinkToDenm(receivedData);                  
+                        LocalDenm localDenm = new LocalDenm(receivedData);
+                        Denm denm = localDenm.asDenm();                        
 
                         /* TODO: How does GeoNetworking addressing work in
                          * GCDC16? For now let's just broadcast
@@ -974,7 +973,8 @@ public class VehicleAdapter {
                         
                     case net.gcdc.camdenm.Iclcm.MessageID_iCLCM: {
                         logger.info("Received iCLCM from vehicle control.");
-                        IgameCooperativeLaneChangeMessage iclcm = simulinkToIclcm(receivedData);
+                        LocalIclcm localIclcm = new LocalIclcm(receivedData);
+                        IgameCooperativeLaneChangeMessage iclcm = localIclcm.asIclcm();
                         send(iclcm);
                         break;
                     }
@@ -999,6 +999,7 @@ public class VehicleAdapter {
     /* Receive incoming CAM/DENM/iCLCM to Simulink, convert them to
      * their local representation, and send them to Simulink over UDP. */
     private Runnable sendToSimulinkLoop = new Runnable() {
+            /* TODO: Don't allocate new memory for every iteration. */
             byte[] buffer = new byte[MAX_UDP_LENGTH];
             private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             
@@ -1016,7 +1017,7 @@ public class VehicleAdapter {
                                 cam = UperEncoder.decode(btpPacket.payload(), Cam.class);
                                 LocalCam localCam = new LocalCam(cam);
                                 buffer = localCam.asByteArray();
-                                //camToSimulink(cam, buffer); //deprecated
+                                packet.setData(buffer, 0, buffer.length);                                
 
                                 packet.setPort(simulink_cam_port);
                                 try {
@@ -1035,7 +1036,9 @@ public class VehicleAdapter {
                             Denm denm;
                             try {
                                 denm = UperEncoder.decode(btpPacket.payload(), Denm.class);
-                                denmToSimulink(denm, buffer);
+                                LocalDenm localDenm = new LocalDenm(denm);
+                                buffer = localDenm.asByteArray();
+                                packet.setData(buffer, 0, buffer.length);
 
                                 packet.setPort(simulink_denm_port);
                                 try {
@@ -1054,7 +1057,9 @@ public class VehicleAdapter {
                             IgameCooperativeLaneChangeMessage iclcm;
                             try {
                                 iclcm = UperEncoder.decode(btpPacket.payload(), IgameCooperativeLaneChangeMessage.class);
-                                iclcmToSimulink(iclcm, buffer);
+                                LocalIclcm localIclcm = new LocalIclcm(iclcm);
+                                buffer = localIclcm.asByteArray();
+                                packet.setData(buffer, 0, buffer.length);
 
                                 packet.setPort(simulink_iclcm_port);
                                 try {
