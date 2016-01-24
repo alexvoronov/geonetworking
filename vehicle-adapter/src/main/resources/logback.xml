@@ -9,8 +9,9 @@
   </appender>
 
   <logger name="net.gcdc.asn1.uper.UperEncoder" level="INFO" />
+  <logger name="net.gcdc.vehicle.VehicleAdapter" level="DEBUG" />
 
-  <root level="INFO">
+  <root level="DEBUG">
     <appender-ref ref="STDOUT" />
   </root>
 </configuration>
