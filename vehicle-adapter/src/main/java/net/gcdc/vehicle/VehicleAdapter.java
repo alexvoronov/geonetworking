@@ -942,11 +942,7 @@ public class VehicleAdapter {
                                                              packet.getOffset(),
                                                              packet.getOffset() + packet.getLength());
                     assert (receivedData.length == packet.getLength());
-                    logger.debug("Received packet from vehicle control! ID: " + receivedData[0] + "Data: " + receivedData);
-                    /*
-                    for(int i = 0;i < receivedData.length;i++) System.out.printf("0x%02X ", receivedData[i]);
-                    System.out.println("");
-                    */
+                    logger.debug("Received packet from vehicle control! ID: " + receivedData[0] + " Data: " + receivedData);
 
                     /* First byte is the MessageId */
                     switch(receivedData[0]){                        
@@ -954,7 +950,7 @@ public class VehicleAdapter {
                         logger.info("Received CAM from vehicle control.");
                         LocalCam localCam = new LocalCam(receivedData);
                         Cam cam = localCam.asCam();
-                        send(cam);
+                        if(localCam.isValid()) send(cam);
                         break;
                     }
 
@@ -967,7 +963,7 @@ public class VehicleAdapter {
                          * GCDC16? For now let's just broadcast
                          * everything in a large radius.
                          */
-                        send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), Double.MAX_VALUE)));
+                        if(localDenm.isValid()) send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), Double.MAX_VALUE)));
                         break;
                     }
                         
@@ -975,17 +971,13 @@ public class VehicleAdapter {
                         logger.info("Received iCLCM from vehicle control.");
                         LocalIclcm localIclcm = new LocalIclcm(receivedData);
                         IgameCooperativeLaneChangeMessage iclcm = localIclcm.asIclcm();
-                        send(iclcm);
+                        if(localIclcm.isValid()) send(iclcm);
                         break;
                     }
                         
                     default:
                         logger.warn("Received incorrectly formated message! ID: {} Data: {}", 
                                 receivedData[0], receivedData);
-                        /*
-                        for(int i = 0;i < receivedData.length;i++) System.out.printf("0x%02X ", receivedData[i]);
-                        System.out.println("");
-                        */
                     }
                 }
             } catch (IOException e) {
@@ -994,7 +986,6 @@ public class VehicleAdapter {
             }
         }
         };
-
 
     /* Receive incoming CAM/DENM/iCLCM to Simulink, convert them to
      * their local representation, and send them to Simulink over UDP. */
@@ -1015,6 +1006,11 @@ public class VehicleAdapter {
                             Cam cam;
                             try {
                                 cam = UperEncoder.decode(btpPacket.payload(), Cam.class);
+                                /*
+                                for(int i = 0;i < btpPacket.payload().length;i++) System.out.printf("%02X ", btpPacket.payload()[i]);
+                                System.out.println("");
+                                */
+
                                 LocalCam localCam = new LocalCam(cam);
                                 buffer = localCam.asByteArray();
                                 packet.setData(buffer, 0, buffer.length);                                
@@ -1036,6 +1032,11 @@ public class VehicleAdapter {
                             Denm denm;
                             try {
                                 denm = UperEncoder.decode(btpPacket.payload(), Denm.class);
+                                /*
+                                for(int i = 0;i < btpPacket.payload().length;i++) System.out.printf("%02X ", btpPacket.payload()[i]);
+                                System.out.println("");
+                                */
+                                
                                 LocalDenm localDenm = new LocalDenm(denm);
                                 buffer = localDenm.asByteArray();
                                 packet.setData(buffer, 0, buffer.length);

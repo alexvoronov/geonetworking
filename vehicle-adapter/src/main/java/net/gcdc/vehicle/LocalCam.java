@@ -7,6 +7,9 @@ import java.nio.BufferOverflowException;
 import net.gcdc.camdenm.CoopIts.*;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
+import java.lang.annotation.Annotation;
+import net.gcdc.asn1.datatypes.IntRange;
+import net.gcdc.asn1.datatypes.Asn1Integer;
 
 public class LocalCam{
     private final static Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
@@ -120,6 +123,143 @@ public class LocalCam{
 
     this.containerMask = containerMask;
   }
+
+    /* Return the IntRange min and max value as a nice string. */
+    String getIntRangeString(IntRange intRange){
+        String string = "minValue=" + intRange.minValue() + ", maxValue=" + intRange.maxValue();
+        return string;
+    }
+
+    /* Return true if value is within the IntRange, and false
+       otherwise. */
+    boolean compareIntRange(int value, IntRange intRange){
+        return value <= intRange.maxValue() && value >= intRange.minValue();
+    }
+
+    public boolean checkInt(Class<?> classOfT, int value, String name){
+        IntRange intRange = (IntRange) classOfT.getAnnotation(IntRange.class);
+        if(intRange == null){
+            logger.error("{} does not have an IntRange!", classOfT);
+            return false;
+        }
+        if(!compareIntRange(value, intRange)){
+            logger.error("{} is outside of range. Value={}, {}",
+                         name, value, getIntRangeString(intRange));
+            return false;
+        }else return true;
+    }
+
+    /*
+    public boolean checkEnum(Enum classOfT, int value, String name){
+        boolean valid = classOfT.isMember(value);
+        if(!valid) logger.error("{} is not valid. Value={}",
+                                name, value);
+        return valid;
+    }
+    */
+    
+
+    /* Check if the local CAM is valid. */
+    boolean isValid(){
+        boolean valid = true;
+        
+        if(messageID != MessageId.cam){
+            logger.error("MessageID is: {} Should be: {}",
+                         messageID, MessageId.cam);
+            valid = false;
+        }
+
+        if(!checkInt(StationID.class, stationID, "StationID")) valid = false;
+        if(!checkInt(GenerationDeltaTime.class, genDeltaTimeMillis, "GenerationDeltaTime")) valid = false;
+        if(!checkInt(StationType.class, stationType, "StationType")) valid = false;
+        if(!checkInt(SemiAxisLength.class, semiMajorAxisConfidence, "SemiMajorConfidence")) valid = false;
+        if(!checkInt(SemiAxisLength.class, semiMinorAxisConfidence, "SemiMinorConfidence")) valid = false;
+        if(!checkInt(HeadingValue.class, semiMajorOrientation, "SemiMajorOrientation")) valid = false;        
+        if(!checkInt(HeadingValue.class, heading, "Heading")) valid = false;
+        if(!checkInt(HeadingConfidence.class, headingConfidence, "HeadingConfidence")) valid = false;
+        if(!checkInt(SpeedValue.class, speed, "Speed")) valid = false;
+        if(!checkInt(SpeedConfidence.class, speedConfidence, "SpeedConfidence")) valid = false;
+        if(!checkInt(VehicleLengthValue.class, vehicleLength, "VehicleLength")) valid = false;
+        if(!checkInt(VehicleWidth.class, vehicleWidth, "VehicleWidth")) valid = false;
+        if(!checkInt(LongitudinalAccelerationValue.class, longitudinalAcceleration, "LongitudinalAcceleration")) valid = false;
+        if(!checkInt(AccelerationConfidence.class,
+                     longitudinalAccelerationConfidence,
+                     "LongitudinalAccelerationConfidence")) valid = false;
+        if(!checkInt(YawRateValue.class, yawRate, "YawRate")) valid = false;
+
+        /* TODO: Find a cleaner way to check enums. Also, this
+         * approach is not very informative.*/
+        if(!YawRateConfidence.isMember(yawRateConfidence)){
+            logger.error("YawRateConfidence is not valid. Value={}", yawRateConfidence);
+            valid = false;
+        }
+        if(!VehicleRole.isMember(vehicleRole)){
+            logger.error("VehicleRole is not valid. Value={}", vehicleRole);
+            valid = false;
+        }        
+
+        /* TODO:
+        byte containerMask;
+        */
+        return valid;
+    }
+
+    /* Return true if the local CAM has a low frequency container. */
+    boolean hasLowFrequencyContainer(){
+        return (containerMask & (1<<7)) != 0;
+    }
+
+    /*
+    String getStationTypeString(int stationType){
+        if(stationType == StationType.unknown) return "unknown";
+        if(stationType == StationType.pedestrian) return "pedestrian";
+        if(stationType == StationType.cyclist) return "cyclist";
+        if(stationType == StationType.moped) return "moped";
+        if(stationType == StationType.motorcycle) return "motorcycle";
+        if(stationType == StationType.passengerCar) return "passengerCar";
+        if(stationType == StationType.bus) return "bus";
+        if(stationType == StationType.lightTruck) return "lightTruck";
+        if(stationType == StationType.heavyTruck) return "heavyTruck";
+        if(stationType == StationType.trailer) return "trailer";
+        if(stationType == StationType.specialVehicles) return "specialVehicles";
+        if(stationType == StationType.tram) return "tram";
+        if(stationType == StationType.roadSideUnit) return "roadSideUnit";
+        else return "unknown";
+    }
+
+    @Override
+    public String toString(){
+        return "[CAM] :" + 
+            "StationID=" + stationID +
+            "\nGenerationDeltaTime=" + genDeltaTimeMillis +
+            "\nHasLowFrequencyContainer=" + this.hasLowFrequencyContainer() +
+            "\nStationType=" + stationType + " (" + getStationTypeString(stationType) +
+            "\nLatitude=
+        string += "StationID=" + statiodID;
+        byte messageID = 2;
+        int stationID;
+        int genDeltaTimeMillis;
+        byte containerMask;
+        int stationType;
+        int latitude;
+        int longitude;                         
+        int semiMajorAxisConfidence;
+        int semiMinorAxisConfidence;
+        int semiMajorOrientation;
+        int altitude;
+        int heading;
+        int headingConfidence;
+        int speed;
+        int speedConfidence;
+        int vehicleLength;
+        int vehicleWidth;
+        int longitudinalAcceleration;
+        int longitudinalAccelerationConfidence;
+        int yawRate;
+        int yawRateConfidence;
+        int vehicleRole;        
+    }
+    */
 
     /* Return values as a byte array for sending as a local CAM UDP message. */
     byte[] asByteArray(){
