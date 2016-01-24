@@ -9,6 +9,7 @@ import net.gcdc.camdenm.CoopIts.*;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
 import net.gcdc.camdenm.Iclcm.*;
+import net.gcdc.asn1.datatypes.IntRange;
 
 public class LocalIclcm{
     private final static Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
@@ -174,6 +175,67 @@ public class LocalIclcm{
         distanceTravelledCz = (int) scenarioObject.getDistanceTravelledCZ().value;        
         intention = (int) scenarioObject.getIntention().value;        
         counter = (int) scenarioObject.getCounterIntersection().value;      
+    }
+
+
+    /* Return the IntRange min and max value as a nice string. */
+    String getIntRangeString(IntRange intRange){
+        String string = "minValue=" + intRange.minValue() + ", maxValue=" + intRange.maxValue();
+        return string;
+    }
+
+    /* Return true if value is within the IntRange, and false
+       otherwise. */
+    boolean compareIntRange(int value, IntRange intRange){
+        return value <= intRange.maxValue() && value >= intRange.minValue();
+    }
+
+    public boolean checkInt(Class<?> classOfT, int value, String name){
+        IntRange intRange = (IntRange) classOfT.getAnnotation(IntRange.class);
+        if(intRange == null){
+            logger.error("{} does not have an IntRange!", classOfT);
+            return false;
+        }
+        if(!compareIntRange(value, intRange)){
+            logger.error("{} is outside of range. Value={}, {}",
+                         name, value, getIntRangeString(intRange));
+            return false;
+        }else return true;
+    }
+
+
+    /* Check if the local iCLCM is valid. */
+    boolean isValid(){
+        boolean valid = true;
+
+        if(!checkInt(StationID.class, stationID, "StationID")) valid = false;
+        if(!checkInt(VehicleRearAxleLocation.class, rearAxleLocation, "RearAxleLocation")) valid = false;
+        if(!checkInt(ControllerType.class, controllerType, "ControllerType")) valid = false;
+        if(!checkInt(VehicleResponseTimeConstant.class, responseTimeConstant, "ResponseTimeConstant")) valid = false;
+        if(!checkInt(VehicleResponseTimeDelay.class, responseTimeDelay, "ResponseTimeDelay")) valid = false;
+        if(!checkInt(TargetLongitudonalAcceleration.class, targetLongAcc, "TargetLongitudinalAcceleration")) valid = false;
+        if(!checkInt(TimeHeadway.class, timeHeadway, "TimeHeadway")) valid = false;
+        if(!checkInt(CruiseSpeed.class, cruiseSpeed, "CruiseSpeed")) valid = false;
+        if(!checkInt(ParticipantsReady.class, participantsReady, "ParticipantsReady")) valid = false;
+        if(!checkInt(StartPlatoon.class, startPlatoon, "StartPlatoon")) valid = false;
+        if(!checkInt(EndOfScenario.class, endOfScenario, "EndOfScenario")) valid = false;
+        if(!checkInt(StationID.class, mioID, "MioID")) valid = false;
+        if(!checkInt(MioRange.class, mioRange, "MioRange")) valid = false;
+        if(!checkInt(MioBearing.class, mioBearing, "MioBearing")) valid = false;
+        if(!checkInt(MioRangeRate.class, mioRangeRate, "MioRangeRate")) valid = false;
+        if(!checkInt(Lane.class, lane, "Lane")) valid = false;
+        if(!checkInt(StationID.class, forwardID, "ForwardID")) valid = false;
+        if(!checkInt(StationID.class, backwardID, "BackwardID")) valid = false;
+        if(!checkInt(MergeRequest.class, mergeRequest, "MergeRequest")) valid = false;
+        if(!checkInt(MergeSafeToMerge.class, mergeSafeToMerge, "MergeSafeToMerge")) valid = false;
+        if(!checkInt(MergeFlag.class, mergeFlag, "MergeFlag")) valid = false;
+        if(!checkInt(MergeFlagTail.class, mergeFlagTail, "MergeFLagTail")) valid = false;
+        if(!checkInt(MergeFlagHead.class, mergeFlagHead, "MergeFlagHead")) valid = false;
+        if(!checkInt(PlatoonID.class, platoonID, "PlatoonID")) valid = false;
+        if(!checkInt(DistanceTravelledCZ.class, distanceTravelledCz, "DistanceTravelledCz")) valid = false;
+        if(!checkInt(Intention.class, intention, "Intention")) valid = false;
+        if(!checkInt(Counter.class, counter, "Counter")) valid = false;        
+        return valid;
     }
 
     /* Return values as a byte array for sending as a local iCLCM UDP message. */

@@ -7,6 +7,7 @@ import java.nio.BufferOverflowException;
 import net.gcdc.camdenm.CoopIts.*;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
+import net.gcdc.asn1.datatypes.IntRange;
 
 public class LocalDenm{
     private final static Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
@@ -215,6 +216,76 @@ public class LocalDenm{
             }
         }
     }
+
+    /* Return the IntRange min and max value as a nice string. */
+    String getIntRangeString(IntRange intRange){
+        String string = "minValue=" + intRange.minValue() + ", maxValue=" + intRange.maxValue();
+        return string;
+    }
+
+    /* Return true if value is within the IntRange, and false
+       otherwise. */
+    boolean compareIntRange(int value, IntRange intRange){
+        return value <= intRange.maxValue() && value >= intRange.minValue();
+    }
+
+    public boolean checkInt(Class<?> classOfT, int value, String name){
+        IntRange intRange = (IntRange) classOfT.getAnnotation(IntRange.class);
+        if(intRange == null){
+            logger.error("{} does not have an IntRange!", classOfT);
+            return false;
+        }
+        if(!compareIntRange(value, intRange)){
+            logger.error("{} is outside of range. Value={}, {}",
+                         name, value, getIntRangeString(intRange));
+            return false;
+        }else return true;
+    }
+
+
+    /* Check if the local DENM is valid. */
+    boolean isValid(){
+        boolean valid = true;
+
+        if(!checkInt(StationID.class, stationID, "StationID")) valid = false;
+        if(!checkInt(GenerationDeltaTime.class, generationDeltaTime, "GenerationDeltaTime")) valid = false;
+        //if(!checkInt(containerMask)) valid = false;
+        //if(!checkInt(managementMask)) valid = false;
+
+        /* These timestamps are handled differently that what the
+         * spec. states. As a workaround to Matlab not supporting long
+         * these values are sent as number of increments of 65536ms.
+         * We get the true timestamps by multiplying with 65536 and
+         * adding the generationDeltaTime. 
+         */
+        if(!checkInt(TimestampIts.class, detectionTime * 65536 + generationDeltaTime, "DetectionTime")) valid = false;
+        if(!checkInt(TimestampIts.class, referenceTime * 65536 + generationDeltaTime, "ReferenceTime")) valid = false;
+        
+        if(!checkInt(Termination.class, termination, "Termination")) valid = false;
+        if(!checkInt(Latitude. class, latitude, "Latitude")) valid = false;
+        if(!checkInt(Longitude.class, longitude, "Longitude")) valid = false;
+        if(!checkInt(SemiAxisLength.class, semiMajorConfidence, "SemiMajorConfidence")) valid = false;
+        if(!checkInt(SemiAxisLength.class, semiMinorConfidence, "SemiMinorConfidence")) valid = false;
+        if(!checkInt(Heading.class, semiMajorOrientation, "SemiMajorOrientation")) valid = false;
+        if(!checkInt(Altitude.class, altitude, "Altitude")) valid = false;
+        if(!checkInt(RelevanceDistance.class, relevanceDistance, "RelevanceDistance")) valid = false;
+        if(!checkInt(RelevanceTrafficDirection.class, relevanceTrafficDirection, "RelevanceTrafficDirection")) valid = false;
+        if(!checkInt(ValidityDuration.class, validityDuration, "ValidityDuration")) valid = false;
+        if(!checkInt(TransmissionInterval.class, transmissionInterval, "TransmissionInterval")) valid = false;
+        if(!checkInt(StationType.class, stationType, "StationType")) valid = false;
+
+        //if(!checkInt(situationMask)) valid = false;
+        if(!checkInt(InformationQuality.class, informationQuality, "InformationQuality")) valid = false;
+        if(!checkInt(CauseCodeType.class, causeCode, "CauseCode")) valid = false;
+        if(!checkInt(SubCauseCodeType.class, subCauseCode, "SubCauseCode")) valid = false;
+        if(!checkInt(CauseCodeType.class, linkedCauseCode, "LinkedCauseCode")) valid = false;
+        if(!checkInt(SubCauseCodeType.class, linkedSubCauseCode, "LinkedSubCauseCode")) valid = false;
+        //if(!checkInt(alacarteMask)) valid = false;
+        if(!checkInt(LanePosition.class, lanePosition, "LanePosition")) valid = false;
+        if(!checkInt(Temperature.class, temperature, "Temperature")) valid = false;
+        if(!checkInt(PositioningSolutionType.class, positioningSolutionType, "PositioningSolutionType")) valid = false;
+        return valid;
+    }    
 
     /* Return values as a byte array for sending as a local DENM UDP message. */
     byte[] asByteArray(){

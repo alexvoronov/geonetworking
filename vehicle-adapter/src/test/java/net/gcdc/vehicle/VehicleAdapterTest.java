@@ -114,8 +114,9 @@ public class VehicleAdapterTest{
 
     @Test
     public void testDenm() throws SocketException{
-        if(va == null) init();
-        byte[] buffer = new byte[MAX_PACKET_LENGTH];
+        //if(va == null) init();
+        int LOCAL_DENM_LENGTH = 101;
+        byte[] buffer = new byte[LOCAL_DENM_LENGTH];
         ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
 
         //TODO: Replace all zeroes with non-zero values
@@ -149,24 +150,25 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(0); //temperature
         byteBuffer.putInt(5); //positioningSolutionType        
 
-        Denm denm = va.simulinkToDenm(buffer);
-        byte[] received = new byte[MAX_PACKET_LENGTH];
-        va.denmToSimulink(denm, received);
-
+        LocalDenm localDenmFromBuffer = new LocalDenm(buffer);
+        Assert.assertArrayEquals("[ERROR] Creating a local DENM from an array and converting it back to an array didn't return the original array. See below which bytes differed.\n"
+                                 + compareByteArrays(buffer, localDenmFromBuffer.asByteArray()),
+                                 buffer, localDenmFromBuffer.asByteArray());
         
-        for(int i = 0;i < buffer.length;i++){
-            if(buffer[i] != received[i]){
-                System.out.println("[ERROR] DENM ELEMENT " + i + ":\t Expected " + buffer[i] + " Got " + received[i]);
-            }
-        }
+        Denm denm = localDenmFromBuffer.asDenm();
+        //TODO: Add check against verified coded CAM
 
-        assert(Arrays.equals(buffer, received));
+        LocalDenm localDenmFromProperDenm = new LocalDenm(denm);
+        Assert.assertArrayEquals("[ERROR] Creating a local DENM from a proper DENM and converting it back to an array didn't return the original array. See below which bytes differed.\n"
+                                 + compareByteArrays(buffer, localDenmFromProperDenm.asByteArray()),
+                                 buffer, localDenmFromProperDenm.asByteArray());
     }
 
     @Test
     public void testIclcm() throws SocketException{
-        if(va == null) init();
-        byte[] buffer = new byte[MAX_PACKET_LENGTH];
+        //if(va == null) init();
+        int LOCAL_iCLCM_LENGTH = 111;
+        byte[] buffer = new byte[LOCAL_iCLCM_LENGTH];
         ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
 
         //TODO: Replace all zeroes with non-zero values
@@ -200,6 +202,21 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(100); //distanceTravelledCz
         byteBuffer.putInt(2); //intention
         byteBuffer.putInt(6); //counter
+
+        LocalIclcm localIclcmFromBuffer = new LocalIclcm(buffer);
+        Assert.assertArrayEquals("[ERROR] Creating a local iCLCM from an array and converting it back to an array didn't return the original array. See below which bytes differed.\n"
+                                 + compareByteArrays(buffer, localIclcmFromBuffer.asByteArray()),
+                                 buffer, localIclcmFromBuffer.asByteArray());
+        
+        IgameCooperativeLaneChangeMessage iclcm = localIclcmFromBuffer.asIclcm();
+        //TODO: Add check against verified coded CAM
+
+        LocalIclcm localIclcmFromProperIclcm = new LocalIclcm(iclcm);
+        Assert.assertArrayEquals("[ERROR] Creating a local iCLCM from a proper iCLCM and converting it back to an array didn't return the original array. See below which bytes differed.\n"
+                                 + compareByteArrays(buffer, localIclcmFromProperIclcm.asByteArray()),
+                                 buffer, localIclcmFromProperIclcm.asByteArray());
+
+        /*
         
         IgameCooperativeLaneChangeMessage iclcm = va.simulinkToIclcm(buffer);
         byte[] received = new byte[MAX_PACKET_LENGTH];
@@ -213,5 +230,6 @@ public class VehicleAdapterTest{
         }
 
         assert(Arrays.equals(buffer, received));
+        */
     }
 }

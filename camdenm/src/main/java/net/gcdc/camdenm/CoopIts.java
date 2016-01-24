@@ -741,6 +741,13 @@ public class CoopIts {
         private final int value;
         public int value() { return value; }
         private YawRateConfidence(int value) { this.value = value; }
+        static public boolean isMember(int value){
+            YawRateConfidence[] yawRateConfidences = YawRateConfidence.values();
+            for (YawRateConfidence yawRateConfidence : yawRateConfidences)
+                if (yawRateConfidence.value == value)
+                    return true;
+            return false;
+        }
     }
 
     @Sequence
@@ -1197,7 +1204,13 @@ public class CoopIts {
             throw new IllegalArgumentException("Can't find element in enum " +
                     VehicleRole.class.getName() + " for code " + value);
         }
-
+        static public boolean isMember(int value){
+            VehicleRole[] vehicleRoles = VehicleRole.values();
+            for (VehicleRole vehicleRole : vehicleRoles)
+                if (vehicleRole.value == value)
+                    return true;
+            return false;
+        }        
     }
 
     @Bitstring
