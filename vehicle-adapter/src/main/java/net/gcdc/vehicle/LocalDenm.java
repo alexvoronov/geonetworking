@@ -261,15 +261,25 @@ public class LocalDenm{
         if(!checkInt(TimestampIts.class, detectionTime * 65536 + generationDeltaTime, "DetectionTime")) valid = false;
         if(!checkInt(TimestampIts.class, referenceTime * 65536 + generationDeltaTime, "ReferenceTime")) valid = false;
         
-        if(!checkInt(Termination.class, termination, "Termination")) valid = false;
+        if(!Termination.isMember(termination)){
+            logger.error("Termination is not valid. Value={}", termination);
+            valid = false;
+        }
         if(!checkInt(Latitude. class, latitude, "Latitude")) valid = false;
         if(!checkInt(Longitude.class, longitude, "Longitude")) valid = false;
         if(!checkInt(SemiAxisLength.class, semiMajorConfidence, "SemiMajorConfidence")) valid = false;
         if(!checkInt(SemiAxisLength.class, semiMinorConfidence, "SemiMinorConfidence")) valid = false;
-        if(!checkInt(Heading.class, semiMajorOrientation, "SemiMajorOrientation")) valid = false;
-        if(!checkInt(Altitude.class, altitude, "Altitude")) valid = false;
-        if(!checkInt(RelevanceDistance.class, relevanceDistance, "RelevanceDistance")) valid = false;
-        if(!checkInt(RelevanceTrafficDirection.class, relevanceTrafficDirection, "RelevanceTrafficDirection")) valid = false;
+        if(!checkInt(HeadingValue.class, semiMajorOrientation, "SemiMajorOrientation")) valid = false;
+        if(!checkInt(AltitudeValue.class, altitude, "Altitude")) valid = false;
+        if(!RelevanceDistance.isMember(relevanceDistance)){
+            logger.error("RelevanceDistance is not valid. Value={}", relevanceDistance);
+            valid = false;
+        }
+        
+        if(!RelevanceTrafficDirection.isMember(relevanceTrafficDirection)){
+            logger.error("RelevanceTrafficDirection is not valid. Value={}", relevanceTrafficDirection);
+            valid = false;
+        }        
         if(!checkInt(ValidityDuration.class, validityDuration, "ValidityDuration")) valid = false;
         if(!checkInt(TransmissionInterval.class, transmissionInterval, "TransmissionInterval")) valid = false;
         if(!checkInt(StationType.class, stationType, "StationType")) valid = false;
@@ -283,7 +293,10 @@ public class LocalDenm{
         //if(!checkInt(alacarteMask)) valid = false;
         if(!checkInt(LanePosition.class, lanePosition, "LanePosition")) valid = false;
         if(!checkInt(Temperature.class, temperature, "Temperature")) valid = false;
-        if(!checkInt(PositioningSolutionType.class, positioningSolutionType, "PositioningSolutionType")) valid = false;
+        if(!PositioningSolutionType.isMember(positioningSolutionType)){
+            logger.error("PositioningSolutionType is not valid. Value={}", positioningSolutionType);
+            valid = false;
+        }                
         return valid;
     }    
 
