@@ -15,7 +15,7 @@ class ChoiceCoder implements Decoder, Encoder {
         return annotations.getAnnotation(Choice.class) != null;
     }
 
-    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) {
+    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) throws Asn1EncodingException {
         Class<?> type = obj.getClass();
         AnnotationStore annotations = new AnnotationStore(type.getAnnotations(),
                 extraAnnotations);
@@ -72,6 +72,8 @@ class ChoiceCoder implements Decoder, Encoder {
             }
         } catch (IllegalArgumentException | IllegalAccessException e) {
             throw new IllegalArgumentException("can't encode " + obj, e);
+        } catch (Asn1EncodingException e) {
+            throw new Asn1EncodingException("." + type.getName(), e);
         }
     }
 

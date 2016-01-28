@@ -15,7 +15,7 @@ class SeqOfCoder implements Decoder, Encoder {
         return obj instanceof List<?>;
     }
 
-    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) {
+    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) throws Asn1EncodingException {
         Class<?> type = obj.getClass();
         AnnotationStore annotations = new AnnotationStore(type.getAnnotations(),
                 extraAnnotations);
@@ -24,12 +24,20 @@ class SeqOfCoder implements Decoder, Encoder {
         SizeRange sizeRange = annotations.getAnnotation(SizeRange.class);
         if (sizeRange == null) {
             int position1 = bitbuffer.position();
-            UperEncoder.encodeLengthDeterminant(bitbuffer, list.size());
+            try {
+                UperEncoder.encodeLengthDeterminant(bitbuffer, list.size());
+            } catch (Asn1EncodingException e) {
+                throw new Asn1EncodingException(" number of elements ", e);
+            }
             UperEncoder.logger.debug("unbound size {}, encoded as {}", list.size(),
                     bitbuffer.toBooleanStringFromPosition(position1));
             UperEncoder.logger.debug("  all elems of Seq Of: {}", list);
             for (Object elem : list) {
-                UperEncoder.encode2(bitbuffer, elem, new Annotation[] {});
+                try {
+                    UperEncoder.encode2(bitbuffer, elem, new Annotation[] {});
+                } catch (Asn1EncodingException e) {
+                    throw new Asn1EncodingException(" element " + elem.toString(), e);
+                }
             }
             return;
         }
