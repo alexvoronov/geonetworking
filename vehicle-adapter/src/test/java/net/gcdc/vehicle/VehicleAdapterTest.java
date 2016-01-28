@@ -92,7 +92,7 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(1); //speedConfidence        
         byteBuffer.putInt(40); //vehicleLength
         byteBuffer.putInt(20); //vehicleWidth
-        byteBuffer.putInt(2344); //longitudinalAcc
+        byteBuffer.putInt(100); //longitudinalAcc
         byteBuffer.putInt(1); //longitudinalAccConf
         byteBuffer.putInt(YawRateValue.unavailable); //yawRateValue
         byteBuffer.putInt(1); //yawRateConfidence        
@@ -123,8 +123,8 @@ public class VehicleAdapterTest{
         byteBuffer.put((byte) 1); //messageId
         byteBuffer.putInt(1337); //stationID
         byteBuffer.putInt(1000); //generationDeltaTime
-        byteBuffer.put((byte) 160); //containerMask
-        byteBuffer.put((byte) 64); //managementMask
+        byteBuffer.put((byte) ((1<<7) + (1<<5))); //containerMask
+        byteBuffer.put((byte) ((1<<7) + (1<<6) + (1<<5) + (1<<4) + (1<<3))); //managementMask
         byteBuffer.putInt(1); //detectionTime
         byteBuffer.putInt(2); //referenceTime
         byteBuffer.putInt(0); //termination
@@ -137,15 +137,15 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(0); //relevanceDistance
         byteBuffer.putInt(0); //relevanceTrafficDirection
         byteBuffer.putInt(0); //validityDuration
-        byteBuffer.putInt(0); //transmissionIntervall
+        byteBuffer.putInt(120); //transmissionIntervall
         byteBuffer.putInt(net.gcdc.camdenm.CoopIts.StationType.passengerCar); //stationType
-        byteBuffer.put((byte) 128);    //situationMask
+        byteBuffer.put((byte) (1<<7));    //situationMask
         byteBuffer.putInt(4); //informationQuality
         byteBuffer.putInt(CauseCodeType.dangerousSituation); //causeCode
         byteBuffer.putInt(2); //subCauseCode
         byteBuffer.putInt(0); //linkedCuaseCode
         byteBuffer.putInt(0); //linkedSubCauseCode
-        byteBuffer.put((byte) 8);    //alacarteMask
+        byteBuffer.put((byte) ((1<<7) + (1<<5) + (1<<3)));    //alacarteMask
         byteBuffer.putInt(0); //lanePosition
         byteBuffer.putInt(0); //temperature
         byteBuffer.putInt(5); //positioningSolutionType        
@@ -201,7 +201,7 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(254); //platoonID
         byteBuffer.putInt(100); //distanceTravelledCz
         byteBuffer.putInt(2); //intention
-        byteBuffer.putInt(6); //counter
+        byteBuffer.putInt(0); //counter
 
         LocalIclcm localIclcmFromBuffer = new LocalIclcm(buffer);
         Assert.assertArrayEquals("[ERROR] Creating a local iCLCM from an array and converting it back to an array didn't return the original array. See below which bytes differed.\n"

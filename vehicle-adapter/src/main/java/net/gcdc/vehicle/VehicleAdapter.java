@@ -8,6 +8,7 @@ import java.net.SocketException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.lang.IllegalArgumentException;
 
 import net.gcdc.asn1.uper.UperEncoder;
 import net.gcdc.camdenm.CoopIts.Cam;
@@ -943,35 +944,52 @@ public class VehicleAdapter {
                                                              packet.getOffset() + packet.getLength());
                     assert (receivedData.length == packet.getLength());
                     logger.debug("Received packet from vehicle control! ID: " + receivedData[0] + " Data: " + receivedData);
+                    /*
+                    System.out.printf("RAW MESSAGE DATA: ");
+                    for(int i = 0;i < receivedData.length;i++) System.out.printf("%02X ", receivedData[i]);
+                    System.out.println("");
+                    */
 
                     /* First byte is the MessageId */
                     switch(receivedData[0]){                        
                     case MessageId.cam: {
-                        logger.info("Received CAM from vehicle control.");
-                        LocalCam localCam = new LocalCam(receivedData);
-                        Cam cam = localCam.asCam();
-                        if(localCam.isValid()) send(cam);
+                        logger.debug("Received CAM from vehicle control.");
+                        try{
+                            LocalCam localCam = new LocalCam(receivedData);
+                            Cam cam = localCam.asCam();
+                            send(cam);
+                        }catch(IllegalArgumentException e){
+                            logger.error("Irrecoverable error when creating CAM. Ignoring message.", e);
+                        }
                         break;
                     }
 
                     case MessageId.denm: {
-                        logger.info("Received DENM from vehicle control.");
-                        LocalDenm localDenm = new LocalDenm(receivedData);
-                        Denm denm = localDenm.asDenm();                        
+                        logger.debug("Received DENM from vehicle control.");
+                        try{
+                            LocalDenm localDenm = new LocalDenm(receivedData);
+                            Denm denm = localDenm.asDenm();                        
 
-                        /* TODO: How does GeoNetworking addressing work in
-                         * GCDC16? For now let's just broadcast
-                         * everything in a large radius.
-                         */
-                        if(localDenm.isValid()) send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), Double.MAX_VALUE)));
+                            /* TODO: How does GeoNetworking addressing work in
+                             * GCDC16? For now let's just broadcast
+                             * everything in a large radius.
+                             */
+                            send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), Double.MAX_VALUE)));
+                        }catch(IllegalArgumentException e){
+                            logger.error("Irrecoverable error when creating DENM. Ignoring message.", e);
+                        }
                         break;
                     }
                         
                     case net.gcdc.camdenm.Iclcm.MessageID_iCLCM: {
-                        logger.info("Received iCLCM from vehicle control.");
-                        LocalIclcm localIclcm = new LocalIclcm(receivedData);
-                        IgameCooperativeLaneChangeMessage iclcm = localIclcm.asIclcm();
-                        if(localIclcm.isValid()) send(iclcm);
+                        logger.debug("Received iCLCM from vehicle control.");
+                        try{
+                            LocalIclcm localIclcm = new LocalIclcm(receivedData);
+                            IgameCooperativeLaneChangeMessage iclcm = localIclcm.asIclcm();
+                            send(iclcm);
+                        }catch(IllegalArgumentException e){
+                            logger.error("Irrecoverable error when creating iCLCM. Ignoring message.", e);
+                        }
                         break;
                     }
                         

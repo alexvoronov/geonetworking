@@ -58,13 +58,10 @@ public class LocalIclcm{
         if(receivedData.length < LOCAL_iCLCM_LENGTH){
             logger.error("Local iCLCM is too short. Is: {} Should be: {}", 
                          receivedData.length, LOCAL_iCLCM_LENGTH);
+            throw new IllegalArgumentException();            
         }
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
         messageID = buffer.get();
-        if(messageID != net.gcdc.camdenm.Iclcm.MessageID_iCLCM){
-            logger.error("Local CAM has incorrect id. Id: {} Should be: {}",
-                         messageID, net.gcdc.camdenm.Iclcm.MessageID_iCLCM);
-        }
         stationID = buffer.getInt();
         containerMask = buffer.get();
         //HW Container
@@ -101,7 +98,69 @@ public class LocalIclcm{
         distanceTravelledCz = buffer.getInt();
         intention = buffer.getInt();
         counter = buffer.getInt();
+
+        /* Verify that the values are correct and attempt to replace
+         * any errors with default values. */
+        if(messageID != net.gcdc.camdenm.Iclcm.MessageID_iCLCM){
+            logger.error("MessageID is: {} Should be: {}",         
+                         messageID, net.gcdc.camdenm.Iclcm.MessageID_iCLCM);
+            throw new IllegalArgumentException();            
+        }        
+        
+        if(!checkInt(StationID.class, stationID, "StationID")){ throw new IllegalArgumentException(); }
+        if(!checkInt(VehicleRearAxleLocation.class, rearAxleLocation, "RearAxleLocation")){ throw new IllegalArgumentException(); }
+        if(!checkInt(ControllerType.class, controllerType, "ControllerType")){ throw new IllegalArgumentException(); }
+        if(!checkInt(VehicleResponseTimeConstant.class, responseTimeConstant, "ResponseTimeConstant")){ responseTimeConstant = VehicleResponseTimeConstant.unavailable; }
+        if(!checkInt(VehicleResponseTimeDelay.class, responseTimeDelay, "ResponseTimeDelay")){ responseTimeDelay = VehicleResponseTimeDelay.unavailable; }
+        if(!checkInt(TargetLongitudonalAcceleration.class, targetLongAcc, "TargetLongitudinalAcceleration")){ targetLongAcc = TargetLongitudonalAcceleration.unavailable; }
+        if(!checkInt(TimeHeadway.class, timeHeadway, "TimeHeadway")){ timeHeadway = TimeHeadway.unavailable; }
+        if(!checkInt(CruiseSpeed.class, cruiseSpeed, "CruiseSpeed")){ cruiseSpeed = CruiseSpeed.unavailable; }
+
+        if(this.hasLowFrequencyContainer()){
+            if(this.hasParticipantsReady())
+                if(!checkInt(ParticipantsReady.class, participantsReady, "ParticipantsReady")){ throw new IllegalArgumentException(); }
+
+            if(this.hasStartPlatoon())
+                if(!checkInt(StartPlatoon.class, startPlatoon, "StartPlatoon")){ throw new IllegalArgumentException(); }
+
+            if(this.hasEndOfScenario())
+                if(!checkInt(EndOfScenario.class, endOfScenario, "EndOfScenario")){ throw new IllegalArgumentException(); }
+        }
+        
+        if(!checkInt(StationID.class, mioID, "MioID")){ throw new IllegalArgumentException(); }
+        if(!checkInt(MioRange.class, mioRange, "MioRange")){ mioRange = MioRange.unavailable; }
+        if(!checkInt(MioBearing.class, mioBearing, "MioBearing")){ mioBearing = MioBearing.unavailable; }
+        if(!checkInt(MioRangeRate.class, mioRangeRate, "MioRangeRate")){ mioRangeRate = MioRangeRate.unavailable; }
+        if(!checkInt(Lane.class, lane, "Lane")){ lane = Lane.unavailable; }
+        if(!checkInt(StationID.class, forwardID, "ForwardID")){ throw new IllegalArgumentException(); }
+        if(!checkInt(StationID.class, backwardID, "BackwardID")){ throw new IllegalArgumentException(); }
+        if(!checkInt(MergeRequest.class, mergeRequest, "MergeRequest")){ throw new IllegalArgumentException(); }
+        if(!checkInt(MergeSafeToMerge.class, mergeSafeToMerge, "MergeSafeToMerge")){ throw new IllegalArgumentException(); }
+        if(!checkInt(MergeFlag.class, mergeFlag, "MergeFlag")){ throw new IllegalArgumentException(); }
+        if(!checkInt(MergeFlagTail.class, mergeFlagTail, "MergeFLagTail")){ throw new IllegalArgumentException(); }
+        if(!checkInt(MergeFlagHead.class, mergeFlagHead, "MergeFlagHead")){ throw new IllegalArgumentException(); }
+        if(!checkInt(PlatoonID.class, platoonID, "PlatoonID")){ throw new IllegalArgumentException(); }
+        if(!checkInt(DistanceTravelledCZ.class, distanceTravelledCz, "DistanceTravelledCz")){ distanceTravelledCz = 0; }
+        if(!checkInt(Intention.class, intention, "Intention")){ throw new IllegalArgumentException(); }
+        if(!checkInt(Counter.class, counter, "Counter")){ counter = 0; }
     }
+
+    /* Return true if the local CAM has a low frequency container. */
+    boolean hasLowFrequencyContainer(){
+        return (containerMask & (1<<7)) != 0;
+    }
+
+    boolean hasParticipantsReady(){
+        return (lowFrequencyMask & (1<<7)) != 0;
+    }
+
+    boolean hasStartPlatoon(){
+        return (lowFrequencyMask & (1<<6)) != 0;
+    }
+
+    boolean hasEndOfScenario(){
+        return (lowFrequencyMask & (1<<5)) != 0;
+    }    
     
     /* For creating a local iCLCM from a iCLCM message as received from another ITS station. */
     LocalIclcm(IgameCooperativeLaneChangeMessage iCLCM){
@@ -197,8 +256,8 @@ public class LocalIclcm{
             return false;
         }
         if(!compareIntRange(value, intRange)){
-            logger.error("{} is outside of range. Value={}, {}",
-                         name, value, getIntRangeString(intRange));
+            logger.warn("{} is outside of range. Value={}, {}",
+                        name, value, getIntRangeString(intRange));
             return false;
         }else return true;
     }

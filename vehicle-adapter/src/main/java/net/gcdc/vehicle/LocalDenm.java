@@ -50,15 +50,11 @@ public class LocalDenm{
         if(receivedData.length < LOCAL_DENM_LENGTH){
             logger.error("Local DENM is too short. Is: {} Should be: {}", 
                          receivedData.length, LOCAL_DENM_LENGTH);
+            throw new IllegalArgumentException();
         }
 
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
-
         messageID = buffer.get();
-        if(messageID != MessageId.denm){
-            logger.error("Local DENM has incorrect id. Id: {} Should be: {}",
-                         messageID, MessageId.denm);
-        }
         stationID = buffer.getInt();
         generationDeltaTime  = buffer.getInt();
         containerMask = buffer.get();
@@ -87,6 +83,64 @@ public class LocalDenm{
         lanePosition = buffer.getInt();
         temperature = buffer.getInt();
         positioningSolutionType = buffer.getInt();
+
+        /* Verify that the values are correct and attempt to replace
+         * any errors with default values. */        
+        if(messageID != MessageId.denm){
+            logger.error("Local DENM has incorrect id. Id: {} Should be: {}",
+                         messageID, MessageId.denm);
+            throw new IllegalArgumentException();
+        }
+        if(!checkInt(StationID.class, stationID, "StationID")) { throw new IllegalArgumentException(); }
+        if(!checkInt(GenerationDeltaTime.class, generationDeltaTime, "GenerationDeltaTime")) { throw new IllegalArgumentException(); }
+        //if(!checkInt(containerMask)) { .unavailable; }
+        //if(!checkInt(managementMask)) { .unavailable; }
+
+        /* These timestamps are handled differently that what the
+         * spec. states. As a workaround to Matlab not supporting long
+         * these values are sent as number of increments of 65536ms.
+         * We get the true timestamps by multiplying with 65536 and
+         * adding the generationDeltaTime. 
+         */
+        if(!checkInt(TimestampIts.class, detectionTime * 65536 + generationDeltaTime, "DetectionTime")) { throw new IllegalArgumentException(); }
+        if(!checkInt(TimestampIts.class, referenceTime * 65536 + generationDeltaTime, "ReferenceTime")) { throw new IllegalArgumentException(); }
+        
+        if(!Termination.isMember(termination)){
+            logger.warn("Termination is not valid. Value={}", termination);
+            { termination = (int) Termination.defaultValue().value(); }
+        }
+        if(!checkInt(Latitude. class, latitude, "Latitude")) { latitude = Latitude.unavailable; }
+        if(!checkInt(Longitude.class, longitude, "Longitude")) { longitude = Longitude.unavailable; }
+        if(!checkInt(SemiAxisLength.class, semiMajorConfidence, "SemiMajorConfidence")) { semiMajorConfidence = SemiAxisLength.unavailable; }
+        if(!checkInt(SemiAxisLength.class, semiMinorConfidence, "SemiMinorConfidence")) { semiMinorConfidence = SemiAxisLength.unavailable; }
+        if(!checkInt(HeadingValue.class, semiMajorOrientation, "SemiMajorOrientation")) { semiMajorOrientation = HeadingValue.unavailable; }
+        if(!checkInt(AltitudeValue.class, altitude, "Altitude")) { altitude = AltitudeValue.unavailable; }
+        if(!RelevanceDistance.isMember(relevanceDistance)){
+            logger.warn("RelevanceDistance is not valid. Value={}", relevanceDistance);
+            { relevanceDistance = (int) RelevanceDistance.defaultValue().value(); }
+        }
+        
+        if(!RelevanceTrafficDirection.isMember(relevanceTrafficDirection)){
+            logger.error("RelevanceTrafficDirection is not valid. Value={}", relevanceTrafficDirection);
+            { relevanceTrafficDirection = RelevanceTrafficDirection.defaultValue().value(); }
+        }        
+        if(!checkInt(ValidityDuration.class, validityDuration, "ValidityDuration")) { validityDuration = (int) net.gcdc.camdenm.CoopIts.defaultValidity.value; }
+        if(!checkInt(TransmissionInterval.class, transmissionInterval, "TransmissionInterval")) { transmissionInterval = TransmissionInterval.oneMilliSecond * 100; }
+        if(!checkInt(StationType.class, stationType, "StationType")) { stationType = StationType.unknown; }
+
+        //if(!checkInt(situationMask)) { .unavailable; }
+        if(!checkInt(InformationQuality.class, informationQuality, "InformationQuality")) { informationQuality = InformationQuality.unavailable; }
+        if(!checkInt(CauseCodeType.class, causeCode, "CauseCode")) { throw new IllegalArgumentException(); }
+        if(!checkInt(SubCauseCodeType.class, subCauseCode, "SubCauseCode")) { throw new IllegalArgumentException(); }
+        if(!checkInt(CauseCodeType.class, linkedCauseCode, "LinkedCauseCode")) { throw new IllegalArgumentException(); }
+        if(!checkInt(SubCauseCodeType.class, linkedSubCauseCode, "LinkedSubCauseCode")) { throw new IllegalArgumentException(); }
+        //if(!checkInt(alacarteMask)) { .unavailable; }
+        if(!checkInt(LanePosition.class, lanePosition, "LanePosition")) { throw new IllegalArgumentException(); }
+        if(!checkInt(Temperature.class, temperature, "Temperature")) { temperature = 27; } /*  It's always 27C in Gothenburg :) */
+        if(!PositioningSolutionType.isMember(positioningSolutionType)){
+            logger.warn("PositioningSolutionType is not valid. Value={}", positioningSolutionType);
+            { throw new IllegalArgumentException(); }
+        }
     }
     
     /* For creating a local DENM from a DENM message as received from another ITS station. */
@@ -236,8 +290,8 @@ public class LocalDenm{
             return false;
         }
         if(!compareIntRange(value, intRange)){
-            logger.error("{} is outside of range. Value={}, {}",
-                         name, value, getIntRangeString(intRange));
+            logger.warn("{} is outside of range. Value={}, {}",
+                        name, value, getIntRangeString(intRange));
             return false;
         }else return true;
     }
@@ -296,7 +350,7 @@ public class LocalDenm{
         if(!PositioningSolutionType.isMember(positioningSolutionType)){
             logger.error("PositioningSolutionType is not valid. Value={}", positioningSolutionType);
             valid = false;
-        }                
+        }
         return valid;
     }    
 

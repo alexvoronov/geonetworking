@@ -8,6 +8,7 @@ import net.gcdc.camdenm.CoopIts.*;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
 import java.lang.annotation.Annotation;
+import java.lang.IllegalArgumentException;
 import net.gcdc.asn1.datatypes.IntRange;
 import net.gcdc.asn1.datatypes.Asn1Integer;
 
@@ -43,6 +44,7 @@ public class LocalCam{
         if(receivedData.length < LOCAL_CAM_LENGTH){
             logger.error("Local CAM is too short. Is: {} Should be: {}", 
                          receivedData.length, LOCAL_CAM_LENGTH);
+            throw new IllegalArgumentException();
         }
 
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
@@ -72,6 +74,85 @@ public class LocalCam{
         yawRate = buffer.getInt();
         yawRateConfidence = buffer.getInt();
         vehicleRole = buffer.getInt();
+
+        /* Verify that the values are correct and attempt to replace
+         * any errors with default values. */
+        if(messageID != MessageId.cam){
+            logger.error("MessageID is: {} Should be: {}",
+                         messageID, MessageId.cam);
+            throw new IllegalArgumentException();
+        }
+
+        if(!checkInt(StationID.class, stationID, "StationID")){
+            throw new IllegalArgumentException();
+        }
+        if(!checkInt(GenerationDeltaTime.class, genDeltaTimeMillis, "GenerationDeltaTime")){
+            throw new IllegalArgumentException();
+        }
+        if(!checkInt(StationType.class, stationType, "StationType")){
+            stationType = StationType.unknown;
+        }
+        if(!checkInt(Latitude.class, latitude, "Latitude")){
+            latitude = Latitude.unavailable;
+        }
+        if(!checkInt(Longitude.class, longitude, "Longitude")){
+            longitude = Longitude.unavailable;
+        }        
+        if(!checkInt(SemiAxisLength.class, semiMajorAxisConfidence, "SemiMajorConfidence")){
+            semiMajorAxisConfidence = SemiAxisLength.unavailable;
+        }
+        if(!checkInt(SemiAxisLength.class, semiMinorAxisConfidence, "SemiMinorConfidence")){
+            semiMinorAxisConfidence = SemiAxisLength.unavailable;
+        }
+        if(!checkInt(HeadingValue.class, semiMajorOrientation, "SemiMajorOrientation")){
+            semiMajorOrientation = HeadingValue.unavailable;
+        }
+        if(!checkInt(AltitudeValue.class, altitude, "Altitude")){
+            altitude = AltitudeValue.unavailable;
+        }
+        if(!checkInt(HeadingValue.class, heading, "Heading")){
+            heading = HeadingValue.unavailable;
+        }
+        if(!checkInt(HeadingConfidence.class, headingConfidence, "HeadingConfidence")){
+            headingConfidence = HeadingConfidence.unavailable;
+        }
+        if(!checkInt(SpeedValue.class, speed, "Speed")){
+            speed = SpeedValue.unavailable;
+        }
+        if(!checkInt(SpeedConfidence.class, speedConfidence, "SpeedConfidence")){
+            speedConfidence = SpeedConfidence.unavailable;
+        }
+        if(!checkInt(VehicleLengthValue.class, vehicleLength, "VehicleLength")){
+            vehicleLength = VehicleLengthValue.unavailable;
+        }
+        if(!checkInt(VehicleWidth.class, vehicleWidth, "VehicleWidth")){
+            vehicleWidth = VehicleWidth.unavailable;
+        }
+        if(!checkInt(LongitudinalAccelerationValue.class, longitudinalAcceleration, "LongitudinalAcceleration")){
+            longitudinalAcceleration = LongitudinalAccelerationValue.unavailable;
+        }
+        if(!checkInt(AccelerationConfidence.class,
+                     longitudinalAccelerationConfidence,
+                     "LongitudinalAccelerationConfidence")){
+            longitudinalAccelerationConfidence = AccelerationConfidence.unavailable;
+        }
+        if(!checkInt(YawRateValue.class, yawRate, "YawRate")){
+            yawRate = YawRateValue.unavailable;
+        }
+
+        /* TODO: Find a cleaner way to check enums. Also, this
+         * approach is not very informative.*/
+        if(!YawRateConfidence.isMember(yawRateConfidence)){
+            logger.warn("YawRateConfidence is not valid. Value={}", yawRateConfidence);
+            yawRateConfidence = (int) YawRateConfidence.unavailable.value();
+        }
+
+        if(this.hasLowFrequencyContainer()){
+            if(!VehicleRole.isMember(vehicleRole)){
+                logger.warn("VehicleRole is not valid. Value={}", vehicleRole);
+                vehicleRole = (int) VehicleRole.default_.value();
+            }
+        }
     }
 
   /* For creating a local CAM from a CAM message as received from another ITS station. */
@@ -143,19 +224,19 @@ public class LocalCam{
             return false;
         }
         if(!compareIntRange(value, intRange)){
-            logger.error("{} is outside of range. Value={}, {}",
+            logger.warn("{} is outside of range. Value={}, {}",
                          name, value, getIntRangeString(intRange));
             return false;
         }else return true;
     }
 
     /*
-    public boolean checkEnum(Enum classOfT, int value, String name){
-        boolean valid = classOfT.isMember(value);
-        if(!valid) logger.error("{} is not valid. Value={}",
-                                name, value);
-        return valid;
-    }
+      public boolean checkEnum(Enum classOfT, int value, String name){
+      boolean valid = classOfT.isMember(value);
+      if(!valid) logger.error("{} is not valid. Value={}",
+      name, value);
+      return valid;
+      }
     */
     
 
@@ -196,14 +277,14 @@ public class LocalCam{
             logger.error("YawRateConfidence is not valid. Value={}", yawRateConfidence);
             valid = false;
         }
-        if(!VehicleRole.isMember(vehicleRole)){
-            logger.error("VehicleRole is not valid. Value={}", vehicleRole);
-            valid = false;
-        }        
 
-        /* TODO:
-        byte containerMask;
-        */
+        if(this.hasLowFrequencyContainer()){
+            if(!VehicleRole.isMember(vehicleRole)){
+                logger.error("VehicleRole is not valid. Value={}", vehicleRole);
+                valid = false;
+            }
+        }
+
         return valid;
     }
 
