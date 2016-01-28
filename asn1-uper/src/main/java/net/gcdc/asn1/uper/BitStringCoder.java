@@ -20,7 +20,7 @@ class BitStringCoder implements Decoder, Encoder {
         return annotations.getAnnotation(Bitstring.class) != null;
     }
 
-    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) {
+    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) throws Asn1EncodingException {
         Class<?> type = obj.getClass();
         AnnotationStore annotations = new AnnotationStore(type.getAnnotations(),
                 extraAnnotations);

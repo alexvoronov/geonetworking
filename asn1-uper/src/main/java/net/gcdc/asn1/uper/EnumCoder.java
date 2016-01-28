@@ -14,11 +14,12 @@ class EnumCoder implements Decoder, Encoder {
         return type.isEnum();
     }
 
-    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) {
+    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) throws Asn1EncodingException {
         Class<?> type = obj.getClass();
         AnnotationStore annotations = new AnnotationStore(type.getAnnotations(),
                 extraAnnotations);
         UperEncoder.logger.debug("ENUM");
+        try {
         int position = bitbuffer.position();
         if (!UperEncoder.hasExtensionMarker(annotations)) {
             List<?> values = Arrays.asList(type.getEnumConstants());
@@ -47,6 +48,9 @@ class EnumCoder implements Decoder, Encoder {
             } else {
                 throw new UnsupportedOperationException("Enum extensions are not supported yet");
             }
+        }
+        } catch (Asn1EncodingException e) {
+            throw new Asn1EncodingException(type.getName(), e);
         }
     }
 

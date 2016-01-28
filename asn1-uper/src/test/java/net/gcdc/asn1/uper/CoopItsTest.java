@@ -2,6 +2,7 @@ package net.gcdc.asn1.uper;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 
@@ -714,6 +715,43 @@ public class CoopItsTest {
 
     @Test public void testFail() throws IllegalArgumentException, IllegalAccessException {
         //fail("not implemented yet");
+    }
+
+    @Test public void testException() {
+
+        CoopIts.Cam cam =
+                new CoopIts.Cam(
+                        new ItsPduHeader(new MessageId(MessageId.cam)),
+                        new CoopAwareness(
+                                new CoopIts.GenerationDeltaTime(100),
+                                new CamParameters(
+                                        new BasicContainer(
+                                                new StationType(CoopIts.StationType.unknown),
+                                                new ReferencePosition(
+                                                        new Latitude(900000001 + 1),
+                                                        new Longitude(13),
+                                                        new PosConfidenceEllipse(
+                                                                new SemiAxisLength(SemiAxisLength.unavailable),
+                                                                new SemiAxisLength(),
+                                                                new HeadingValue(HeadingValue.unavailable)),
+                                                        new Altitude(
+                                                                new AltitudeValue(AltitudeValue.unavailable),
+                                                                AltitudeConfidence.unavailable))),
+                                        new HighFrequencyContainer(
+                                                BasicVehicleContainerHighFrequency.builder()
+                                                    .accelerationControl(AccelerationControl.builder()
+                                                        .accEngaged(true)
+                                                        .gasPedalEngaged(true)
+                                                        .create())
+                                                    .create()))));
+
+        try {
+            byte[] encoded2 = UperEncoder.encode(cam);
+        } catch (IllegalArgumentException e) {
+            logger.debug("got expected exception {}", e.getMessage());
+            return;
+        }
+        fail("no exception");
     }
 
 }

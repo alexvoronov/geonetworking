@@ -36,7 +36,7 @@ class BigIntCoder implements Encoder, Decoder {
         return obj instanceof Asn1BigInteger;
     }
 
-    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) {
+    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) throws Asn1EncodingException {
         Class<?> type = obj.getClass();
         AnnotationStore annotations = new AnnotationStore(type.getAnnotations(),
                 extraAnnotations);
@@ -46,7 +46,11 @@ class BigIntCoder implements Encoder, Decoder {
         byte[] array = ((Asn1BigInteger) obj).value().toByteArray();
         int lengthInOctets = array.length;
         int position1 = bitbuffer.position();
-        UperEncoder.encodeLengthDeterminant(bitbuffer, lengthInOctets);
+        try {
+            UperEncoder.encodeLengthDeterminant(bitbuffer, lengthInOctets);
+        } catch (Asn1EncodingException e) {
+            throw new Asn1EncodingException(" length determinant of " + type.getName(), e);
+        }
         int position2 = bitbuffer.position();
         for (byte b : array) {
             bitbuffer.putByte(b);

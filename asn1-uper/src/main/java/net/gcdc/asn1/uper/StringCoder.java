@@ -22,7 +22,7 @@ class StringCoder implements Decoder, Encoder {
         return obj instanceof String || obj instanceof Asn1String;
     }
 
-    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) {
+    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) throws Asn1EncodingException {
         Class<?> type = obj.getClass();
         AnnotationStore annotations = new AnnotationStore(type.getAnnotations(),
                 extraAnnotations);
@@ -145,7 +145,7 @@ class StringCoder implements Decoder, Encoder {
         }
     }
 
-    private static void encodeChar(BitBuffer bitbuffer, char c, RestrictedString restriction) {
+    private static void encodeChar(BitBuffer bitbuffer, char c, RestrictedString restriction) throws Asn1EncodingException {
         UperEncoder.logger.debug("char {}", c);
         switch (restriction.value()) {
             case IA5String:

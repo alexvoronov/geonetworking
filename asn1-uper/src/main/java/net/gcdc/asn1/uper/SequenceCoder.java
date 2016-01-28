@@ -17,7 +17,7 @@ class SequenceCoder implements Decoder, Encoder {
         return annotations.getAnnotation(Sequence.class) != null;
     }
 
-    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) {
+    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) throws Asn1EncodingException {
         Class<?> type = obj.getClass();
         AnnotationStore annotations = new AnnotationStore(type.getAnnotations(),
                 extraAnnotations);
@@ -44,6 +44,8 @@ class SequenceCoder implements Decoder, Encoder {
                     UperEncoder.logger.debug("Field : {}", f.getName());
                     try {
                         UperEncoder.encode2(bitbuffer, f.get(obj), f.getAnnotations());
+                    } catch (Asn1EncodingException e) {
+                        throw new Asn1EncodingException("." + f.getName(), e);
                     } catch (IllegalArgumentException e) {
                         throw new IllegalArgumentException("Illegal value for field " + f.getName(), e);
                     }

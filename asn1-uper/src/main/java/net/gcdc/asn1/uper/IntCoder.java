@@ -93,7 +93,7 @@ class IntCoder implements Encoder, Decoder {
                 obj instanceof Short;
     }
 
-    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) {
+    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) throws Asn1EncodingException {
         Class<?> type = obj.getClass();
         AnnotationStore annotations = new AnnotationStore(type.getAnnotations(),
                 extraAnnotations);
@@ -102,8 +102,12 @@ class IntCoder implements Encoder, Decoder {
             range = DEFAULT_RANGE.get(obj);
         }
         int position = bitbuffer.position();
-        UperEncoder.encodeConstrainedInt(bitbuffer, ((Asn1Integer) obj).value(), range.minValue(),
-                range.maxValue(), range.hasExtensionMarker());
+        try {
+            UperEncoder.encodeConstrainedInt(bitbuffer, ((Asn1Integer) obj).value(), range.minValue(),
+                    range.maxValue(), range.hasExtensionMarker());
+        } catch (Asn1EncodingException e) {
+            throw new Asn1EncodingException(" " + type.getSimpleName(), e);
+        }
         UperEncoder.logger.debug("INT({}): {}", obj, bitbuffer.toBooleanStringFromPosition(position));
         return;
     }

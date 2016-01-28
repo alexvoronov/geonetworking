@@ -8,7 +8,7 @@ class ByteCoder implements Decoder, Encoder {
         return obj instanceof Byte;
     }
 
-    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) {
+    @Override public <T> void encode(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) throws Asn1EncodingException {
         UperEncoder.encodeConstrainedInt(bitbuffer, ((Byte) obj).byteValue() & 0xff, 0, 255);
         UperEncoder.logger.debug("BYTE {}", ((Byte) obj).byteValue());
     }

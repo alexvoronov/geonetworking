@@ -51,6 +51,9 @@ public class UperEncoder {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Can't encode " + obj.getClass().getName() + ": "
                     + e, e);
+        } catch (Asn1EncodingException e) {
+            throw new IllegalArgumentException("Can't encode " + obj.getClass().getName() + ":"
+                    + e.getMessage(), e);
         }
     }
 
@@ -65,7 +68,7 @@ public class UperEncoder {
     }
 
 
-    static <T> void encode2(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) {
+    static <T> void encode2(BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations) throws Asn1EncodingException {
         for (Encoder e : encoders) {
             if (e.canEncode(obj, extraAnnotations)) {
                 e.encode(bitbuffer, obj, extraAnnotations);
@@ -134,7 +137,7 @@ public class UperEncoder {
 
     static <T> void encodeAsOpenType(
             BitBuffer bitbuffer, T obj, Annotation[] extraAnnotations)
-            throws IllegalArgumentException, IllegalAccessException {
+            throws IllegalArgumentException, IllegalAccessException, Asn1EncodingException {
         logger.debug("OPEN TYPE for {}. Encoding preceedes length determinant", obj.getClass()
                 .getName());
         BitBuffer tmpbuffer = ByteBitBuffer.createInfinite();
@@ -143,7 +146,11 @@ public class UperEncoder {
         logger.debug(
                 "Encoding open type length determinant ({}) for {} (will be inserted before the open type content)",
                 numBytes, obj.getClass().getName());
-        encodeLengthDeterminant(bitbuffer, numBytes);
+        try {
+            encodeLengthDeterminant(bitbuffer, numBytes);
+        } catch (Asn1EncodingException e) {
+            throw new Asn1EncodingException(" length of open type ", e);
+        }
         tmpbuffer.flip();
         for (int i = 0; i < tmpbuffer.limit(); i++) {
             bitbuffer.put(tmpbuffer.get());
@@ -335,23 +342,28 @@ public class UperEncoder {
         return f.getName().startsWith("$");
     }
 
-    static void encodeLengthOfBitmask(BitBuffer bitbuffer, int n) {
-        if (n <= 64) {
-            logger.debug(
-                    "normally small length of bitmask, length {} <= 64 indicated as bit <0>", n);
-            bitbuffer.put(false);
-            encodeConstrainedInt(bitbuffer, n, 1, 64);
-            return;
-        } else {
-            logger.debug(
-                    "normally small length of bitmask, length {} > 64 indicated as bit <1>", n);
-            bitbuffer.put(true);
-            encodeLengthDeterminant(bitbuffer, n);
-            return;
+    static void encodeLengthOfBitmask(BitBuffer bitbuffer, int n) throws Asn1EncodingException {
+        try {
+            if (n <= 64) {
+                logger.debug(
+                        "normally small length of bitmask, length {} <= 64 indicated as bit <0>", n);
+                bitbuffer.put(false);
+                encodeConstrainedInt(bitbuffer, n, 1, 64);
+                return;
+            } else {
+                logger.debug(
+                        "normally small length of bitmask, length {} > 64 indicated as bit <1>", n);
+                bitbuffer.put(true);
+                encodeLengthDeterminant(bitbuffer, n);
+                return;
+            }
+        } catch (Asn1EncodingException e) {
+            throw new Asn1EncodingException(" length of bitmask ", e);
         }
     }
 
-    static void encodeLengthDeterminant(BitBuffer bitbuffer, int n) {
+    static void encodeLengthDeterminant(BitBuffer bitbuffer, int n) throws Asn1EncodingException  {
+        try {
             int position = bitbuffer.position();
             if (n < 128) {
                 bitbuffer.put(false);
@@ -374,6 +386,9 @@ public class UperEncoder {
                 throw new UnsupportedOperationException(
                         "Length greater than 16K is not supported yet.");
             }
+        } catch (Asn1EncodingException e) {
+            throw new Asn1EncodingException(" length determinant ", e);
+        }
 
     }
 
@@ -418,7 +433,7 @@ public class UperEncoder {
             final BitBuffer bitbuffer,
             final long value,
             final long lowerBound,
-            final long upperBound) {
+            final long upperBound) throws Asn1EncodingException {
         encodeConstrainedInt(bitbuffer, value, lowerBound, upperBound, false);
     }
 
@@ -427,11 +442,12 @@ public class UperEncoder {
             final long value,
             final long lowerBound,
             final long upperBound,
-            final boolean hasExtensionMarker) {
+            final boolean hasExtensionMarker
+            ) throws Asn1EncodingException {
         if (upperBound < lowerBound) { throw new IllegalArgumentException("Lower bound "
                 + lowerBound + " is larger than upper bound " + upperBound); }
-        if (!hasExtensionMarker && (value < lowerBound || value > upperBound)) { throw new IllegalArgumentException(
-                "Value " + value + " is outside of fixed range " +
+        if (!hasExtensionMarker && (value < lowerBound || value > upperBound)) { throw new Asn1EncodingException(
+                " Value " + value + " is outside of fixed range " +
                         lowerBound + ".." + upperBound); }
         final long range = upperBound - lowerBound + 1;
         final int position = bitbuffer.position();
