@@ -19,7 +19,7 @@ localPortForUdpLinkLayer=4000;
 remoteAddressForUdpLinkLayer=127.0.0.1:4001;
 
 # MAC address to be used by the Geonetworking stack. The command below will enter the MAC address of the wlan0 interface.
-macAddress=$(ifconfig wlan0 | grep HWaddr | awk '{print $5}');
+macAddress=00:00:00:00:00:00
 
 # Country code used by the stack. 46 is the country code of Sweden.
 countryCode=46;

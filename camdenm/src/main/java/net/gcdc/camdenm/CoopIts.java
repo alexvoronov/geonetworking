@@ -741,6 +741,8 @@ public class CoopIts {
         private final int value;
         public int value() { return value; }
         private YawRateConfidence(int value) { this.value = value; }
+        static public boolean isMember(int value) { return value >= 0 && value <= 8; }
+
     }
 
     @Sequence
@@ -1197,7 +1199,7 @@ public class CoopIts {
             throw new IllegalArgumentException("Can't find element in enum " +
                     VehicleRole.class.getName() + " for code " + value);
         }
-
+        public static boolean isMember(int value) { return value >= 0 && value <= 15; }
     }
 
     @Bitstring
@@ -2302,6 +2304,7 @@ public class CoopIts {
         public int value() { return value; }
         private RelevanceDistance(int value) { this.value = value; }
         public static RelevanceDistance defaultValue() { return lessThan50m; }
+        public static boolean isMember(int value) { return value >= 0 && value <= 7; }
     }
 
     public static enum RelevanceTrafficDirection {
@@ -2314,6 +2317,7 @@ public class CoopIts {
         public int value() { return value; }
         private RelevanceTrafficDirection(int value) { this.value = value; }
         public static RelevanceTrafficDirection defaultValue() { return allTrafficDirections; }
+        public static boolean isMember(int value) { return value >= 0 && value <= 3; }        
     }
 
     @IntRange(minValue = 0, maxValue = 65535)
@@ -2350,6 +2354,7 @@ public class CoopIts {
         public int value() { return value; }
         private Termination(int value) { this.value = value; }
         public static Termination defaultValue() { return isCancellation; }
+        public static boolean isMember(int value){ return value >= 0 && value <= 1; }
     }
 
     @Sequence
@@ -2951,6 +2956,7 @@ public class CoopIts {
         private final int value;
         public int value() { return value; }
         private PositioningSolutionType(int value) { this.value = value; }
+        public static boolean isMember(int value) { return value >= 0 && value <= 5; }
     }
 
     @Sequence

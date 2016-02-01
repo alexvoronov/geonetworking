@@ -32,6 +32,7 @@ import java.util.Arrays;
 import org.threeten.bp.Instant;
 
 import org.junit.Test;
+import org.junit.Assert;
 
 //TODO: This needs some cleaning up
 public class VehicleAdapterTest{
@@ -56,14 +57,24 @@ public class VehicleAdapterTest{
         va = new VehicleAdapter(0, config, linkLayer,
                                 va.vehiclePositionProvider, senderMac);
     }
+
+    String compareByteArrays(byte[] reference, byte[] comparison){
+        int minArrayLength = reference.length < comparison.length ? reference.length : comparison.length;
+        String difference = "";
+        /* Compare elements to find they points they differ at. */
+        for(int i = 0;i < minArrayLength;i++){
+            if(reference[i] != comparison[i]) difference += "BYTE " + i + " IS: " + comparison[i] + " SHOULD BE: " + reference[i] + "\n";
+        }
+        return difference;
+    }
     
     @Test
     public void testCam() throws SocketException{
-        if(va == null) init();
-        byte[] buffer = new byte[MAX_PACKET_LENGTH];
+        /* TODO: Get LOCAL_CAM_LENGTH from the LocalCam class instead. */
+        int LOCAL_CAM_LENGTH = 82;
+        byte[] buffer = new byte[LOCAL_CAM_LENGTH];
         ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
 
-        //TODO: Replace all zeroes with non-zero values
         byteBuffer.put((byte) 2); //messageID
         byteBuffer.putInt(1337); //stationID
         byteBuffer.putInt(1); //generationDeltaTime
@@ -71,48 +82,49 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(5); //stationType                
         byteBuffer.putInt(900000001); //latitude
         byteBuffer.putInt(1800000001); //longitude
-        byteBuffer.putInt(0); //semiMajorConfidence
-        byteBuffer.putInt(0); //semiMinorConfidence
-        byteBuffer.putInt(0); //semiMajorOrientation
-        byteBuffer.putInt(0); //altitude
+        byteBuffer.putInt(3424); //semiMajorConfidence
+        byteBuffer.putInt(324); //semiMinorConfidence
+        byteBuffer.putInt(23); //semiMajorOrientation
+        byteBuffer.putInt(5435); //altitude
         byteBuffer.putInt(1); //heading value
         byteBuffer.putInt(1); //headingConfidence
-        byteBuffer.putInt(0); //speedValue
+        byteBuffer.putInt(234); //speedValue
         byteBuffer.putInt(1); //speedConfidence        
         byteBuffer.putInt(40); //vehicleLength
         byteBuffer.putInt(20); //vehicleWidth
-        byteBuffer.putInt(0); //longitudinalAcc
+        byteBuffer.putInt(100); //longitudinalAcc
         byteBuffer.putInt(1); //longitudinalAccConf
         byteBuffer.putInt(YawRateValue.unavailable); //yawRateValue
         byteBuffer.putInt(1); //yawRateConfidence        
         byteBuffer.putInt(VehicleRole.taxi.value()); //vehicleRole
 
-        Cam cam = va.simulinkToCam(buffer);
+        LocalCam localCamFromBuffer = new LocalCam(buffer);
+        Assert.assertArrayEquals("[ERROR] Creating a local CAM from an array and converting it back to an array didn't return the original array. See below which bytes differed.\n"
+                                 + compareByteArrays(buffer, localCamFromBuffer.asByteArray()),
+                                 buffer, localCamFromBuffer.asByteArray());
+        
+        Cam cam = localCamFromBuffer.asCam();
+        //TODO: Add check against verified coded CAM
 
-        byte[] received = new byte[MAX_PACKET_LENGTH];
-        va.camToSimulink(cam, received);
-       
-        for(int i = 0;i < buffer.length;i++){
-            if(buffer[i] != received[i]){
-                System.out.println("[ERROR] CAM ELEMENT " + i + ":\tExpected " + buffer[i] + " GOT " + received[i]);
-            }
-        }
-
-        assert(Arrays.equals(buffer, received));
+        LocalCam localCamFromProperCam = new LocalCam(cam);
+        Assert.assertArrayEquals("[ERROR] Creating a local CAM from a proper CAM and converting it back to an array didn't return the original array. See below which bytes differed.\n"
+                                 + compareByteArrays(buffer, localCamFromProperCam.asByteArray()),
+                                 buffer, localCamFromProperCam.asByteArray());
     }
 
     @Test
     public void testDenm() throws SocketException{
-        if(va == null) init();
-        byte[] buffer = new byte[MAX_PACKET_LENGTH];
+        //if(va == null) init();
+        int LOCAL_DENM_LENGTH = 101;
+        byte[] buffer = new byte[LOCAL_DENM_LENGTH];
         ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
 
         //TODO: Replace all zeroes with non-zero values
         byteBuffer.put((byte) 1); //messageId
         byteBuffer.putInt(1337); //stationID
         byteBuffer.putInt(1000); //generationDeltaTime
-        byteBuffer.put((byte) 160); //containerMask
-        byteBuffer.put((byte) 64); //managementMask
+        byteBuffer.put((byte) ((1<<7) + (1<<5))); //containerMask
+        byteBuffer.put((byte) ((1<<7) + (1<<6) + (1<<5) + (1<<4) + (1<<3))); //managementMask
         byteBuffer.putInt(1); //detectionTime
         byteBuffer.putInt(2); //referenceTime
         byteBuffer.putInt(0); //termination
@@ -125,37 +137,38 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(0); //relevanceDistance
         byteBuffer.putInt(0); //relevanceTrafficDirection
         byteBuffer.putInt(0); //validityDuration
-        byteBuffer.putInt(0); //transmissionIntervall
+        byteBuffer.putInt(120); //transmissionIntervall
         byteBuffer.putInt(net.gcdc.camdenm.CoopIts.StationType.passengerCar); //stationType
-        byteBuffer.put((byte) 128);    //situationMask
+        byteBuffer.put((byte) (1<<7));    //situationMask
         byteBuffer.putInt(4); //informationQuality
         byteBuffer.putInt(CauseCodeType.dangerousSituation); //causeCode
         byteBuffer.putInt(2); //subCauseCode
         byteBuffer.putInt(0); //linkedCuaseCode
         byteBuffer.putInt(0); //linkedSubCauseCode
-        byteBuffer.put((byte) 8);    //alacarteMask
+        byteBuffer.put((byte) ((1<<7) + (1<<5) + (1<<3)));    //alacarteMask
         byteBuffer.putInt(0); //lanePosition
         byteBuffer.putInt(0); //temperature
         byteBuffer.putInt(5); //positioningSolutionType        
 
-        Denm denm = va.simulinkToDenm(buffer);
-        byte[] received = new byte[MAX_PACKET_LENGTH];
-        va.denmToSimulink(denm, received);
-
+        LocalDenm localDenmFromBuffer = new LocalDenm(buffer);
+        Assert.assertArrayEquals("[ERROR] Creating a local DENM from an array and converting it back to an array didn't return the original array. See below which bytes differed.\n"
+                                 + compareByteArrays(buffer, localDenmFromBuffer.asByteArray()),
+                                 buffer, localDenmFromBuffer.asByteArray());
         
-        for(int i = 0;i < buffer.length;i++){
-            if(buffer[i] != received[i]){
-                System.out.println("[ERROR] DENM ELEMENT " + i + ":\t Expected " + buffer[i] + " Got " + received[i]);
-            }
-        }
+        Denm denm = localDenmFromBuffer.asDenm();
+        //TODO: Add check against verified coded CAM
 
-        assert(Arrays.equals(buffer, received));
+        LocalDenm localDenmFromProperDenm = new LocalDenm(denm);
+        Assert.assertArrayEquals("[ERROR] Creating a local DENM from a proper DENM and converting it back to an array didn't return the original array. See below which bytes differed.\n"
+                                 + compareByteArrays(buffer, localDenmFromProperDenm.asByteArray()),
+                                 buffer, localDenmFromProperDenm.asByteArray());
     }
 
     @Test
     public void testIclcm() throws SocketException{
-        if(va == null) init();
-        byte[] buffer = new byte[MAX_PACKET_LENGTH];
+        //if(va == null) init();
+        int LOCAL_iCLCM_LENGTH = 111;
+        byte[] buffer = new byte[LOCAL_iCLCM_LENGTH];
         ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
 
         //TODO: Replace all zeroes with non-zero values
@@ -188,7 +201,22 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(254); //platoonID
         byteBuffer.putInt(100); //distanceTravelledCz
         byteBuffer.putInt(2); //intention
-        byteBuffer.putInt(6); //counter
+        byteBuffer.putInt(0); //counter
+
+        LocalIclcm localIclcmFromBuffer = new LocalIclcm(buffer);
+        Assert.assertArrayEquals("[ERROR] Creating a local iCLCM from an array and converting it back to an array didn't return the original array. See below which bytes differed.\n"
+                                 + compareByteArrays(buffer, localIclcmFromBuffer.asByteArray()),
+                                 buffer, localIclcmFromBuffer.asByteArray());
+        
+        IgameCooperativeLaneChangeMessage iclcm = localIclcmFromBuffer.asIclcm();
+        //TODO: Add check against verified coded CAM
+
+        LocalIclcm localIclcmFromProperIclcm = new LocalIclcm(iclcm);
+        Assert.assertArrayEquals("[ERROR] Creating a local iCLCM from a proper iCLCM and converting it back to an array didn't return the original array. See below which bytes differed.\n"
+                                 + compareByteArrays(buffer, localIclcmFromProperIclcm.asByteArray()),
+                                 buffer, localIclcmFromProperIclcm.asByteArray());
+
+        /*
         
         IgameCooperativeLaneChangeMessage iclcm = va.simulinkToIclcm(buffer);
         byte[] received = new byte[MAX_PACKET_LENGTH];
@@ -202,5 +230,6 @@ public class VehicleAdapterTest{
         }
 
         assert(Arrays.equals(buffer, received));
+        */
     }
 }

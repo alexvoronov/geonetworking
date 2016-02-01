@@ -582,7 +582,8 @@ public class Iclcm {
 		public Lane() { this(unavailable); }
 		public Lane(int value) { super(value); }
 	}
-	
+
+    /* TODO Is is supposed to be 3 here? */
 	@IntRange(minValue = 0, maxValue = 3)
 	public static class Counter extends Asn1Integer {
 		public static final int noVehicles = 0;
