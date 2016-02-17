@@ -11,7 +11,7 @@ import org.threeten.bp.Instant;
 
 public class BasicSocketTest {
 
-    @Test(timeout=3000)
+    @Test(timeout=8000)
     public void test() throws IOException, InterruptedException {
         DuplicatorLinkLayer d = new DuplicatorLinkLayer();
         LinkLayer l1 = d.get();
