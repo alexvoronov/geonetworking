@@ -171,7 +171,7 @@ public class ICLCMTest {
 		byte[] encoded_empty = UperEncoder.encode(so);
 		logger.debug("bin: {}", UperEncoder.hexStringFromBytes(encoded_empty));
 		logger.debug("");
-		assertEquals("02000000",UperEncoder.hexStringFromBytes(encoded_empty));
+		assertEquals("03000000",UperEncoder.hexStringFromBytes(encoded_empty));
 	}
 	
 	@Test public void test_encodeIclmParameters(){
@@ -181,7 +181,7 @@ public class ICLCMTest {
 		LaneObject laneObject = new LaneObject();
 		PairIdObject pairIdObject = new PairIdObject();
 		MergeObject mergeObject = new MergeObject();
-		ScenarioObject scenarioObject = new ScenarioObject();;
+		ScenarioObject scenarioObject = new ScenarioObject();
 		
 		IclmParameters parameters = new IclmParameters(vehicleContainerHighFrequency,
 				lowFrequencyContainer,
@@ -209,7 +209,7 @@ public class ICLCMTest {
 		logger.debug("binary scenarioObject: {}", UperEncoder.hexStringFromBytes(UperEncoder.encode(scenarioObject)));
 		//Parameters: 1*33 bytes: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 		logger.debug("parameters: {}", UperEncoder.hexStringFromBytes(UperEncoder.encode(parameters)));
-		assertEquals("8001F4FD3F46D3389000000001FFFF88FFFFD8000000000000000000400000",UperEncoder.hexStringFromBytes(encoded_empty));
+		assertEquals("8001F4FD3F46D3389000000001FFFF88FFFFD8000000000000000000600000",UperEncoder.hexStringFromBytes(encoded_empty));
 	}
 	
 	@Test public void test_encodeIgameCooperativeLaneChangeMessageBody(){
@@ -222,12 +222,12 @@ public class ICLCMTest {
 		logger.debug("bin: {}", UperEncoder.hexStringFromBytes(encoded_ctor1));
 		logger.debug("");
 		//1*35 bytes
-		assertEquals("00640001F4FD3F46D338900000000FFFFC47FFFEC0000000000000000002000000",UperEncoder.hexStringFromBytes(encoded_ctor1));
+		assertEquals("00640001F4FD3F46D338900000000FFFFC47FFFEC0000000000000000003000000",UperEncoder.hexStringFromBytes(encoded_ctor1));
 		
 		byte[] encoded_ctor2 = UperEncoder.encode(body_ctor2);
 		logger.debug("bin: {}", UperEncoder.hexStringFromBytes(encoded_ctor2));
 		logger.debug("");
-		assertEquals("00640001F4FD3F46D338900000000FFFFC47FFFEC0000000000000000002000000",UperEncoder.hexStringFromBytes(encoded_ctor2));
+		assertEquals("00640001F4FD3F46D338900000000FFFFC47FFFEC0000000000000000003000000",UperEncoder.hexStringFromBytes(encoded_ctor2));
 	}
 	
     @Test public void test_IgameCooperativeLaneChangeMessage() {
@@ -254,7 +254,7 @@ public class ICLCMTest {
     	logger.debug("bin default: {}", UperEncoder.hexStringFromBytes(encoded_default));
         logger.debug("bin filled: {}", UperEncoder.hexStringFromBytes(encoded_filled));
 
-        assertEquals("010A0000000000640001F4FD3F46D338900000000FFFFC47FFFEC0000000000000000002000000",UperEncoder.hexStringFromBytes(encoded_filled));
+        assertEquals("010A0000000000640001F4FD3F46D338900000000FFFFC47FFFEC0000000000000000003000000",UperEncoder.hexStringFromBytes(encoded_filled));
     }
     /**
      * Test the correct recoding of several 'valid' messages
