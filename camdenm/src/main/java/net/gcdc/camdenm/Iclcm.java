@@ -544,7 +544,7 @@ public class Iclcm {
 		public MergeFlagHead(int value) { super(value); }
 	}
 	
-	@IntRange(minValue = 1, maxValue = 255)
+	@IntRange(minValue = 0, maxValue = 255)
 	public static class PlatoonID extends Asn1Integer {
 		public static final int platoonA = 1;
 		public static final int platoonB = 2;
@@ -583,7 +583,6 @@ public class Iclcm {
 		public Lane(int value) { super(value); }
 	}
 
-    /* TODO Is is supposed to be 3 here? */
 	@IntRange(minValue = 0, maxValue = 3)
 	public static class Counter extends Asn1Integer {
 		public static final int noVehicles = 0;
