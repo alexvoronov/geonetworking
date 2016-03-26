@@ -1,0 +1,177 @@
+#+author: Albin Severinson
+#+title: Vehicle Adapter Manual
+
+* Introduction
+This document breifly explains how to work with the Vehicle Adapter.
+
+* Local Message Set
+The vehicle control system communicates with the Vehicle Adapter using
+UDP messages encoded according to the specification below. This
+specification is called the Local Message Set (LMS) and is written to
+be as simple as possible.
+
+The Vehicle Adapter will listen for these messages and, whenever one is
+received, use the data contained in it to create and send one
+CAM/DENM/iCLCM depending on the local message received. When a
+wireless message is received from another vehicle, the Vehicle Adapter
+will instead create a local message and send it to the vehicle control
+system. The system is symmetric. The Vehicle Adapter is stateless and
+does not keep track of the vehicle dynamics itself. It relies solely
+on the incoming messages.
+
+Every message type (CAM/DENM/iCLCM) has a corresponding local message
+that is used for creating that specific message. These messages are
+called "local CAM", "local DENM" and "local iCLCM".
+
+The messages have optional data elements and bit masks are used to
+indicate which elements are present. Note that the messages are the
+same size even without the optional data elements included, but the
+value of those elements are undefined if they are indicated as not
+present.
+
+All data is in network byte order, which is identical to big endian.
+When working in Matlab/Simulink, keep in mind that those use small
+endian and that the byte order of data elements have to be switched
+before sending to the Vehicle Adapter if that is the case.
+
+D3.2 is in reference to deliverable 3.2 for the GCDC 2016 competition.
+You can find it on the
+[[http://gcdc.net/en/teams/rules-and-technology][GCDC website]].
+
+** CAM
+| Container:                    | Bytes: | Data:                      | Notes:            |
+|-------------------------------+--------+----------------------------+-------------------|
+| Header                        |      1 | Message ID                 | $=2$ for CAM      |
+|                               |      4 | Station ID                 | Unique station ID |
+|                               |      4 | GenerationDeltaTime        | See D3.2          |
+|-------------------------------+--------+----------------------------+-------------------|
+| Container Mask                |      1 | ContainerMask              | See D3.2          |
+|-------------------------------+--------+----------------------------+-------------------|
+| Basic Container               |      4 | StationType                | See D3.2          |
+|                               |      4 | Latitude                   | See D3.2          |
+|                               |      4 | Longitude                  | See D3.2          |
+|                               |      4 | SemiMajorConfidence        | See D3.2          |
+|                               |      4 | SemiMinorConfidence        | See D3.2          |
+|                               |      4 | SemiMajorOrientation       | See D3.2          |
+|                               |      4 | Altitude                   | See D3.2          |
+|-------------------------------+--------+----------------------------+-------------------|
+| High Frequency Container      |      4 | Heading                    | See D3.2          |
+|                               |      4 | HeadingConfidence          | See D3.2          |
+|                               |      4 | Speed                      | See D3.2          |
+|                               |      4 | SpeedConfidence            | See D3.2          |
+|                               |      4 | VehicleLength              | See D3.2          |
+|                               |      4 | VehicleWidth               | See D3.2          |
+|                               |      4 | LongAcceleration           | See D3.2          |
+|                               |      4 | LongAccelerationConfidence | See D3.2          |
+|                               |      4 | YawRate                    | See D3.2          |
+|                               |      4 | YawRateConfidence          | See D3.2          |
+|-------------------------------+--------+----------------------------+-------------------|
+| (opt) Low Frequency Container |      4 | VehicleRole                | See D3.2          |
+|                               |        |                            |                   |
+
+
+** DENM
+| Container:               | Bytes: | Data:                            | Notes:                             |
+|--------------------------+--------+----------------------------------+------------------------------------|
+| Header                   |      1 | MessageID                        | $=1$ for DENM                      |
+|                          |      4 | StationID                        | Unique station ID                  |
+|                          |      4 | GenerationDeltaTime              | See D3.2                           |
+|--------------------------+--------+----------------------------------+------------------------------------|
+| Container Mask           |      1 | ContainerMask                    |                                    |
+|--------------------------+--------+----------------------------------+------------------------------------|
+| Management Container     |      1 | ManagementMask                   |                                    |
+|                          |      4 | DetectionTime                    | Increments of 65 536 ms since 2004 |
+|                          |      4 | ReferenceTime                    | Increments of 65 536 ms since 2004 |
+|                          |      4 | (opt) Termination                | See D3.2                           |
+|                          |      4 | Latitude                         | See D3.2                           |
+|                          |      4 | Longitude                        | See D3.2                           |
+|                          |      4 | SemiMajorConfidence              | See D3.2                           |
+|                          |      4 | SemiMinorConfidence              | See D3.2                           |
+|                          |      4 | SemiMajorOrientation             | See D3.2                           |
+|                          |      4 | Altitude                         | See D3.2                           |
+|                          |      4 | (opt) RelevanceDistance          | See D3.2                           |
+|                          |      4 | (opt) RelevanceTrafficDirection  | See D3.2                           |
+|                          |      4 | (opt) ValidityDuration           | See D3.2                           |
+|                          |      4 | (opt) TransmissionIntervall      | See D3.2                           |
+|                          |      4 | StationType                      | See D3.2                           |
+|--------------------------+--------+----------------------------------+------------------------------------|
+| (opt)Situation Container |      1 | SituationMask                    |                                    |
+|                          |      4 | InformationQuality               | See D3.2                           |
+|                          |      4 | CauseCode                        | See D3.2                           |
+|                          |      4 | SubCauseCode                     | See D3.2                           |
+|                          |      4 | (opt) LinkedCauseCode            | See D3.2                           |
+|                          |      4 | (opt) LinkedSubCauseCode         | See D3.2                           |
+|                          |      0 | (opt) EventHistory               | Not implemented                    |
+|--------------------------+--------+----------------------------------+------------------------------------|
+| (opt) Location Container |      0 | LocationMask                     | Not implemented                    |
+|                          |      0 | (opt) EventSpeed                 | Not implemented                    |
+|                          |      0 | (opt) EventPositionheading       | Not implemented                    |
+|                          |      0 | Traces                           | Not implemented                    |
+|                          |      0 | (opt) RoadType                   | Not implemented                    |
+|--------------------------+--------+----------------------------------+------------------------------------|
+| (opt) Alacarte Container |      1 | AlacarteMask                     |                                    |
+|                          |      4 | (opt) LanePosition               | See D3.2                           |
+|                          |      0 | (opt) ImpactReducationContainer  | Not implemented                    |
+|                          |      4 | (opt) ExternalTemperature        | See D3.2                           |
+|                          |      0 | (opt) RoadWorksContainerExtended | Not implemented                    |
+|                          |      4 | (opt) PositioningSolution        | See D3.2                           |
+|                          |      0 | (opt) StationaryVehicleContainer | Not implemented                    |
+|                          |        |                                  |                                    |
+
+** iCLCM
+| Container:                    | Bytes: | Data:                            | Notes:            |
+|-------------------------------+--------+----------------------------------+-------------------|
+| Header                        |      1 | MessageID                        | $=10$ for iCLCM   |
+|                               |      4 | StationID                        | Unique station ID |
+|-------------------------------+--------+----------------------------------+-------------------|
+| Container Mask                |      1 | Container mask                   |                   |
+|-------------------------------+--------+----------------------------------+-------------------|
+| High frequency container      |      4 | Rear axle location               | See D3.2          |
+|                               |      4 | Controller type                  | See D3.2          |
+|                               |      4 | Response time constant           | See D3.2          |
+|                               |      4 | Response time delay              | See D3.2          |
+|                               |      4 | Target longitudinal acceleration | See D3.2          |
+|                               |      4 | Time headway                     | See D3.2          |
+|                               |      4 | Cruise speed                     | See D3.2          |
+|-------------------------------+--------+----------------------------------+-------------------|
+| (opt) Low frequency container |      1 | Low frequency mask               |                   |
+|                               |      4 | (opt) Participants ready         | See D3.2          |
+|                               |      4 | (opt) Start platoon              | See D3.2          |
+|                               |      4 | (opt) End-of-scenario            | See D3.2          |
+|-------------------------------+--------+----------------------------------+-------------------|
+| MIO                           |      4 | Mio ID                           | See D3.2          |
+|                               |      4 | Mio Range                        | See D3.2          |
+|                               |      4 | Mio Bearing                      | See D3.2          |
+|                               |      4 | Mio Range rate                   | See D3.2          |
+|-------------------------------+--------+----------------------------------+-------------------|
+| Lane                          |      4 | Lane                             | See D3.2          |
+|-------------------------------+--------+----------------------------------+-------------------|
+| Pair ID                       |      4 | Forward ID                       | See D3.2          |
+|                               |      4 | Backward ID                      | See D3.2          |
+|                               |      4 | Acknowledgement flag             | See D3.2          |
+|-------------------------------+--------+----------------------------------+-------------------|
+| Merge                         |      4 | Merge request                    | See D3.2          |
+|                               |      4 | Safe-to-merge                    | See D3.2          |
+|                               |      4 | Flag                             | See D3.2          |
+|                               |      4 | Flag tail                        | See D3.2          |
+|                               |      4 | Flag head                        | See D3.2          |
+|-------------------------------+--------+----------------------------------+-------------------|
+| Intersection                  |      4 | Platoon ID                       | See D3.2          |
+|                               |      4 | Distance travelled in CZ         | See D3.2          |
+|                               |      4 | Intention                        | See D3.2          |
+|                               |      4 | Counter                          | See D3.2          |
+|                               |        |                                  |                   |
+
+** Development Message Set
+We've had requests for creating a message set that allows sending
+arbitrary data between stations for cases when you need to send
+specific data not covered by the CAM/DENM/iCLCM but don't want to
+develop an entirely new message set. This would potentially be very
+useful for development, but it's not something we're currently working
+on. If this is something you need, send an email to
+albin@severinson.org or start a discussion on Github.
+
+
+* License and Copyright
+The Vehicle Adapter is written by Albin Severinson and is licensed
+under the business friendly Apache-2.0 license. 
