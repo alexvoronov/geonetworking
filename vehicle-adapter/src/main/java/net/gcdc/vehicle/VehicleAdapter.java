@@ -205,7 +205,7 @@ public class VehicleAdapter {
                     /* First byte is the MessageId */
                     switch(receivedData[0]){                        
                     case MessageId.cam: {
-                        logger.debug("Received CAM from vehicle control.");
+                        logger.info("Received CAM from vehicle control.");
                         try{
                             LocalCam localCam = new LocalCam(receivedData);
                             Cam cam = localCam.asCam();
@@ -217,7 +217,7 @@ public class VehicleAdapter {
                     }
 
                     case MessageId.denm: {
-                        logger.debug("Received DENM from vehicle control.");
+                        logger.info("Received DENM from vehicle control.");
                         try{
                             LocalDenm localDenm = new LocalDenm(receivedData);
                             Denm denm = localDenm.asDenm();                        
@@ -234,7 +234,7 @@ public class VehicleAdapter {
                     }
                         
                     case net.gcdc.camdenm.Iclcm.MessageID_iCLCM: {
-                        logger.debug("Received iCLCM from vehicle control.");
+                        logger.info("Received iCLCM from vehicle control.");
                         try{
                             LocalIclcm localIclcm = new LocalIclcm(receivedData);
                             IgameCooperativeLaneChangeMessage iclcm = localIclcm.asIclcm();
@@ -269,30 +269,29 @@ public class VehicleAdapter {
 
                 try {
                     while(true){
-                        BtpPacket btpPacket = btpSocket.receive();
+                        BtpPacket btpPacket = btpSocket.receive();                        
                         switch (btpPacket.destinationPort()) {
                         case PORT_CAM: {
                             logger.info("Forwarding CAM to vehicle control.");
                             Cam cam;
                             try {
                                 cam = UperEncoder.decode(btpPacket.payload(), Cam.class);
-                                /*
-                                for(int i = 0;i < btpPacket.payload().length;i++) System.out.printf("%02X ", btpPacket.payload()[i]);
-                                System.out.println("");
-                                */
-
                                 LocalCam localCam = new LocalCam(cam);
+
                                 buffer = localCam.asByteArray();
                                 packet.setData(buffer, 0, buffer.length);                                
 
                                 packet.setPort(simulink_cam_port);
+
                                 try {
                                     rcvSocket.send(packet);
                                 } catch (IOException e) {
                                     logger.warn("Failed to send CAM to Simulink", e);
                                 }
+                            } catch(NullPointerException e){
+                                logger.warn("Can't decode CAM: Incorrect formatting.");                                
                             } catch (IllegalArgumentException | UnsupportedOperationException | BufferOverflowException e) {
-                                logger.warn("Can't decode cam", e);
+                                logger.warn("Can't decode CAM:", e);
                             }
                             break;
                         }
@@ -301,24 +300,23 @@ public class VehicleAdapter {
                             logger.info("Forwarding DENM to vehicle control.");
                             Denm denm;
                             try {
-                                denm = UperEncoder.decode(btpPacket.payload(), Denm.class);
-                                /*
-                                for(int i = 0;i < btpPacket.payload().length;i++) System.out.printf("%02X ", btpPacket.payload()[i]);
-                                System.out.println("");
-                                */
-                                
+                                denm = UperEncoder.decode(btpPacket.payload(), Denm.class);                                
                                 LocalDenm localDenm = new LocalDenm(denm);
+
                                 buffer = localDenm.asByteArray();
                                 packet.setData(buffer, 0, buffer.length);
 
                                 packet.setPort(simulink_denm_port);
+
                                 try {
                                     rcvSocket.send(packet);
                                 } catch (IOException e) {
                                     logger.warn("Failed to send DENM to Simulink", e);
                                 }
-                            } catch (IllegalArgumentException | UnsupportedOperationException e) {
-                                logger.warn("Can't decode denm", e);
+                            } catch(NullPointerException e){
+                                logger.warn("Can't decode DENM: Incorrect formatting.");                                
+                            } catch (IllegalArgumentException | UnsupportedOperationException  | BufferOverflowException e) {
+                                logger.warn("Can't decode DENM:", e);
                             }
                             break;                          
                         }
@@ -329,17 +327,21 @@ public class VehicleAdapter {
                             try {
                                 iclcm = UperEncoder.decode(btpPacket.payload(), IgameCooperativeLaneChangeMessage.class);
                                 LocalIclcm localIclcm = new LocalIclcm(iclcm);
+
                                 buffer = localIclcm.asByteArray();
                                 packet.setData(buffer, 0, buffer.length);
 
                                 packet.setPort(simulink_iclcm_port);
+
                                 try {
                                     rcvSocket.send(packet);                                
                                 } catch(IOException e) {
                                     logger.warn("Failed to send iCLCM to Simulink", e);
                                 }
-                            } catch(IllegalArgumentException | UnsupportedOperationException e){
-                                logger.warn("Can't decode iclcm", e);
+                            } catch(NullPointerException e){
+                                logger.warn("Can't decode iCLCM: Incorrect formatting.");
+                            } catch(IllegalArgumentException | UnsupportedOperationException  | BufferOverflowException e){
+                                logger.warn("Can't decode iCLCM:", e);
                             }
                             break;
                         }
