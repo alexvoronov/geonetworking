@@ -182,6 +182,11 @@ public class LocalCam{
     genDeltaTimeMillis = (int) generationDeltaTime.value;
     byte containerMask = 0;
 
+    if(messageID != MessageId.cam){
+        logger.warn("Malformed message on BTP port 2001 from station with ID {}", stationID);
+        throw new IllegalArgumentException("Malformed message on BTP port 2001");
+    }
+
     /* BasicContainer */
     BasicContainer basicContainer = camParameters.getBasicContainer();
     stationType = (int) basicContainer.getStationType().value;

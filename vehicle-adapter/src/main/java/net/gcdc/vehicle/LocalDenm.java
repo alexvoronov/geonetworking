@@ -165,10 +165,13 @@ public class LocalDenm{
         ManagementContainer managementContainer = denm.getManagement();        
         messageID = (byte) header.getMessageID().value;
         stationID = (int) header.getStationID().value;
-        generationDeltaTime = (int) managementContainer.getReferenceTime().value % 65536;
-
-        
+        generationDeltaTime = (int) managementContainer.getReferenceTime().value % 65536;     
         containerMask = 0;
+
+        if(messageID != MessageId.denm){
+            logger.warn("Malformed message on BTP port 2002 from station with ID {}", stationID);
+            throw new IllegalArgumentException("Malformed message on BTP port 2002");
+        }
 
         /* ManagementContainer */
         managementMask = 0;
