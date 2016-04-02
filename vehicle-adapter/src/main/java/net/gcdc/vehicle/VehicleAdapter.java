@@ -222,72 +222,72 @@ public class VehicleAdapter {
     /* Receive local CAM/DENM/iCLCM from Simulink, parse them and
      * create the proper messages, and send them to the link layer. */
     private Runnable receiveFromSimulinkLoop = new Runnable() {
-        byte[] buffer = new byte[MAX_UDP_LENGTH];
-        private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-        @Override public void run() {
-            try {
-                while (true) {
-                    logger.debug("Waiting for packet from vehicle control...");
-                    rcvSocket.receive(packet);
-                    byte[] receivedData = Arrays.copyOfRange(packet.getData(),
-                                                             packet.getOffset(),
-                                                             packet.getOffset() + packet.getLength());
-                    assert (receivedData.length == packet.getLength());
-                    logger.debug("Received packet from vehicle control! ID: " + receivedData[0] + " Data: " + receivedData);
+            byte[] buffer = new byte[MAX_UDP_LENGTH];
+            private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            @Override public void run() {
+                try {
+                    while (true) {
+                        logger.debug("Waiting for packet from vehicle control...");
+                        rcvSocket.receive(packet);
+                        byte[] receivedData = Arrays.copyOfRange(packet.getData(),
+                                                                 packet.getOffset(),
+                                                                 packet.getOffset() + packet.getLength());
+                        assert (receivedData.length == packet.getLength());
+                        logger.debug("Received packet from vehicle control! ID: " + receivedData[0] + " Data: " + receivedData);
 
-                    /* First byte is the MessageId */
-                    switch(receivedData[0]){                        
-                    case MessageId.cam: {
-                        num_tx_cam++;
-                        try{
-                            LocalCam localCam = new LocalCam(receivedData);
-                            Cam cam = localCam.asCam();
-                            send(cam);
-                        }catch(IllegalArgumentException e){
-                            logger.error("Irrecoverable error when creating CAM. Ignoring message.", e);
+                        /* First byte is the MessageId */
+                        switch(receivedData[0]){                        
+                        case MessageId.cam: {
+                            num_tx_cam++;
+                            try{
+                                LocalCam localCam = new LocalCam(receivedData);
+                                Cam cam = localCam.asCam();
+                                send(cam);
+                            }catch(IllegalArgumentException e){
+                                logger.error("Irrecoverable error when creating CAM. Ignoring message.", e);
+                            }
+                            break;
                         }
-                        break;
-                    }
 
-                    case MessageId.denm: {
-                        num_tx_denm++;
-                        try{
-                            LocalDenm localDenm = new LocalDenm(receivedData);
-                            Denm denm = localDenm.asDenm();                        
+                        case MessageId.denm: {
+                            num_tx_denm++;
+                            try{
+                                LocalDenm localDenm = new LocalDenm(receivedData);
+                                Denm denm = localDenm.asDenm();                        
 
-                            /* TODO: How does GeoNetworking addressing work in
-                             * GCDC16? For now let's just broadcast
-                             * everything in a large radius.
-                             */
-                            send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), Double.MAX_VALUE)));
-                        }catch(IllegalArgumentException e){
-                            logger.error("Irrecoverable error when creating DENM. Ignoring message.", e);
+                                /* TODO: How does GeoNetworking addressing work in
+                                 * GCDC16? For now let's just broadcast
+                                 * everything in a large radius.
+                                 */
+                                send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), Double.MAX_VALUE)));
+                            }catch(IllegalArgumentException e){
+                                logger.error("Irrecoverable error when creating DENM. Ignoring message.", e);
+                            }
+                            break;
                         }
-                        break;
-                    }
                         
-                    case net.gcdc.camdenm.Iclcm.MessageID_iCLCM: {
-                        num_tx_iclcm++;
-                        try{
-                            LocalIclcm localIclcm = new LocalIclcm(receivedData);
-                            IgameCooperativeLaneChangeMessage iclcm = localIclcm.asIclcm();
-                            send(iclcm);
-                        }catch(IllegalArgumentException e){
-                            logger.error("Irrecoverable error when creating iCLCM. Ignoring message.", e);
+                        case net.gcdc.camdenm.Iclcm.MessageID_iCLCM: {
+                            num_tx_iclcm++;
+                            try{
+                                LocalIclcm localIclcm = new LocalIclcm(receivedData);
+                                IgameCooperativeLaneChangeMessage iclcm = localIclcm.asIclcm();
+                                send(iclcm);
+                            }catch(IllegalArgumentException e){
+                                logger.error("Irrecoverable error when creating iCLCM. Ignoring message.", e);
+                            }
+                            break;
                         }
-                        break;
-                    }
                         
-                    default:
-                        logger.warn("Received incorrectly formated message! ID: {} Data: {}", 
-                                    receivedData[0], receivedData);
+                        default:
+                            logger.warn("Received incorrectly formated message! ID: {} Data: {}", 
+                                        receivedData[0], receivedData);
+                        }
                     }
+                } catch (IOException e) {
+                    logger.error("Failed to receive packet from Simulink, terminating", e);
+                    System.exit(1);
                 }
-            } catch (IOException e) {
-                logger.error("Failed to receive packet from Simulink, terminating", e);
-                System.exit(1);
             }
-        }
         };
 
     /* Receive incoming CAM/DENM/iCLCM to Simulink, convert them to
@@ -305,7 +305,9 @@ public class VehicleAdapter {
                 }
             }
         };
-    
+
+    /* Take a received BtpPacket, decode it and send it to the control
+     * system. */
     private class BtpParser implements Runnable{
         byte[] buffer = new byte[MAX_UDP_LENGTH];
         private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
@@ -319,9 +321,9 @@ public class VehicleAdapter {
             packet.setAddress(simulink_address);
             switch (btpPacket.destinationPort()) {
             case PORT_CAM: {
-                logger.info("Forwarding CAM to vehicle control.");
                 Cam cam;
                 try {
+                    num_rx_cam++;
                     cam = UperEncoder.decode(btpPacket.payload(), Cam.class);
                     LocalCam localCam = new LocalCam(cam);
 
@@ -344,9 +346,9 @@ public class VehicleAdapter {
             }
 
             case PORT_DENM: {
-                logger.info("Forwarding DENM to vehicle control.");
                 Denm denm;
                 try {
+                    num_tx_denm++;
                     denm = UperEncoder.decode(btpPacket.payload(), Denm.class);                                
                     LocalDenm localDenm = new LocalDenm(denm);
 
@@ -369,9 +371,9 @@ public class VehicleAdapter {
             }
 
             case PORT_ICLCM: {
-                logger.info("Forwarding iCLCM to vehicle control.");
                 IgameCooperativeLaneChangeMessage iclcm;
                 try {
+                    num_rx_iclcm++;
                     iclcm = UperEncoder.decode(btpPacket.payload(), IgameCooperativeLaneChangeMessage.class);
                     LocalIclcm localIclcm = new LocalIclcm(iclcm);
 
