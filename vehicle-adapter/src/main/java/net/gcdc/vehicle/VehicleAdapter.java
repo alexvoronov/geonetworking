@@ -235,53 +235,7 @@ public class VehicleAdapter {
                         assert (receivedData.length == packet.getLength());
                         logger.debug("Received packet from vehicle control! ID: " + receivedData[0] + " Data: " + receivedData);
 
-                        /* First byte is the MessageId */
-                        switch(receivedData[0]){                        
-                        case MessageId.cam: {
-                            num_tx_cam++;
-                            try{
-                                LocalCam localCam = new LocalCam(receivedData);
-                                Cam cam = localCam.asCam();
-                                send(cam);
-                            }catch(IllegalArgumentException e){
-                                logger.error("Irrecoverable error when creating CAM. Ignoring message.", e);
-                            }
-                            break;
-                        }
-
-                        case MessageId.denm: {
-                            num_tx_denm++;
-                            try{
-                                LocalDenm localDenm = new LocalDenm(receivedData);
-                                Denm denm = localDenm.asDenm();                        
-
-                                /* TODO: How does GeoNetworking addressing work in
-                                 * GCDC16? For now let's just broadcast
-                                 * everything in a large radius.
-                                 */
-                                send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), Double.MAX_VALUE)));
-                            }catch(IllegalArgumentException e){
-                                logger.error("Irrecoverable error when creating DENM. Ignoring message.", e);
-                            }
-                            break;
-                        }
-                        
-                        case net.gcdc.camdenm.Iclcm.MessageID_iCLCM: {
-                            num_tx_iclcm++;
-                            try{
-                                LocalIclcm localIclcm = new LocalIclcm(receivedData);
-                                IgameCooperativeLaneChangeMessage iclcm = localIclcm.asIclcm();
-                                send(iclcm);
-                            }catch(IllegalArgumentException e){
-                                logger.error("Irrecoverable error when creating iCLCM. Ignoring message.", e);
-                            }
-                            break;
-                        }
-                        
-                        default:
-                            logger.warn("Received incorrectly formated message! ID: {} Data: {}", 
-                                        receivedData[0], receivedData);
-                        }
+                        executor.submit(new UdpParser(receivedData));
                     }
                 } catch (IOException e) {
                     logger.error("Failed to receive packet from Simulink, terminating", e);
@@ -289,6 +243,66 @@ public class VehicleAdapter {
                 }
             }
         };
+
+    /* Take a received UDP packet, parse it and send it as a
+     * GeoNetworking packet. */
+    private class UdpParser implements Runnable {
+        byte[] receivedData;
+        
+        UdpParser(byte[] receivedData){
+            this.receivedData = receivedData;
+        }
+        
+        @Override public void run() {
+            /* First byte is the MessageId */
+            switch(receivedData[0]){                        
+            case MessageId.cam: {
+                num_tx_cam++;
+                try{
+                    LocalCam localCam = new LocalCam(receivedData);
+                    Cam cam = localCam.asCam();
+                    send(cam);
+                }catch(IllegalArgumentException e){
+                    logger.error("Irrecoverable error when creating CAM. Ignoring message.", e);
+                }
+                break;
+            }
+
+            case MessageId.denm: {
+                num_tx_denm++;
+                try{
+                    LocalDenm localDenm = new LocalDenm(receivedData);
+                    Denm denm = localDenm.asDenm();                        
+
+                    /* TODO: How does GeoNetworking addressing work in
+                     * GCDC16? For now let's just broadcast
+                     * everything in a large radius.
+                     */
+                    send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), Double.MAX_VALUE)));
+                }catch(IllegalArgumentException e){
+                    logger.error("Irrecoverable error when creating DENM. Ignoring message.", e);
+                }
+                break;
+            }
+                        
+            case net.gcdc.camdenm.Iclcm.MessageID_iCLCM: {
+                num_tx_iclcm++;
+                try{
+                    LocalIclcm localIclcm = new LocalIclcm(receivedData);
+                    IgameCooperativeLaneChangeMessage iclcm = localIclcm.asIclcm();
+                    send(iclcm);
+                }catch(IllegalArgumentException e){
+                    logger.error("Irrecoverable error when creating iCLCM. Ignoring message.", e);
+                }
+                break;
+            }
+                        
+            default:
+                logger.warn("Received incorrectly formated message! ID: {} Data: {}", 
+                            receivedData[0], receivedData);
+            }
+        }
+    }
 
     /* Receive incoming CAM/DENM/iCLCM to Simulink, convert them to
      * their local representation, and send them to Simulink over UDP. */
@@ -540,7 +554,14 @@ public class VehicleAdapter {
         rcvSocket = new DatagramSocket(portRcvFromSimulink);
         station = new GeonetStation(config, linkLayer, position, macAddress);
         new Thread(station).start();
-        station.startBecon();
+
+        /* TODO: Race conditions in the beaconing service is causing
+         * it to send too many beacons. Turn off until it's fixed. We
+         * don't need the beaconing service for anything we're using
+         * it for anyway as it's supposed to be quiet when sending
+         * other traffic. */
+        //station.startBecon();
+        
         btpSocket = BtpSocket.on(station);
         executor.submit(receiveFromSimulinkLoop);
         executor.submit(sendToSimulinkLoop);
