@@ -183,6 +183,42 @@ public class VehicleAdapter {
 
     public static VehiclePositionProvider vehiclePositionProvider;
 
+    
+    /* Print statistics in one second intervals. */
+    private static int num_tx_cam = 0;
+    private static int num_tx_denm = 0;
+    private static int num_tx_iclcm= 0;
+    private static int num_rx_cam = 0;
+    private static int num_rx_denm = 0;
+    private static int num_rx_iclcm= 0;            
+    private Runnable printStatistics = new Runnable() {            
+            @Override public void run() {
+                try{
+                    Thread.sleep(1000);
+                } catch(InterruptedException e) {
+                    logger.warn("Interrupted during sleep.");
+                }                
+                System.out.println("#### Vehicle Adapter Started ####" + 
+                                   "\nListening on port " + rcvSocket.getLocalPort() +
+                                   "\nVehicle Control System IP is " + simulink_address +
+                                   "\nSending incoming CAM to port " + simulink_cam_port +
+                                   "\nSending incoming DENM to port " + simulink_denm_port + 
+                                   "\nSending incoming iCLCM to port " + simulink_iclcm_port+
+                                   "\nalbin@severinson..org - Apache 2.0" +
+                                   "\n");
+                
+                while(true){
+                    try{
+                        Thread.sleep(1000);
+                    } catch(InterruptedException e) {
+                        logger.warn("Interrupted during sleep.");
+                    }
+                    logger.info("#CAM (Tx/Rx): {}/{}\t#DENM (Tx/Rx): {}/{}\tiCLCM (Tx/Rx): {}/{}",
+                                num_tx_cam,num_rx_cam,num_tx_denm,num_rx_denm,num_tx_iclcm,num_rx_iclcm);                    
+                }
+            }
+        };
+
     /* Receive local CAM/DENM/iCLCM from Simulink, parse them and
      * create the proper messages, and send them to the link layer. */
     private Runnable receiveFromSimulinkLoop = new Runnable() {
@@ -202,7 +238,7 @@ public class VehicleAdapter {
                     /* First byte is the MessageId */
                     switch(receivedData[0]){                        
                     case MessageId.cam: {
-                        logger.info("Received CAM from vehicle control.");
+                        num_tx_cam++;
                         try{
                             LocalCam localCam = new LocalCam(receivedData);
                             Cam cam = localCam.asCam();
@@ -214,7 +250,7 @@ public class VehicleAdapter {
                     }
 
                     case MessageId.denm: {
-                        logger.info("Received DENM from vehicle control.");
+                        num_tx_denm++;
                         try{
                             LocalDenm localDenm = new LocalDenm(receivedData);
                             Denm denm = localDenm.asDenm();                        
@@ -231,7 +267,7 @@ public class VehicleAdapter {
                     }
                         
                     case net.gcdc.camdenm.Iclcm.MessageID_iCLCM: {
-                        logger.info("Received iCLCM from vehicle control.");
+                        num_tx_iclcm++;
                         try{
                             LocalIclcm localIclcm = new LocalIclcm(receivedData);
                             IgameCooperativeLaneChangeMessage iclcm = localIclcm.asIclcm();
@@ -506,11 +542,10 @@ public class VehicleAdapter {
         btpSocket = BtpSocket.on(station);
         executor.submit(receiveFromSimulinkLoop);
         executor.submit(sendToSimulinkLoop);
+        executor.submit(printStatistics);
     }
     
     public static void main(String[] args) throws IOException {
-        logger.info("Starting vehicle adapter...");
-
         //Parse CLI options
         CliOptions opts = CliFactory.parseArguments(CliOptions.class, args);
 
