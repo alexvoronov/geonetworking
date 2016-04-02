@@ -177,9 +177,8 @@ public class VehicleAdapter {
 
     public static InetAddress simulink_address;
 
-    //public static final ExecutorService executor =
-    //Executors.newCachedThreadPool();
-    public static final ExecutorService executor = Executors.newCachedThreadPool();
+    //public static final ExecutorService executor = Executors.newCachedThreadPool();
+    public static final ExecutorService executor = Executors.newFixedThreadPool(10);
 
     public static VehiclePositionProvider vehiclePositionProvider;
 
@@ -213,7 +212,7 @@ public class VehicleAdapter {
                     } catch(InterruptedException e) {
                         logger.warn("Interrupted during sleep.");
                     }
-                    logger.info("#CAM (Tx/Rx): {}/{}\t#DENM (Tx/Rx): {}/{}\tiCLCM (Tx/Rx): {}/{}",
+                    logger.info("#CAM (Tx/Rx): {}/{}\t#DENM (Tx/Rx): {}/{}\t#iCLCM (Tx/Rx): {}/{}",
                                 num_tx_cam,num_rx_cam,num_tx_denm,num_rx_denm,num_tx_iclcm,num_rx_iclcm);                    
                 }
             }
@@ -225,6 +224,7 @@ public class VehicleAdapter {
             byte[] buffer = new byte[MAX_UDP_LENGTH];
             private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             @Override public void run() {
+                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
                 try {
                     while (true) {
                         logger.debug("Waiting for packet from vehicle control...");
@@ -312,8 +312,9 @@ public class VehicleAdapter {
 
     /* Receive incoming CAM/DENM/iCLCM to Simulink, convert them to
      * their local representation, and send them to Simulink over UDP. */
-    private Runnable sendToSimulinkLoop = new Runnable() {
+    private Runnable sendToSimulinkLoop = new Runnable() {            
             @Override public void run() {
+                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);                        
                 try {
                     while(true){
                         BtpPacket btpPacket;;                            
@@ -338,6 +339,7 @@ public class VehicleAdapter {
         }
 
         @Override public void run() {
+            Thread.currentThread().setPriority(Thread.MAX_PRIORITY);            
             packet.setAddress(simulink_address);
             switch (btpPacket.destinationPort()) {
             case PORT_CAM: {
