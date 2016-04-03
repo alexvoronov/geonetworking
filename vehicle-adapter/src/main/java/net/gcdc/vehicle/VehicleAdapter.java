@@ -142,46 +142,42 @@ import org.threeten.bp.Instant;
 public class VehicleAdapter {
     private final static Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
 
+    /* Sockets and GeonetStation used to send and receive BTP and UDP
+     * packets. */
     private final DatagramSocket rcvSocket;
     private final GeonetStation station;
     private final BtpSocket btpSocket;
 
+    /* BTP ports for CAM/DENM/iCLCM */
     private final static short PORT_CAM  = 2001;
     private final static short PORT_DENM = 2002;
     private final static short PORT_ICLCM = 2010;
 
-    /* GCDC requires the non-standard max rate of 25Hz */
-    private final static long CAM_INTERVAL_MIN_MS = 40;
-    private final static long CAM_INTERVAL_MAX_MS = 1000;
-
-    /* GCDC requires 1Hz for the low frequency container */
-    private final static long CAM_LOW_FREQ_INTERVAL_MS = 1000;
-
-    private final static long CAM_INITIAL_DELAY_MS = 20;  // At startup.
-
-    private final static int HIGH_DYNAMICS_CAM_COUNT = 4;
-
+    /* Seconds for which the message is relevant. */
     public final static double CAM_LIFETIME_SECONDS = 0.9;
     public final static double iCLCM_LIFETIME_SECONDS = 0.9;
 
+    /* Maximum size of the UDP buffer. Needs to be at least as large
+     * as the maximum message size. */
     public final static int MAX_UDP_LENGTH = 300;
-    public final static int LOCAL_CAM_LENGTH = 81;
-    public final static int LOCAL_DENM_LENGTH = 0;
-    public final static int LOCAL_ICLCM_LENGTH = 0;;
 
-
-    /* Default port values */
+    /* Ports and IP address used for communicating with the vehicle
+     * control system. */
     public static int simulink_cam_port = 5000;
-    public static int simulink_denm_port = simulink_cam_port + 1;
-    public static int simulink_iclcm_port = simulink_denm_port + 1;
-
+    public static int simulink_denm_port = 5000;
+    public static int simulink_iclcm_port = 5000;
     public static InetAddress simulink_address;
 
+
+    /* TODO: Investigate other ways of creating the threads that will
+     * enforce lower delay. */
     //public static final ExecutorService executor = Executors.newCachedThreadPool();
     public static final ExecutorService executor = Executors.newFixedThreadPool(10);
 
+    /* For keeping track of the current vehicle position. Used for the
+     * broadcasting service and for generating Geonetworking
+     * addresses. */
     public static VehiclePositionProvider vehiclePositionProvider;
-
     
     /* Print statistics in one second intervals. */
     private static int num_tx_cam = 0;
@@ -197,13 +193,14 @@ public class VehicleAdapter {
                 } catch(InterruptedException e) {
                     logger.warn("Interrupted during sleep.");
                 }                
-                System.out.println("#### Vehicle Adapter Started ####" + 
+                System.out.println("#### Vehicle Adapter ####" + 
                                    "\nListening on port " + rcvSocket.getLocalPort() +
                                    "\nVehicle Control System IP is " + simulink_address +
                                    "\nSending incoming CAM to port " + simulink_cam_port +
                                    "\nSending incoming DENM to port " + simulink_denm_port + 
                                    "\nSending incoming iCLCM to port " + simulink_iclcm_port+
-                                   "\nalbin@severinson..org - Apache 2.0" +
+                                   "\nCopyright: Albin Severinson (albin@severinson.org) License: Apache 2.0" +
+                                   "\nNotice: GeoNetworking library by Alexey Voronov" +
                                    "\n");
                 
                 while(true){
@@ -298,6 +295,9 @@ public class VehicleAdapter {
 
     /* Take a received UDP packet, parse it and send it as a
      * GeoNetworking packet. */
+    /* TODO: The performance benefit of parallelizing this part was
+     * quite low. Needs some more research if we're gonna do it.
+     */
     private class UdpParser implements Runnable {
         byte[] receivedData;
         
@@ -472,8 +472,6 @@ public class VehicleAdapter {
         }        
     }
 
-
-
     public static class SocketAddressFromString {  // Public, otherwise JewelCLI can't access it!
         private final InetSocketAddress address;
 
@@ -502,7 +500,6 @@ public class VehicleAdapter {
         @Option int getPortSendIclcm();
 
         /* IP of Simulink */
-        //@Option SocketAddressFromString getSimulinkAddress();
         @Option String getSimulinkAddress();
 
         /* The local port and remote address for the link layer. The
@@ -536,7 +533,8 @@ public class VehicleAdapter {
             this.headingDegreesFromNorth = 0;
         }
 
-        //TODO: Is the formatting of lat/long the same as in the CAM message?
+        /* TODO: Is the formatting of lat/long the same as in the CAM
+         * message? */
         public void updatePosition(int latitude, int longitude){
             this.position = new Position((double) latitude, (double) longitude);
             logger.debug("VehiclePositionProvider position updated: {}", this.position);
