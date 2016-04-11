@@ -314,7 +314,8 @@ public class VehicleAdapter {
      * their local representation, and send them to Simulink over UDP. */
     private Runnable sendToSimulinkLoop = new Runnable() {            
             @Override public void run() {
-                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);                        
+                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+                
                 try {
                     while(true){
                         BtpPacket btpPacket;;                            
