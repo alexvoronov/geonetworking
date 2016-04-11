@@ -692,14 +692,16 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
     private final BeaconService beaconService = new BeaconService () {
 
-        private ScheduledFuture<?> beaconFuture;
+        private Instant nextBeaconTime = timeInstantNow();
         private boolean isActive = false;  // TODO: Handle synchronization properly.
 
         @Override public void start() { isActive = true; scheduleNextBeacon(); }
 
         @Override public void stop()  { isActive = false; }
 
-        @Override public void skipNextBeacon() { beaconFuture.cancel(false); scheduleNextBeacon(); }
+        @Override public void skipNextBeacon() {
+            nextBeaconTime = nextBeaconTime.plusMillis(randomDelayMs());
+        }
 
         private GeonetData beaconData() {
             Optional<TrafficClass> emptyTrafficClass = Optional.empty();    // #send will use default.
@@ -708,22 +710,28 @@ public class GeonetStation implements Runnable, AutoCloseable {
                     emptyTrafficClass, emptyPosition, new byte[] {});
         }
 
-        private void sendBeacon() {
-            try {
-                logger.info("Sending beacon");
-                send(beaconData());
-            } catch (IOException e) {
-                logger.error("Exception in sending beacon", e);
+        private void maybeSendBeacon() {
+            if (!timeInstantNow().isBefore(nextBeaconTime)) {
+                try {
+                    logger.info("Sending beacon");
+                    send(beaconData());
+                } catch (IOException e) {
+                    logger.error("Exception in sending beacon", e);
+                }
             }
         }
 
         private void scheduleNextBeacon() {
-            beaconFuture = scheduler.schedule(
+            scheduler.schedule(
                 new Runnable() { @Override public void run() {
-                    if (isActive) { sendBeacon(); scheduleNextBeacon(); } }; },
-                config.itsGnBeaconServiceRetransmitTimer +
-                    new Random().nextInt(config.itsGnBeaconServiceMaxJitter),
+                    if (isActive) { maybeSendBeacon(); scheduleNextBeacon(); } }; },
+                randomDelayMs(),
                 TimeUnit.MILLISECONDS);
+        }
+
+        private long randomDelayMs() {
+            return config.itsGnBeaconServiceRetransmitTimer +
+                    new Random().nextInt(config.itsGnBeaconServiceMaxJitter);
         }
     };
 
