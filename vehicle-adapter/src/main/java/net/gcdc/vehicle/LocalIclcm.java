@@ -77,6 +77,8 @@ public class LocalIclcm{
         }
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
         messageID = buffer.get();
+
+        
         stationID = buffer.getInt();
         containerMask = buffer.get();
         //HW Container
@@ -184,8 +186,13 @@ public class LocalIclcm{
         messageID = (byte) header.getMessageID().value;
         stationID = (int) header.getStationID().value;
         IclmParameters iclmParameters = iclcm.getIclmParameters();
-        containerMask = 0;
+        containerMask = 0;        
 
+        if(messageID != net.gcdc.camdenm.Iclcm.MessageID_iCLCM){
+            logger.warn("Malformed message on BTP port 2010 from station with ID {}", stationID);
+            throw new IllegalArgumentException("Malformed message on BTP port 2010");
+        }
+        
         /* VehicleContainerHighFrequency */
         VehicleContainerHighFrequency vehicleContainerHighFrequency = iclmParameters.getVehicleContainerHighFrequency();
         rearAxleLocation = (int) vehicleContainerHighFrequency.getVehicleRearAxleLocation().value;        
