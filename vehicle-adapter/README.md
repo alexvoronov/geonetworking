@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/21976/RNDITS/geonetworking.svg)](https://zenodo.org/badge/latestdoi/21976/RNDITS/geonetworking)
 # Vehicle Adapter
 
 This is the vehicle adapter that connects the GeoNetworking stack to the vehicle control system implemented in, for example, [Simulink](http://se.mathworks.com/products/simulink/), and it allows the vehicle control system to easily send vehicle-to-vehicle wireless messages. The vehicle control system communicates with the Vehicle Adapter via UDP, using the [Chalmers local message set](https://github.com/Zeverin/GCDC16-Chalmers-Communication/tree/master/Documentation). The vehicle adapter is an application built ontop of the Geonetworking library developed by Alexey Voronov.
@@ -5,6 +6,8 @@ This is the vehicle adapter that connects the GeoNetworking stack to the vehicle
 The Vehicle Adapter was developed for the [GCDC 2016](http://gcdc.net/) competition by Albin Severinson of the Chalmers University team and was released as open source code. Several teams are using the system in preparation of the competition in favor of existing commercial alternatives.
 
 The system is designed to make research and development in areas related to ITS-G5 open and easy, and as such is well suited for it. However, please note that the Vehicle Adapter, local message set and GeoNetworking library is still under development.
+
+If you use this code in your research, make sure to cite the code using the DOI found above.
 
 ### ITS-G5 Stations
 The system is built to be run on generic hardware and using open software to facilitate reasearch and development. However, the complete install process is quite involved and requires advanced knowledge of how Linux works. If you just want a working ITS-G5 station without the hassle and want to discuss purchasing options, send an email to me on [albin@severinson.org](mailto: albin@severinson.org).
