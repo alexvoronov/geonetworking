@@ -623,6 +623,7 @@ Name | License | Runtime | Compiler | BER, DER? | UPER?
 [libtasn1](http://www.gnu.org/software/libtasn1/) | LGPL | ANSI C99 | C | ✓ (DER) | 
 [pyasn1](http://pyasn1.sourceforge.net/) | BSD 2-clause | Python |  [asn1ate](https://github.com/kimgr/asn1ate) (Python) | ✓ | 
 [dpkt](https://github.com/kbandla/dpkt/blob/master/dpkt/asn1.py) | BSD 3-Clause | Python | . | ✓ | 
+[libmich](https://github.com/mitshell/libmich/blob/master/libmich/asn1/) | GPLv2 | Python | Python | ✓ | ✓ 
 [ASN1js](https://github.com/GlobalSign/ASN1.js) | BSD 3-clause | JavaScript | . | ✓
 [asn1js](https://github.com/lapo-luchini/asn1js) | MIT | JavaScript | . | ✓
 [node-asn1](https://github.com/mcavage/node-asn1) | MIT | JavaScript | . | ✓ (BER) |
