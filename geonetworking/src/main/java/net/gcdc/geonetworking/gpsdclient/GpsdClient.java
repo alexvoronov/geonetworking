@@ -1,9 +1,13 @@
 package net.gcdc.geonetworking.gpsdclient;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,7 +59,7 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
             tc.addOptionHandler(gaopt);
         }
         catch (InvalidTelnetOptionException e){
-            System.err.println("Error registering option handlers: " + e.getMessage());
+            logger.error("GpsdClient:Error registering option handlers: " + e.getMessage());
         } catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -83,7 +87,7 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
             	//System.err.println("Exception while connecting:" + e.getMessage());
                 
             	//PANIC?
-            	logger.error("Exception while connecting:" + e.getMessage());
+            	logger.error("GpsdClient:Exception while connecting:" + e.getMessage());
             	
             	//return;//set failsafe
             	//System.exit(1);
@@ -92,16 +96,18 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
     }
     
     public void onMsgReceived(String line){
+    	//System.err.println(line);
     	try{
 	    	if (line.equals(""))
 	            return;
 	        if (line.startsWith("{\"class\":\"TPV\"")) {
 	            TPV msg = gson.fromJson(line, TPV.class);
-	            logger.info("tpv update:"+msg.time()+": ("+msg.lat()+","+msg.lon()+")");
+	            logger.debug("tpv update:"+msg.time()+": ("+msg.lat()+","+msg.lon()+")");
 	            lastSeenTPV = msg;
 	        } else if (line.startsWith("{\"class\":\"SKY\"")) {
-	            @SuppressWarnings("unused")
-	            SKY msg = gson.fromJson(line, SKY.class);  // Ignore.
+	            //@SuppressWarnings("unused")
+	            
+	            //SKY msg = gson.fromJson(line, SKY.class);  // Ignore.
 	        } else if(line.startsWith("{\"class\":\"DEVICES\"")){
 	        	//DEVICES
 	    	} else if(line.startsWith("{\"class\":\"DEVICE\"")){
@@ -113,10 +119,10 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
 	        }
     	}catch(com.google.gson.JsonSyntaxException j){
     		//Parsing error
-    		logger.debug("Json parsing error :"+j.getMessage());//probably partial message
+    		logger.debug("Json parsing error :"+j.getMessage()+" :: "+line);//probably partial message
     	}catch(NumberFormatException n){
     		//ignore for printing
-    		logger.debug("Json parsing error (NumberFormatException) :"+n.getMessage());
+    		logger.debug("Json parsing error (NumberFormatException) :"+n.getMessage()+" :: "+line);
     	}catch(Exception e){
     		e.printStackTrace();
     		return;
@@ -128,18 +134,30 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
              @Override public void run() {
             	final int buffsize = 4096;
  	            InputStream instr = tc.getInputStream();
+ 	            BufferedInputStream bf = new BufferedInputStream(instr);
+ 	            BufferedReader reader = new BufferedReader(
+ 	        	        new InputStreamReader(bf, StandardCharsets.UTF_8));
+
  	            try{
  	                byte[] buff = new byte[buffsize];
  	                int ret_read = 0;
  	
  	                do{
- 	                    ret_read = instr.read(buff);
- 	                    if(ret_read > 0){
- 	                    	onMsgReceived(new String(buff, 0, ret_read));
- 	                    }
+ 	                	
+ 	                    //ret_read = instr.read(buff);
+ 	                    //if(ret_read > 0){
+ 	                    //	onMsgReceived(new String(buff, 0, ret_read));
+ 	                    //}
+ 	                    
+ 	                   String line = reader.readLine();
+ 	                   if(!line.isEmpty()){
+ 	                	  onMsgReceived(line);
+ 	                   }
+ 	                    
+ 	                    
  	                }while (ret_read >= 0);
  	            }catch (IOException e){
- 	                System.err.println("Exception while reading socket:" + e.getMessage());
+ 	            	logger.error("Exception while reading socket:" + e.getMessage());
  	            }
  	            //STOP
  	            try{
@@ -147,7 +165,7 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
  	                //STOPPING
  	            }
  	            catch (IOException e){
- 	                System.err.println("Exception while closing telnet:" + e.getMessage());
+ 	            	logger.error("Exception while closing telnet:" + e.getMessage());
  	            }
              }
          });
@@ -189,7 +207,7 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
             tc.disconnect();
         }
         catch (IOException e){
-            System.err.println("Exception while closing telnet:" + e.getMessage());
+        	logger.error("Exception while closing telnet:" + e.getMessage());
         }
     	
         runner.cancel(true);
@@ -228,6 +246,7 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        System.err.println("Stopping GpsdClient..");
     }
 
 	@Override
