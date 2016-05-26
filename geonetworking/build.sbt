@@ -34,6 +34,11 @@ libraryDependencies += "com.google.code.gson" % "gson" % "2.3.1"
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.2"
 
+libraryDependencies += "commons-net" % "commons-net" % "3.3"
+
+libraryDependencies += "nl.jqno.equalsverifier" % "equalsverifier" % "1.7.2"
+
+
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
 
 // disable publishing the main API jar
