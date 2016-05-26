@@ -39,15 +39,14 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
     private TPV                   lastSeenTPV = null;
     private final Gson            gson        = new GsonBuilder().create();
     private final ExecutorService executor    = Executors.newSingleThreadExecutor();
+    private final InetSocketAddress gpsdAddress;
     private Future<?>       runner;
-    
+
     private static TelnetClient tc = null;
 
     @Override
     public void run(){
-    	String remoteip = "127.0.0.1";
-    	int remoteport = 2947;
-    	
+
         tc = new TelnetClient();
 
         TerminalTypeOptionHandler ttopt = new TerminalTypeOptionHandler("VT100", false, false, true, false);
@@ -66,35 +65,35 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
 
         while (true){
             try{
-                tc.connect(remoteip, remoteport);
+                tc.connect(gpsdAddress.getAddress(), gpsdAddress.getPort());
                 tc.registerNotifHandler(this);
-                
+
                 createReader();
-                
+
                 OutputStream outstr = tc.getOutputStream();
 
                 Thread.sleep(1000);//Wait till ready
-                
-                String line = "?WATCH={\"enable\":true,\"json\":true}\r\n";                
+
+                String line = "?WATCH={\"enable\":true,\"json\":true}\r\n";
                 byte[] buff = line.getBytes();
                 outstr.write(buff, 0 , buff.length);
                 outstr.flush();
-                
+
                 //Wait till finished or error occured
                 runner.get();
-                
+
             }catch (IOException | InterruptedException | ExecutionException e){
             	//System.err.println("Exception while connecting:" + e.getMessage());
-                
+
             	//PANIC?
             	logger.error("GpsdClient:Exception while connecting:" + e.getMessage());
-            	
+
             	//return;//set failsafe
             	//System.exit(1);
             }
         }
     }
-    
+
     public void onMsgReceived(String line){
     	//System.err.println(line);
     	try{
@@ -106,7 +105,7 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
 	            lastSeenTPV = msg;
 	        } else if (line.startsWith("{\"class\":\"SKY\"")) {
 	            //@SuppressWarnings("unused")
-	            
+
 	            //SKY msg = gson.fromJson(line, SKY.class);  // Ignore.
 	        } else if(line.startsWith("{\"class\":\"DEVICES\"")){
 	        	//DEVICES
@@ -128,7 +127,7 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
     		return;
     	}
     }
-    
+
     private Future<?> createReader(){
     	 runner = executor.submit(new Runnable() {
              @Override public void run() {
@@ -141,21 +140,13 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
  	            try{
  	                byte[] buff = new byte[buffsize];
  	                int ret_read = 0;
- 	
+
  	                do{
- 	                	
- 	                    //ret_read = instr.read(buff);
- 	                    //if(ret_read > 0){
- 	                    //	onMsgReceived(new String(buff, 0, ret_read));
- 	                    //}
- 	                    
  	                   String line = reader.readLine();
  	                   if(!line.isEmpty()){
  	                	  onMsgReceived(line);
  	                   }
- 	                    
- 	                    
- 	                }while (ret_read >= 0);
+ 	                } while (ret_read >= 0);
  	            }catch (IOException e){
  	            	logger.error("Exception while reading socket:" + e.getMessage());
  	            }
@@ -171,9 +162,10 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
          });
     	 return runner;
     }
-    
+
     public GpsdClient(InetSocketAddress address) throws IOException {
         logger.info("Starting GPSd client");
+        gpsdAddress = address;
     }
 
     @Override
@@ -209,11 +201,11 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
         catch (IOException e){
         	logger.error("Exception while closing telnet:" + e.getMessage());
         }
-    	
+
         runner.cancel(true);
         executor.shutdownNow();
     }
-    
+
     public GpsdClient startClient(){
     	(new Thread(this)).start();
     	return this;
@@ -252,6 +244,6 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
 	@Override
 	public void receivedNegotiation(int arg0, int arg1) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }
