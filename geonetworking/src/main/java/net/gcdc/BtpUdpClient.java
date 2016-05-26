@@ -1,8 +1,6 @@
 package net.gcdc;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
@@ -13,9 +11,11 @@ import java.util.Arrays;
 import net.gcdc.geonetworking.Address;
 import net.gcdc.geonetworking.BtpPacket;
 import net.gcdc.geonetworking.BtpSocket;
+import net.gcdc.geonetworking.GeonetStation;
 import net.gcdc.geonetworking.LinkLayer;
 import net.gcdc.geonetworking.LinkLayerUdpToEthernet;
 import net.gcdc.geonetworking.LongPositionVector;
+import net.gcdc.geonetworking.MacAddress;
 import net.gcdc.geonetworking.Optional;
 import net.gcdc.geonetworking.Position;
 import net.gcdc.geonetworking.PositionProvider;
@@ -31,7 +31,7 @@ public class BtpUdpClient {
     private final static Logger logger = LoggerFactory.getLogger(BtpUdpClient.class);
 
     private final static String usage =
-            "Usage: java -cp gn.jar BtpClient --local-udp2eth-port <local-port> --remote-udp2eth-address <udp-to-ethernet-remote-host-and-port> --local-data-port <port> --remote-data-address <host:port> --gpsd-server <host:port>" + "\n" +
+            "Usage: java -cp gn.jar BtpClient --local-udp2eth-port <local-port> --remote-udp2eth-address <udp-to-ethernet-remote-host-and-port> --local-data-port <port> --remote-data-address <host:port> --gpsd-server <host:port> --mac-address <xx:xx:xx:xx:xx:xx>" + "\n" +
     "BTP ports: 2001 (CAM), 2002 (DENM), 2003 (MAP), 2004 (SPAT).";
 
     public static void main(String[] args) throws IOException {
@@ -48,6 +48,7 @@ public class BtpUdpClient {
         PositionProvider positionProvider = null;
         short btpDestinationPort = (short) 2001;  // CAM
         hasEthernetHeader = true;
+        MacAddress macAddress = new MacAddress(0);
 
         for (int arg = 0; arg < args.length; arg++) {
             if (args[arg].startsWith("--local-udp2eth-port")) {
@@ -86,12 +87,15 @@ public class BtpUdpClient {
                 if (hostPort.length != 2) { System.err.println("Bad gpsd host:port.\n" + usage); System.exit(1); }
                 positionProvider = new GpsdClient(
                         new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]))).startClient();
+            } else if (args[arg].startsWith("--mac-address")) {
+                arg++;
+                macAddress = new MacAddress(MacAddress.parseFromString(args[arg]));
             } else {
                 throw new IllegalArgumentException("Unrecognized argument: " + args[arg]);
             }
         }
 
-        runSenderAndReceiver(localUdp2EthPort, remoteUdp2EthAddress, localDataPort, remoteDataAddress, hasEthernetHeader, System.in, System.out, positionProvider, btpDestinationPort);
+        runSenderAndReceiver(localUdp2EthPort, remoteUdp2EthAddress, localDataPort, remoteDataAddress, hasEthernetHeader, positionProvider, btpDestinationPort, macAddress);
     }
 
     public static void runSenderAndReceiver(
@@ -100,16 +104,18 @@ public class BtpUdpClient {
             final int localDataPort,
             final InetSocketAddress remoteDataAddress,
             final boolean hasEthernetHeader,
-            final InputStream in,
-            final PrintStream out,
             final PositionProvider positionProvider,
-            final short btpDestinationPort
+            final short btpDestinationPort,
+            final MacAddress macAddress
             ) throws SocketException {
 
         LinkLayer linkLayer = new LinkLayerUdpToEthernet(localUdp2EthPort, remoteUdp2EthAddress, hasEthernetHeader);
 
         StationConfig config = new StationConfig();
-        final BtpSocket socket = BtpSocket.on(config, linkLayer, positionProvider);
+        GeonetStation station = new GeonetStation(config, linkLayer, positionProvider, macAddress);
+        new Thread(station).start();  // This is ugly API, sorry...
+        station.startBecon();
+        final BtpSocket socket = BtpSocket.on(station);
 
         final Runnable sender = new Runnable() {
             @Override public void run() {
@@ -122,9 +128,10 @@ public class BtpUdpClient {
                     while (true) {
                         udpSocket.receive(udpPacket);
                         // We use only destination port, not destination port info.
-                        short btpDestinationPort = (short) ((udpPacket.getData()[0] << 8) | udpPacket.getData()[1]);
+                        //short btpDestinationPort = (short) (256 * (0xff & udpPacket.getData()[0]) + udpPacket.getData()[1]);
+                        short btpDestinationPort = (short)( ((udpPacket.getData()[0]&0xFF)<<8) | (udpPacket.getData()[1]&0xFF) );
                         byte[] btpPayload = Arrays.copyOfRange(udpPacket.getData(), 2, udpPacket.getLength());
-                        logger.debug("Sending BTP message of size {} to BTP port {}", btpPayload.length, btpDestinationPort);
+                        logger.info("Sending BTP message of size {} to BTP port {}", btpPayload.length, btpDestinationPort);
                         socket.send(BtpPacket.singleHop(btpPayload, btpDestinationPort));
                     }
                 } catch (IOException e) {
@@ -145,10 +152,12 @@ public class BtpUdpClient {
                         try {
                             BtpPacket packet = socket.receive();
                             System.arraycopy(packet.payload(), 0, buffer, 2, packet.payload().length);
-                            buffer[0] = (byte) ((packet.destinationPort() & 0xff00) >> 8);
-                            buffer[1] = (byte) (packet.destinationPort() & 0x00ff);
+                            buffer[0] = (byte) (packet.destinationPort() / 256);
+                            buffer[1] = (byte) (packet.destinationPort() % 256);
+                            udpPacket.setLength(packet.payload().length + 2);
                             udpSocket.send(udpPacket);
                             logger.debug("Received BTP message of size {} to BTP port {}", packet.payload().length, packet.destinationPort());
+
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

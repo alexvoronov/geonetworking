@@ -6,7 +6,7 @@ organization      := "net.gcdc"
 
 mainClass         := Some("net.gcdc.geonetworking.GnBtpRunner")
 
-//javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
 scalacOptions += "-target:jvm-1.7"
 
