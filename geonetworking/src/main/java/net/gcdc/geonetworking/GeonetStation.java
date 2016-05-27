@@ -303,14 +303,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                             Optional.of(senderLpv),
                             upperPayload
                             );
-                    /*
                     if (area.contains(position()) && !isDuplicate(indication, sequenceNumber)) {
-                        sendToUpperLayer(indication);
-                    }
-                    */
-
-                    /* Remove the location filtering during GCDC. */
-                    if (!isDuplicate(indication, sequenceNumber)) {
                         sendToUpperLayer(indication);
                     }
                                         
