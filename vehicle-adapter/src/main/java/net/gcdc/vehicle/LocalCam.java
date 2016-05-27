@@ -36,8 +36,8 @@ public class LocalCam{
     int genDeltaTimeMillis;
     byte containerMask;
     int stationType;
-    int latitude;
-    int longitude;                         
+    public int latitude;
+    public int longitude;                         
     int semiMajorAxisConfidence;
     int semiMinorAxisConfidence;
     int semiMajorOrientation;
