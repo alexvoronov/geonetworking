@@ -83,6 +83,16 @@ Stdout <---|    4000|<-------------------|         |<---|          |   |       |
 ```
 
 
+#### Run with UdpBtpClient
+
+Assuming that link layer is already started (see previous example), here's how to start UDP BTP client. This client receives the payload of the BTP packet on a UDP port. The destination port for BTP prefixes the BTP payload in the UDP packet. To send CAM to BTP port 2001 (0x07D1), send the following UDP packet to the client: ```07.D1.XX.YY.ZZ```, where ```XXYYZZ``` is the BTP Payload (binary CAM message). Note that there is no way to specify *destination port info* for BTP, but it is usually not used anyway.
+
+```
+sbt assembly
+
+java -cp target/scala-2.10/geonetworking-assembly-0.1.0-SNAPSHOT.jar net.gcdc.BtpUdpClient --position 13.000,50.000 --local-udp2eth-port 4000 --remote-udp2eth-address 127.0.0.1:4001 --local-data-port 5003 --remote-data-address 192.168.1.23:1236 --mac-address 00:00:00:00:01:11
+```
+
 ### Related implementations
 
 This implementation was inspired by [DriveITS](https://github.com/Dimme/driveits). Another open-source implementation, now outdated, is [CarGeo6](http://www.cargeo6.org/).

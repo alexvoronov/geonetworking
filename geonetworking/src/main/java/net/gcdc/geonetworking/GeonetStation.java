@@ -708,7 +708,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
         @Override public void stop()  { isActive = false; }
 
         @Override public void skipNextBeacon() {
-            nextBeaconTime = nextBeaconTime.plusMillis(randomDelayMs());
+            nextBeaconTime = timeInstantNow().plusMillis(randomDelayMs());
         }
 
         private GeonetData beaconData() {

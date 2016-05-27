@@ -6,7 +6,7 @@ organization      := "net.gcdc"
 
 mainClass         := Some("net.gcdc.geonetworking.GnBtpRunner")
 
-//javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
+javacOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
 scalacOptions += "-target:jvm-1.7"
 
@@ -33,6 +33,11 @@ libraryDependencies += "org.hamcrest" % "hamcrest-integration" % "1.3" % Test
 libraryDependencies += "com.google.code.gson" % "gson" % "2.3.1"
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.2"
+
+libraryDependencies += "commons-net" % "commons-net" % "3.3"
+
+libraryDependencies += "nl.jqno.equalsverifier" % "equalsverifier" % "1.7.2"
+
 
 publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
 
