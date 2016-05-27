@@ -246,6 +246,14 @@ public class VehicleAdapter {
                                 LocalCam localCam = new LocalCam(receivedData);
                                 Cam cam = localCam.asCam();
                                 send(cam);
+                                
+                                double latitude = (double) localCam.latitude;
+                                latitude /= 1e7;
+
+                                double longitude = (double) localCam.longitude;
+                                longitude /= 1e7;
+                                
+                                vehiclePositionProvider.updatePosition(latitude,longitude);
                             }catch(IllegalArgumentException e){
                                 logger.error("Irrecoverable error when creating CAM. Ignoring message.", e);
                             }
@@ -470,7 +478,7 @@ public class VehicleAdapter {
             btpSocket.send(packet);
         } catch (IOException e) {
             logger.warn("Failed to send iclcm", e);
-        }        
+        }
     }
 
     public static class SocketAddressFromString {  // Public, otherwise JewelCLI can't access it!
@@ -536,8 +544,8 @@ public class VehicleAdapter {
 
         /* TODO: Is the formatting of lat/long the same as in the CAM
          * message? */
-        public void updatePosition(int latitude, int longitude){
-            this.position = new Position((double) latitude, (double) longitude);
+        public void updatePosition(double latitude, double longitude){
+            this.position = new Position(latitude, longitude);
             logger.debug("VehiclePositionProvider position updated: {}", this.position);
         }
 
