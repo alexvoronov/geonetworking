@@ -303,9 +303,17 @@ public class GeonetStation implements Runnable, AutoCloseable {
                             Optional.of(senderLpv),
                             upperPayload
                             );
+                    /*
                     if (area.contains(position()) && !isDuplicate(indication, sequenceNumber)) {
                         sendToUpperLayer(indication);
                     }
+                    */
+
+                    /* Remove the location filtering during GCDC. */
+                    if (!isDuplicate(indication, sequenceNumber)) {
+                        sendToUpperLayer(indication);
+                    }
+                                        
                     locationTable.updateFromForwardedMessage(senderLpv.address().get(), senderLpv);
                     forwardIfNecessary(indication, sequenceNumber, MacAddress.fromBytes(llSrcAddress));
                     markAsSeen(indication, sequenceNumber);  // Duplicate packet detection.
