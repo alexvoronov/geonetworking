@@ -44,6 +44,10 @@ public class BtpUdpClient {
         InetSocketAddress remoteUdp2EthAddress = null;
         int localDataPort = 0;
         InetSocketAddress remoteDataAddress = null;
+        int localDataCamPort = 0;
+        InetSocketAddress remoteDataCamAddress = null;
+        int localDataIclcmPort = 0;
+        InetSocketAddress remoteDataIclcmAddress = null;
         boolean hasEthernetHeader = false;
         PositionProvider positionProvider = null;
         short btpDestinationPort = (short) 2001;  // CAM
@@ -67,6 +71,22 @@ public class BtpUdpClient {
                 String[] hostPort = args[arg].split(":");
                 if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
                 remoteDataAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
+            } else if (args[arg].startsWith("--local-data-cam-port")) {
+                arg++;
+                localDataCamPort = Integer.parseInt(args[arg]);
+            } else if (args[arg].startsWith("--remote-data-cam-address")) {
+                arg++;
+                String[] hostPort = args[arg].split(":");
+                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
+                remoteDataCamAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
+            } else if (args[arg].startsWith("--local-data-iclcm-port")) {
+                arg++;
+                localDataIclcmPort = Integer.parseInt(args[arg]);
+            } else if (args[arg].startsWith("--remote-data-iclcm-address")) {
+                arg++;
+                String[] hostPort = args[arg].split(":");
+                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
+                remoteDataIclcmAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--position")) {
                 arg++;
                 String[] latLon = args[arg].split(",");
@@ -95,7 +115,11 @@ public class BtpUdpClient {
             }
         }
 
-        runSenderAndReceiver(localUdp2EthPort, remoteUdp2EthAddress, localDataPort, remoteDataAddress, hasEthernetHeader, positionProvider, btpDestinationPort, macAddress);
+        runSenderAndReceiver(localUdp2EthPort, remoteUdp2EthAddress,
+                localDataPort, remoteDataAddress,
+                localDataCamPort, remoteDataCamAddress,
+                localDataIclcmPort, remoteDataIclcmAddress,
+                hasEthernetHeader, positionProvider, btpDestinationPort, macAddress);
     }
 
     public static void runSenderAndReceiver(
@@ -103,6 +127,10 @@ public class BtpUdpClient {
             final SocketAddress remoteUdp2EthAddress,
             final int localDataPort,
             final InetSocketAddress remoteDataAddress,
+            final int localDataCamPort,
+            final InetSocketAddress remoteDataCamAddress,
+            final int localDataIclcmPort,
+            final InetSocketAddress remoteDataIclcmAddress,
             final boolean hasEthernetHeader,
             final PositionProvider positionProvider,
             final short btpDestinationPort,
@@ -117,7 +145,7 @@ public class BtpUdpClient {
         station.startBecon();
         final BtpSocket socket = BtpSocket.on(station);
 
-        final Runnable sender = new Runnable() {
+        final Runnable senderData = new Runnable() {
             @Override public void run() {
 
                 int length = 4096;
@@ -130,8 +158,54 @@ public class BtpUdpClient {
                         // We use only destination port, not destination port info.
                         //short btpDestinationPort = (short) (256 * (0xff & udpPacket.getData()[0]) + udpPacket.getData()[1]);
                         short btpDestinationPort = (short)( ((udpPacket.getData()[0]&0xFF)<<8) | (udpPacket.getData()[1]&0xFF) );
-                        byte[] btpPayload = Arrays.copyOfRange(udpPacket.getData(), 2, udpPacket.getLength());
+                        byte[] btpPayload = Arrays.copyOfRange(udpPacket.getData(), 2, udpPacket.getLength() + 2);
                         logger.info("Sending BTP message of size {} to BTP port {}", btpPayload.length, btpDestinationPort);
+                        socket.send(BtpPacket.singleHop(btpPayload, btpDestinationPort));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        final Runnable senderCam = new Runnable() {
+            @Override public void run() {
+
+                int length = 4096;
+                byte[] buffer = new byte[length];
+                DatagramPacket udpPacket = new DatagramPacket(buffer, length);
+
+                try (DatagramSocket udpSocket = new DatagramSocket(localDataCamPort);){
+                    while (true) {
+                        udpSocket.receive(udpPacket);
+                        // We use only destination port, not destination port info.
+                        //short btpDestinationPort = (short) (256 * (0xff & udpPacket.getData()[0]) + udpPacket.getData()[1]);
+                        short btpDestinationPort = (short) 2001;
+                        byte[] btpPayload = Arrays.copyOfRange(udpPacket.getData(), udpPacket.getOffset(), udpPacket.getOffset() + udpPacket.getLength());
+                        logger.info("Sending BTP CAM message of size {} to BTP port {}", btpPayload.length, btpDestinationPort);
+                        socket.send(BtpPacket.singleHop(btpPayload, btpDestinationPort));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+
+        final Runnable senderIclcm = new Runnable() {
+            @Override public void run() {
+
+                int length = 4096;
+                byte[] buffer = new byte[length];
+                DatagramPacket udpPacket = new DatagramPacket(buffer, length);
+
+                try (DatagramSocket udpSocket = new DatagramSocket(localDataIclcmPort);){
+                    while (true) {
+                        udpSocket.receive(udpPacket);
+                        // We use only destination port, not destination port info.
+                        //short btpDestinationPort = (short) (256 * (0xff & udpPacket.getData()[0]) + udpPacket.getData()[1]);
+                        short btpDestinationPort = (short) 2010;
+                        byte[] btpPayload = Arrays.copyOfRange(udpPacket.getData(), udpPacket.getOffset(), udpPacket.getOffset() + udpPacket.getLength());
+                        logger.info("Sending BTP i-CLCM message of size {} to BTP port {}", btpPayload.length, btpDestinationPort);
                         socket.send(BtpPacket.singleHop(btpPayload, btpDestinationPort));
                     }
                 } catch (IOException e) {
@@ -147,6 +221,17 @@ public class BtpUdpClient {
                 DatagramPacket udpPacket = new DatagramPacket(buffer, length);
                 udpPacket.setPort(remoteDataAddress.getPort());
                 udpPacket.setAddress(remoteDataAddress.getAddress());
+
+                byte[] bufferCam = new byte[length];
+                DatagramPacket udpPacketCam = new DatagramPacket(buffer, length);
+                udpPacket.setPort(remoteDataCamAddress.getPort());
+                udpPacket.setAddress(remoteDataCamAddress.getAddress());
+
+                byte[] bufferIclcm = new byte[length];
+                DatagramPacket udpPacketIclcm = new DatagramPacket(buffer, length);
+                udpPacket.setPort(remoteDataIclcmAddress.getPort());
+                udpPacket.setAddress(remoteDataIclcmAddress.getAddress());
+
                 try (DatagramSocket udpSocket = new DatagramSocket();){
                     while(true) {
                         try {
@@ -156,6 +241,18 @@ public class BtpUdpClient {
                             buffer[1] = (byte) (packet.destinationPort() % 256);
                             udpPacket.setLength(packet.payload().length + 2);
                             udpSocket.send(udpPacket);
+
+                            if (packet.destinationPort() == 2001) {
+                                System.arraycopy(packet.payload(), 0, bufferCam, 0, packet.payload().length);
+                                udpPacketCam.setLength(packet.payload().length);
+                                udpSocket.send(udpPacketCam);
+
+                            } else if (packet.destinationPort() == 2010) {
+                                System.arraycopy(packet.payload(), 0, bufferIclcm, 0, packet.payload().length);
+                                udpPacketIclcm.setLength(packet.payload().length);
+                                udpSocket.send(udpPacketIclcm);
+                            }
+
                             logger.debug("Received BTP message of size {} to BTP port {}", packet.payload().length, packet.destinationPort());
 
                         } catch (InterruptedException e) {
@@ -168,7 +265,7 @@ public class BtpUdpClient {
             }
         };
 
-        new Thread(sender).start();
+        new Thread(senderData).start();
         new Thread(receiver).start();
     }
 }
