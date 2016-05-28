@@ -223,14 +223,14 @@ public class BtpUdpClient {
                 udpPacket.setAddress(remoteDataAddress.getAddress());
 
                 byte[] bufferCam = new byte[length];
-                DatagramPacket udpPacketCam = new DatagramPacket(buffer, length);
+                DatagramPacket udpPacketCam = new DatagramPacket(bufferCam, length);
                 if (remoteDataCamAddress != null) {
                     udpPacketCam.setPort(remoteDataCamAddress.getPort());
                     udpPacketCam.setAddress(remoteDataCamAddress.getAddress());
                 }
 
                 byte[] bufferIclcm = new byte[length];
-                DatagramPacket udpPacketIclcm = new DatagramPacket(buffer, length);
+                DatagramPacket udpPacketIclcm = new DatagramPacket(bufferIclcm, length);
                 if (remoteDataIclcmAddress != null) {
                     udpPacketIclcm.setPort(remoteDataIclcmAddress.getPort());
                     udpPacketIclcm.setAddress(remoteDataIclcmAddress.getAddress());
