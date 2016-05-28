@@ -224,13 +224,17 @@ public class BtpUdpClient {
 
                 byte[] bufferCam = new byte[length];
                 DatagramPacket udpPacketCam = new DatagramPacket(buffer, length);
-                udpPacket.setPort(remoteDataCamAddress.getPort());
-                udpPacket.setAddress(remoteDataCamAddress.getAddress());
+                if (remoteDataCamAddress != null) {
+                    udpPacketCam.setPort(remoteDataCamAddress.getPort());
+                    udpPacketCam.setAddress(remoteDataCamAddress.getAddress());
+                }
 
                 byte[] bufferIclcm = new byte[length];
                 DatagramPacket udpPacketIclcm = new DatagramPacket(buffer, length);
-                udpPacket.setPort(remoteDataIclcmAddress.getPort());
-                udpPacket.setAddress(remoteDataIclcmAddress.getAddress());
+                if (remoteDataIclcmAddress != null) {
+                    udpPacketIclcm.setPort(remoteDataIclcmAddress.getPort());
+                    udpPacketIclcm.setAddress(remoteDataIclcmAddress.getAddress());
+                }
 
                 try (DatagramSocket udpSocket = new DatagramSocket();){
                     while(true) {
@@ -242,12 +246,12 @@ public class BtpUdpClient {
                             udpPacket.setLength(packet.payload().length + 2);
                             udpSocket.send(udpPacket);
 
-                            if (packet.destinationPort() == 2001) {
+                            if (packet.destinationPort() == 2001 && remoteDataCamAddress != null) {
                                 System.arraycopy(packet.payload(), 0, bufferCam, 0, packet.payload().length);
                                 udpPacketCam.setLength(packet.payload().length);
                                 udpSocket.send(udpPacketCam);
 
-                            } else if (packet.destinationPort() == 2010) {
+                            } else if (packet.destinationPort() == 2010 && remoteDataIclcmAddress != null) {
                                 System.arraycopy(packet.payload(), 0, bufferIclcm, 0, packet.payload().length);
                                 udpPacketIclcm.setLength(packet.payload().length);
                                 udpSocket.send(udpPacketIclcm);
@@ -266,6 +270,14 @@ public class BtpUdpClient {
         };
 
         new Thread(senderData).start();
+
+        if (localDataCamPort != 0) {
+            new Thread(senderCam).start();
+        }
+        if (localDataIclcmPort != 0) {
+            new Thread(senderIclcm).start();
+        }
+
         new Thread(receiver).start();
     }
 }
