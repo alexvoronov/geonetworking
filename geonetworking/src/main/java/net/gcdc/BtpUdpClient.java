@@ -11,6 +11,8 @@ import java.util.Arrays;
 import net.gcdc.geonetworking.Address;
 import net.gcdc.geonetworking.BtpPacket;
 import net.gcdc.geonetworking.BtpSocket;
+import net.gcdc.geonetworking.Destination;
+import net.gcdc.geonetworking.GeonetData;
 import net.gcdc.geonetworking.GeonetStation;
 import net.gcdc.geonetworking.LinkLayer;
 import net.gcdc.geonetworking.LinkLayerUdpToEthernet;
@@ -20,6 +22,8 @@ import net.gcdc.geonetworking.Optional;
 import net.gcdc.geonetworking.Position;
 import net.gcdc.geonetworking.PositionProvider;
 import net.gcdc.geonetworking.StationConfig;
+import net.gcdc.geonetworking.TrafficClass;
+import net.gcdc.geonetworking.UpperProtocolType;
 import net.gcdc.geonetworking.gpsdclient.GpsdClient;
 
 import org.slf4j.Logger;
@@ -140,7 +144,7 @@ public class BtpUdpClient {
         LinkLayer linkLayer = new LinkLayerUdpToEthernet(localUdp2EthPort, remoteUdp2EthAddress, hasEthernetHeader);
 
         StationConfig config = new StationConfig();
-        GeonetStation station = new GeonetStation(config, linkLayer, positionProvider, macAddress);
+        final GeonetStation station = new GeonetStation(config, linkLayer, positionProvider, macAddress);
         new Thread(station).start();  // This is ugly API, sorry...
         station.startBecon();
         final BtpSocket socket = BtpSocket.on(station);
@@ -155,12 +159,17 @@ public class BtpUdpClient {
                 try (DatagramSocket udpSocket = new DatagramSocket(localDataPort);){
                     while (true) {
                         udpSocket.receive(udpPacket);
-                        // We use only destination port, not destination port info.
-                        //short btpDestinationPort = (short) (256 * (0xff & udpPacket.getData()[0]) + udpPacket.getData()[1]);
-                        short btpDestinationPort = (short)( ((udpPacket.getData()[0]&0xFF)<<8) | (udpPacket.getData()[1]&0xFF) );
-                        byte[] btpPayload = Arrays.copyOfRange(udpPacket.getData(), 2, udpPacket.getLength() + 2);
-                        logger.info("Sending BTP message of size {} to BTP port {}", btpPayload.length, btpDestinationPort);
-                        socket.send(BtpPacket.singleHop(btpPayload, btpDestinationPort));
+                        byte[] gnPayload = Arrays.copyOfRange(udpPacket.getData(), udpPacket.getOffset(), udpPacket.getOffset() + udpPacket.getLength());
+                        logger.info("Sending GN message of size {}", gnPayload.length);
+                        Optional<TrafficClass> emptyTrafficClass = Optional.empty();
+                        Optional<LongPositionVector> emptySender = Optional.empty();
+                        station.send(new GeonetData(
+                                UpperProtocolType.BTP_B,
+                                Destination.singleHop(),
+                                emptyTrafficClass,
+                                emptySender,
+                                gnPayload
+                                ));
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -178,8 +187,6 @@ public class BtpUdpClient {
                 try (DatagramSocket udpSocket = new DatagramSocket(localDataCamPort);){
                     while (true) {
                         udpSocket.receive(udpPacket);
-                        // We use only destination port, not destination port info.
-                        //short btpDestinationPort = (short) (256 * (0xff & udpPacket.getData()[0]) + udpPacket.getData()[1]);
                         short btpDestinationPort = (short) 2001;
                         byte[] btpPayload = Arrays.copyOfRange(udpPacket.getData(), udpPacket.getOffset(), udpPacket.getOffset() + udpPacket.getLength());
                         logger.info("Sending BTP CAM message of size {} to BTP port {}", btpPayload.length, btpDestinationPort);
@@ -201,8 +208,6 @@ public class BtpUdpClient {
                 try (DatagramSocket udpSocket = new DatagramSocket(localDataIclcmPort);){
                     while (true) {
                         udpSocket.receive(udpPacket);
-                        // We use only destination port, not destination port info.
-                        //short btpDestinationPort = (short) (256 * (0xff & udpPacket.getData()[0]) + udpPacket.getData()[1]);
                         short btpDestinationPort = (short) 2010;
                         byte[] btpPayload = Arrays.copyOfRange(udpPacket.getData(), udpPacket.getOffset(), udpPacket.getOffset() + udpPacket.getLength());
                         logger.info("Sending BTP i-CLCM message of size {} to BTP port {}", btpPayload.length, btpDestinationPort);
@@ -239,13 +244,12 @@ public class BtpUdpClient {
                 try (DatagramSocket udpSocket = new DatagramSocket();){
                     while(true) {
                         try {
-                            BtpPacket packet = socket.receive();
-                            System.arraycopy(packet.payload(), 0, buffer, 2, packet.payload().length);
-                            buffer[0] = (byte) (packet.destinationPort() / 256);
-                            buffer[1] = (byte) (packet.destinationPort() % 256);
-                            udpPacket.setLength(packet.payload().length + 2);
+                            GeonetData gnData = station.receive();
+                            System.arraycopy(gnData.payload, 0, buffer, 0, gnData.payload.length);
+                            udpPacket.setLength(gnData.payload.length);
                             udpSocket.send(udpPacket);
 
+                            BtpPacket packet = BtpPacket.fromGeonetData(gnData);
                             if (packet.destinationPort() == 2001 && remoteDataCamAddress != null) {
                                 System.arraycopy(packet.payload(), 0, bufferCam, 0, packet.payload().length);
                                 udpPacketCam.setLength(packet.payload().length);
