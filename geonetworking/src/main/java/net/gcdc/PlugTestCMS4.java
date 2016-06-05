@@ -10,20 +10,9 @@ import net.gcdc.plugtestcms4.ping.*;
 public class PlugTestCMS4
   extends JFrame
 {
-
+  private final List<DUT> dutList = new ArrayList<> ();
   final JTabbedPane tabbedPane;
   final DUTsPane dutsPane;
-
-  public static void main (String[] args)
-  {
-    SwingUtilities.invokeLater (new Runnable ()
-      {
-        public void run ()
-        {
-          new PlugTestCMS4 ().setVisible (true);
-        }
-      });
-  }
 
   public PlugTestCMS4 ()
   {
@@ -38,6 +27,19 @@ public class PlugTestCMS4
     setContentPane (this.tabbedPane);
     pack ();
   }
+
+  public static void main (String[] args)
+  {
+    SwingUtilities.invokeLater (new Runnable ()
+      {
+        public void run ()
+        {
+          new PlugTestCMS4 ().setVisible (true);
+        }
+      });
+  }
+
+
 
   private class DUTsPane
   extends JComponent
@@ -87,7 +89,5 @@ public class PlugTestCMS4
     }
 
   }
-
-  private final List<DUT> dutList = new ArrayList<> ();
 
 }

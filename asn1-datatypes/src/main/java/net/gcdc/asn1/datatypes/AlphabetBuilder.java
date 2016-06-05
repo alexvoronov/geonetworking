@@ -3,9 +3,9 @@ package net.gcdc.asn1.datatypes;
 
 public class AlphabetBuilder {
 
-    public AlphabetBuilder() {}
-
     private final StringBuilder sb = new StringBuilder();
+
+    public AlphabetBuilder() {}
 
     public String chars() {
         return sb.toString();
