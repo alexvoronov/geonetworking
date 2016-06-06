@@ -137,22 +137,22 @@ public class CoopItsTest {
 
         CoopIts.Cam cam =
                 new CoopIts.Cam(
-                        new ItsPduHeader(new MessageId(MessageId.cam)),
+                        new ItsPduHeader(new MessageId(MessageId.CAM)),
                         new CoopAwareness(
                                 new CoopIts.GenerationDeltaTime(100),
                                 new CamParameters(
                                         new BasicContainer(
-                                                new StationType(CoopIts.StationType.unknown),
+                                                new StationType(StationType.UNKNOWN),
                                                 new ReferencePosition(
                                                         new Latitude(57),
                                                         new Longitude(13),
                                                         new PosConfidenceEllipse(
-                                                                new SemiAxisLength(SemiAxisLength.unavailable),
+                                                                new SemiAxisLength(SemiAxisLength.UNAVAILABLE),
                                                                 new SemiAxisLength(),
-                                                                new HeadingValue(HeadingValue.unavailable)),
+                                                                new HeadingValue(HeadingValue.UNAVAILABLE)),
                                                         new Altitude(
-                                                                new AltitudeValue(AltitudeValue.unavailable),
-                                                                AltitudeConfidence.unavailable))),
+                                                                new AltitudeValue(AltitudeValue.UNAVAILABLE),
+                                                                AltitudeConfidence.UNAVAILABLE))),
                                         new HighFrequencyContainer(
                                                 BasicVehicleContainerHighFrequency.builder()
                                                     .accelerationControl(AccelerationControl.builder()
@@ -170,22 +170,22 @@ public class CoopItsTest {
     @Test public void test4() throws IllegalArgumentException, IllegalAccessException {
         CoopIts.Cam cam =
                 new CoopIts.Cam(
-                        new ItsPduHeader(new MessageId(MessageId.cam)),
+                        new ItsPduHeader(new MessageId(MessageId.CAM)),
                         new CoopAwareness(
                                 new CoopIts.GenerationDeltaTime(100),
                                 new CamParameters(
                                         new BasicContainer(
-                                                new StationType(CoopIts.StationType.unknown),
+                                                new StationType(CoopIts.StationType.UNKNOWN),
                                                 new ReferencePosition(
                                                         new Latitude(57),
                                                         new Longitude(13),
                                                         new PosConfidenceEllipse(
-                                                                new SemiAxisLength(SemiAxisLength.unavailable),
+                                                                new SemiAxisLength(SemiAxisLength.UNAVAILABLE),
                                                                 new SemiAxisLength(),
-                                                                new HeadingValue(HeadingValue.unavailable)),
+                                                                new HeadingValue(HeadingValue.UNAVAILABLE)),
                                                         new Altitude(
-                                                                new AltitudeValue(AltitudeValue.unavailable),
-                                                                AltitudeConfidence.unavailable))),
+                                                                new AltitudeValue(AltitudeValue.UNAVAILABLE),
+                                                                AltitudeConfidence.UNAVAILABLE))),
                                         new HighFrequencyContainer(
                                                 BasicVehicleContainerHighFrequency.builder()
                                                     .accelerationControl(AccelerationControl.builder()
@@ -211,22 +211,22 @@ public class CoopItsTest {
     @Test public void test5() throws IllegalArgumentException, IllegalAccessException {
         CoopIts.Cam cam =
                 new CoopIts.Cam(
-                        new ItsPduHeader(new MessageId(MessageId.cam)),
+                        new ItsPduHeader(new MessageId(MessageId.CAM)),
                         new CoopAwareness(
                                 new CoopIts.GenerationDeltaTime(100),
                                 new CamParameters(
                                         new BasicContainer(
-                                                new StationType(CoopIts.StationType.unknown),
+                                                new StationType(CoopIts.StationType.UNKNOWN),
                                                 new ReferencePosition(
                                                         new Latitude(57),
                                                         new Longitude(13),
                                                         new PosConfidenceEllipse(
-                                                                new SemiAxisLength(SemiAxisLength.unavailable),
+                                                                new SemiAxisLength(SemiAxisLength.UNAVAILABLE),
                                                                 new SemiAxisLength(),
-                                                                new HeadingValue(HeadingValue.unavailable)),
+                                                                new HeadingValue(HeadingValue.UNAVAILABLE)),
                                                         new Altitude(
-                                                                new AltitudeValue(AltitudeValue.unavailable),
-                                                                AltitudeConfidence.unavailable))),
+                                                                new AltitudeValue(AltitudeValue.UNAVAILABLE),
+                                                                AltitudeConfidence.UNAVAILABLE))),
                                         new HighFrequencyContainer(
                                                 BasicVehicleContainerHighFrequency.builder()
                                                     .accelerationControl(AccelerationControl.builder()
@@ -259,22 +259,22 @@ public class CoopItsTest {
     @Test public void test6() throws IllegalArgumentException, IllegalAccessException {
         CoopIts.Cam cam =
                 new CoopIts.Cam(
-                        new ItsPduHeader(new MessageId(MessageId.cam)),
+                        new ItsPduHeader(new MessageId(MessageId.CAM)),
                         new CoopAwareness(
                                 new CoopIts.GenerationDeltaTime(100),
                                 new CamParameters(
                                         new BasicContainer(
-                                                new StationType(CoopIts.StationType.unknown),
+                                                new StationType(CoopIts.StationType.UNKNOWN),
                                                 new ReferencePosition(
                                                         new Latitude(57),
                                                         new Longitude(13),
                                                         new PosConfidenceEllipse(
-                                                                new SemiAxisLength(SemiAxisLength.unavailable),
+                                                                new SemiAxisLength(SemiAxisLength.UNAVAILABLE),
                                                                 new SemiAxisLength(),
-                                                                new HeadingValue(HeadingValue.unavailable)),
+                                                                new HeadingValue(HeadingValue.UNAVAILABLE)),
                                                         new Altitude(
-                                                                new AltitudeValue(AltitudeValue.unavailable),
-                                                                AltitudeConfidence.unavailable))),
+                                                                new AltitudeValue(AltitudeValue.UNAVAILABLE),
+                                                                AltitudeConfidence.UNAVAILABLE))),
                                         new HighFrequencyContainer(
                                                 BasicVehicleContainerHighFrequency.builder()
                                                     .accelerationControl(AccelerationControl.builder()
@@ -322,7 +322,7 @@ public class CoopItsTest {
 
     @Test public void sequenceOfSizeExtensionTest() throws IllegalArgumentException, IllegalAccessException {
         CoopIts.Denm denm = new CoopIts.Denm(
-          new ItsPduHeader(new MessageId(MessageId.denm)),
+          new ItsPduHeader(new MessageId(MessageId.DENM)),
           new DecentralizedEnvironmentalNotificationMessage(
             new ManagementContainer(),
             null,
@@ -335,8 +335,8 @@ public class CoopItsTest {
                 null,
                 null,
                 new RestrictedTypes(
-                  new StationType(StationType.cyclist),
-                  new StationType(StationType.cyclist)
+                  new StationType(StationType.CYCLIST),
+                  new StationType(StationType.CYCLIST)
                 ),
                 null,
                 null,
@@ -364,7 +364,7 @@ public class CoopItsTest {
 
     @Test public void sequenceOfSizeExtensionTest2() throws IllegalArgumentException, IllegalAccessException {
         CoopIts.Denm denm = new CoopIts.Denm(
-          new ItsPduHeader(new MessageId(MessageId.denm)),
+          new ItsPduHeader(new MessageId(MessageId.DENM)),
           new DecentralizedEnvironmentalNotificationMessage(
             new ManagementContainer(),
             null,
@@ -377,7 +377,7 @@ public class CoopItsTest {
                 null,
                 null,
                 new RestrictedTypes(
-                  new StationType(StationType.bus)
+                  new StationType(StationType.BUS)
                 ),
                 null,
                 null,
@@ -404,7 +404,7 @@ public class CoopItsTest {
 
     @Test public void DenmTestLong() throws IllegalArgumentException, IllegalAccessException {
         CoopIts.Denm denm = new CoopIts.Denm(
-          new ItsPduHeader(new MessageId(MessageId.denm)),
+          new ItsPduHeader(new MessageId(MessageId.DENM)),
           new DecentralizedEnvironmentalNotificationMessage(
             new ManagementContainer(
               new ActionID(
@@ -489,7 +489,7 @@ public class CoopItsTest {
                   HardShoulderStatus.availableForDriving,
                   new DrivingLaneStatus(true, false, false, true)),
                 new RestrictedTypes(
-                  new StationType(StationType.bus)
+                  new StationType(StationType.BUS)
                 ),
                 new SpeedLimit(120 * SpeedLimit.oneKmPerHour),
                 new CauseCode(
@@ -529,7 +529,7 @@ public class CoopItsTest {
 
     @Test public void DenmTestString() throws IllegalArgumentException, IllegalAccessException {
         CoopIts.Denm denm = new CoopIts.Denm(
-          new ItsPduHeader(new MessageId(MessageId.denm)),
+          new ItsPduHeader(new MessageId(MessageId.DENM)),
           new DecentralizedEnvironmentalNotificationMessage(
             new ManagementContainer(
               new ActionID(
@@ -614,7 +614,7 @@ public class CoopItsTest {
                   HardShoulderStatus.availableForDriving,
                   new DrivingLaneStatus(true, false, false, true)),
                 new RestrictedTypes(
-                  new StationType(StationType.bus)
+                  new StationType(StationType.BUS)
                 ),
                 new SpeedLimit(120 * SpeedLimit.oneKmPerHour),
                 new CauseCode(
@@ -721,22 +721,22 @@ public class CoopItsTest {
 
         CoopIts.Cam cam =
                 new CoopIts.Cam(
-                        new ItsPduHeader(new MessageId(MessageId.cam)),
+                        new ItsPduHeader(new MessageId(MessageId.CAM)),
                         new CoopAwareness(
                                 new CoopIts.GenerationDeltaTime(100),
                                 new CamParameters(
                                         new BasicContainer(
-                                                new StationType(CoopIts.StationType.unknown),
+                                                new StationType(CoopIts.StationType.UNKNOWN),
                                                 new ReferencePosition(
                                                         new Latitude(900000001 + 1),
                                                         new Longitude(13),
                                                         new PosConfidenceEllipse(
-                                                                new SemiAxisLength(SemiAxisLength.unavailable),
+                                                                new SemiAxisLength(SemiAxisLength.UNAVAILABLE),
                                                                 new SemiAxisLength(),
-                                                                new HeadingValue(HeadingValue.unavailable)),
+                                                                new HeadingValue(HeadingValue.UNAVAILABLE)),
                                                         new Altitude(
-                                                                new AltitudeValue(AltitudeValue.unavailable),
-                                                                AltitudeConfidence.unavailable))),
+                                                                new AltitudeValue(AltitudeValue.UNAVAILABLE),
+                                                                AltitudeConfidence.UNAVAILABLE))),
                                         new HighFrequencyContainer(
                                                 BasicVehicleContainerHighFrequency.builder()
                                                     .accelerationControl(AccelerationControl.builder()

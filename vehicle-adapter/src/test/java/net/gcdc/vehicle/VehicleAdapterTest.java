@@ -1,6 +1,8 @@
 package net.gcdc.vehicle;
 
 import java.nio.ByteBuffer;
+
+import net.gcdc.camdenm.CoopIts;
 import net.gcdc.camdenm.CoopIts.*;
 import net.gcdc.camdenm.Iclcm.*;
 
@@ -94,7 +96,7 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(20); //vehicleWidth
         byteBuffer.putInt(100); //longitudinalAcc
         byteBuffer.putInt(1); //longitudinalAccConf
-        byteBuffer.putInt(YawRateValue.unavailable); //yawRateValue
+        byteBuffer.putInt(YawRateValue.UNAVAILABLE); //yawRateValue
         byteBuffer.putInt(1); //yawRateConfidence        
         byteBuffer.putInt(VehicleRole.taxi.value()); //vehicleRole
 
@@ -128,17 +130,17 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(1); //detectionTime
         byteBuffer.putInt(2); //referenceTime
         byteBuffer.putInt(0); //termination
-        byteBuffer.putInt(Latitude.unavailable); //latitude
-        byteBuffer.putInt(Longitude.unavailable); //longtitude
-        byteBuffer.putInt(SemiAxisLength.unavailable); //semiMajorConfidence
-        byteBuffer.putInt(SemiAxisLength.unavailable); //semiMinorConfidence
-        byteBuffer.putInt(HeadingValue.unavailable); //semiMajorOrientation
-        byteBuffer.putInt(AltitudeValue.unavailable); //altitude
+        byteBuffer.putInt(Latitude.UNAVAILABLE); //latitude
+        byteBuffer.putInt(Longitude.UNAVAILABLE); //longtitude
+        byteBuffer.putInt(SemiAxisLength.UNAVAILABLE); //semiMajorConfidence
+        byteBuffer.putInt(SemiAxisLength.UNAVAILABLE); //semiMinorConfidence
+        byteBuffer.putInt(HeadingValue.UNAVAILABLE); //semiMajorOrientation
+        byteBuffer.putInt(AltitudeValue.UNAVAILABLE); //altitude
         byteBuffer.putInt(0); //relevanceDistance
         byteBuffer.putInt(0); //relevanceTrafficDirection
         byteBuffer.putInt(0); //validityDuration
         byteBuffer.putInt(120); //transmissionIntervall
-        byteBuffer.putInt(net.gcdc.camdenm.CoopIts.StationType.passengerCar); //stationType
+        byteBuffer.putInt(CoopIts.StationType.PASSENGER_CAR); //stationType
         byteBuffer.put((byte) (1<<7));    //situationMask
         byteBuffer.putInt(4); //informationQuality
         byteBuffer.putInt(CauseCodeType.dangerousSituation); //causeCode

@@ -64,9 +64,9 @@ public class LocalCam{
 
         ByteBuffer buffer = ByteBuffer.wrap(receivedData);
         messageID = buffer.get();
-        if(messageID != MessageId.cam){
+        if(messageID != MessageId.CAM){
             logger.error("Local CAM has incorrect id. Id: {} Should be: {}",
-                         messageID, MessageId.cam);
+                         messageID, MessageId.CAM);
         }
         stationID = buffer.getInt();
         genDeltaTimeMillis = buffer.getInt();
@@ -92,9 +92,9 @@ public class LocalCam{
 
         /* Verify that the values are correct and attempt to replace
          * any errors with default values. */
-        if(messageID != MessageId.cam){
+        if(messageID != MessageId.CAM){
             logger.error("MessageID is: {} Should be: {}",
-                         messageID, MessageId.cam);
+                         messageID, MessageId.CAM);
             throw new IllegalArgumentException();
         }
 
@@ -105,31 +105,31 @@ public class LocalCam{
             throw new IllegalArgumentException();
         }
         if(!checkInt(StationType.class, stationType, "StationType")){
-            stationType = StationType.unknown;
+            stationType = StationType.UNKNOWN;
         }
         if(!checkInt(Latitude.class, latitude, "Latitude")){
-            latitude = Latitude.unavailable;
+            latitude = Latitude.UNAVAILABLE;
         }
         if(!checkInt(Longitude.class, longitude, "Longitude")){
-            longitude = Longitude.unavailable;
+            longitude = Longitude.UNAVAILABLE;
         }        
         if(!checkInt(SemiAxisLength.class, semiMajorAxisConfidence, "SemiMajorConfidence")){
-            semiMajorAxisConfidence = SemiAxisLength.unavailable;
+            semiMajorAxisConfidence = SemiAxisLength.UNAVAILABLE;
         }
         if(!checkInt(SemiAxisLength.class, semiMinorAxisConfidence, "SemiMinorConfidence")){
-            semiMinorAxisConfidence = SemiAxisLength.unavailable;
+            semiMinorAxisConfidence = SemiAxisLength.UNAVAILABLE;
         }
         if(!checkInt(HeadingValue.class, semiMajorOrientation, "SemiMajorOrientation")){
-            semiMajorOrientation = HeadingValue.unavailable;
+            semiMajorOrientation = HeadingValue.UNAVAILABLE;
         }
         if(!checkInt(AltitudeValue.class, altitude, "Altitude")){
-            altitude = AltitudeValue.unavailable;
+            altitude = AltitudeValue.UNAVAILABLE;
         }
         if(!checkInt(HeadingValue.class, heading, "Heading")){
-            heading = HeadingValue.unavailable;
+            heading = HeadingValue.UNAVAILABLE;
         }
         if(!checkInt(HeadingConfidence.class, headingConfidence, "HeadingConfidence")){
-            headingConfidence = HeadingConfidence.unavailable;
+            headingConfidence = HeadingConfidence.UNAVAILABLE;
         }
         if(!checkInt(SpeedValue.class, speed, "Speed")){
             speed = SpeedValue.unavailable;
@@ -138,28 +138,28 @@ public class LocalCam{
             speedConfidence = SpeedConfidence.unavailable;
         }
         if(!checkInt(VehicleLengthValue.class, vehicleLength, "VehicleLength")){
-            vehicleLength = VehicleLengthValue.unavailable;
+            vehicleLength = VehicleLengthValue.UNAVAILABLE;
         }
         if(!checkInt(VehicleWidth.class, vehicleWidth, "VehicleWidth")){
-            vehicleWidth = VehicleWidth.unavailable;
+            vehicleWidth = VehicleWidth.UNAVAILABLE;
         }
         if(!checkInt(LongitudinalAccelerationValue.class, longitudinalAcceleration, "LongitudinalAcceleration")){
-            longitudinalAcceleration = LongitudinalAccelerationValue.unavailable;
+            longitudinalAcceleration = LongitudinalAccelerationValue.UNAVAILABLE;
         }
         if(!checkInt(AccelerationConfidence.class,
                      longitudinalAccelerationConfidence,
                      "LongitudinalAccelerationConfidence")){
-            longitudinalAccelerationConfidence = AccelerationConfidence.unavailable;
+            longitudinalAccelerationConfidence = AccelerationConfidence.UNAVAILABLE;
         }
         if(!checkInt(YawRateValue.class, yawRate, "YawRate")){
-            yawRate = YawRateValue.unavailable;
+            yawRate = YawRateValue.UNAVAILABLE;
         }
 
         /* TODO: Find a cleaner way to check enums. Also, this
          * approach is not very informative.*/
         if(!YawRateConfidence.isMember(yawRateConfidence)){
             logger.warn("YawRateConfidence is not valid. Value={}", yawRateConfidence);
-            yawRateConfidence = (int) YawRateConfidence.unavailable.value();
+            yawRateConfidence = (int) YawRateConfidence.UNAVAILABLE.value();
         }
 
         if(this.hasLowFrequencyContainer()){
@@ -182,7 +182,7 @@ public class LocalCam{
     genDeltaTimeMillis = (int) generationDeltaTime.value;
     byte containerMask = 0;
 
-    if(messageID != MessageId.cam){
+    if(messageID != MessageId.CAM){
         logger.warn("Malformed message on BTP port 2001 from station with ID {}", stationID);
         throw new IllegalArgumentException("Malformed message on BTP port 2001");
     }
@@ -264,9 +264,9 @@ public class LocalCam{
     boolean isValid(){
         boolean valid = true;
         
-        if(messageID != MessageId.cam){
+        if(messageID != MessageId.CAM){
             logger.error("MessageID is: {} Should be: {}",
-                         messageID, MessageId.cam);
+                         messageID, MessageId.CAM);
             valid = false;
         }
 
@@ -375,7 +375,7 @@ public class LocalCam{
                                                                           new SemiAxisLength(semiMinorAxisConfidence),
                                                                           new HeadingValue(semiMajorOrientation)),
                                                  new Altitude(new AltitudeValue(altitude),
-                                                              AltitudeConfidence.unavailable)));
+                                                              AltitudeConfidence.UNAVAILABLE)));
     HighFrequencyContainer highFrequencyContainer =
         new HighFrequencyContainer(BasicVehicleContainerHighFrequency.builder()
                                    .heading(new Heading(new HeadingValue(heading),
@@ -384,7 +384,7 @@ public class LocalCam{
                                                     new SpeedConfidence(speedConfidence)))
                                    //DriveDirection isn't part of the GCDC spec. Set to unavailable.
                                    .driveDirection(DriveDirection.values()[2])
-                                   .vehicleLength(new VehicleLength(new VehicleLengthValue(vehicleLength), VehicleLengthConfidenceIndication.unavailable))
+                                   .vehicleLength(new VehicleLength(new VehicleLengthValue(vehicleLength), VehicleLengthConfidenceIndication.UNAVAILABLE))
                                    .vehicleWidth(new VehicleWidth(vehicleWidth))
                                    .longitudinalAcceleration(new LongitudinalAcceleration(new LongitudinalAccelerationValue(longitudinalAcceleration),
                                                                                           new AccelerationConfidence(longitudinalAccelerationConfidence)))
@@ -399,10 +399,10 @@ public class LocalCam{
 
         return new Cam(
                        new ItsPduHeader(new ProtocolVersion(1),
-                                        new MessageId(MessageId.cam),
+                                        new MessageId(MessageId.CAM),
                                         new StationID(stationID)),
                 new CoopAwareness(
-                        new GenerationDeltaTime(genDeltaTimeMillis * GenerationDeltaTime.oneMilliSec),
+                        new GenerationDeltaTime(genDeltaTimeMillis * GenerationDeltaTime.ONE_MILLI_SECOND),
                         new CamParameters(basicContainer,
                                           highFrequencyContainer,
                                           lowFrequencyContainer,

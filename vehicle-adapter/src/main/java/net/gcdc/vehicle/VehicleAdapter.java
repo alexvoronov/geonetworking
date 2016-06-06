@@ -240,7 +240,7 @@ public class VehicleAdapter {
                         
                         /* First byte is the MessageId */
                         switch(receivedData[0]){
-                        case MessageId.cam: {
+                        case MessageId.CAM: {
                             num_tx_cam++;
                             try{
                                 LocalCam localCam = new LocalCam(receivedData);
@@ -260,7 +260,7 @@ public class VehicleAdapter {
                             break;
                         }
 
-                        case MessageId.denm: {
+                        case MessageId.DENM: {
                             num_tx_denm++;
                             try{
                                 LocalDenm localDenm = new LocalDenm(receivedData);

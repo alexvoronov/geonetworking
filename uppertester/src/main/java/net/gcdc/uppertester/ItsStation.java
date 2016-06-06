@@ -729,9 +729,9 @@ public class ItsStation implements AutoCloseable {
                 }
             }
             return new Cam(
-                    new ItsPduHeader(new MessageId(MessageId.cam)),
+                    new ItsPduHeader(new MessageId(MessageId.CAM)),
                     new CoopAwareness(
-                            new GenerationDeltaTime(genDeltaTimeMillis * GenerationDeltaTime.oneMilliSec),
+                            new GenerationDeltaTime(genDeltaTimeMillis * GenerationDeltaTime.ONE_MILLI_SECOND),
                             new CamParameters(
                                     new BasicContainer(
                                             new StationType(stationType),
@@ -739,17 +739,17 @@ public class ItsStation implements AutoCloseable {
                                                     new Latitude((int)(Latitude.oneMicrodegreeNorth * lpv.position().lattitudeDegrees() / 1.0E-6)),
                                                     new Longitude((int)(Longitude.oneMicrodegreeEast * lpv.position().longitudeDegrees() / 1.0E-6)),
                                                     new PosConfidenceEllipse(
-                                                            new SemiAxisLength(SemiAxisLength.unavailable),
+                                                            new SemiAxisLength(SemiAxisLength.UNAVAILABLE),
                                                             new SemiAxisLength(),
-                                                            new HeadingValue(HeadingValue.unavailable)),
+                                                            new HeadingValue(HeadingValue.UNAVAILABLE)),
                                                     new Altitude(
-                                                            new AltitudeValue(AltitudeValue.unavailable),
-                                                            AltitudeConfidence.unavailable))),
+                                                            new AltitudeValue(AltitudeValue.UNAVAILABLE),
+                                                            AltitudeConfidence.UNAVAILABLE))),
                                     new HighFrequencyContainer(
                                             BasicVehicleContainerHighFrequency.builder()
                                                 .heading(new Heading(
                                                         new HeadingValue((int)(lpv.headingDegreesFromNorth() * 10)),
-                                                        new HeadingConfidence(HeadingConfidence.unavailable)))
+                                                        new HeadingConfidence(HeadingConfidence.UNAVAILABLE)))
                                                 .speed(lpv.speedMetersPerSecond() < 163.82 ? new Speed(
                                                         new SpeedValue((int)(SpeedValue.oneCentimeterPerSec * lpv.speedMetersPerSecond() * 100.0)),
                                                         new SpeedConfidence(SpeedConfidence.unavailable)):
@@ -757,8 +757,8 @@ public class ItsStation implements AutoCloseable {
                                                 .driveDirection(DriveDirection.fromCode(driveDirection))
                                                 .curvature(new Curvature(
                                                         new CurvatureValue(curvature),
-                                                        CurvatureConfidence.unavailable))
-                                                .yawRate(new YawRate(new YawRateValue(yawRate), YawRateConfidence.unavailable))
+                                                        CurvatureConfidence.UNAVAILABLE))
+                                                .yawRate(new YawRate(new YawRateValue(yawRate), YawRateConfidence.UNAVAILABLE))
                                                 .accelerationControl(AccelerationControl.builder()
                                                     .brakePedalEngaged(      (accelerationControlStatus & (1<<7)) != 0)  // is order correct?
                                                     .gasPedalEngaged(        (accelerationControlStatus & (1<<6)) != 0)
