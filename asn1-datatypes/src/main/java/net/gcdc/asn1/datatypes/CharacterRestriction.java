@@ -1,12 +1,12 @@
 package net.gcdc.asn1.datatypes;
 
 public enum CharacterRestriction {
-    NumericString,
-    PrintableString,
-    VisibleString,
-    ISO646String,
-    IA5String,
-    BMPString,
-    UniversalString,
-    UTF8String;
+    NUMERICSTRING,
+    PRINTABLESTRING,
+    VISIBLESTRING,
+    ISO646STRING,
+    IA5STRING,
+    BMPSTRING,
+    UNIVERSALSTRING,
+    UTF8STRING;
 }

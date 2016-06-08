@@ -65,7 +65,7 @@ public class UperEncoderExample3ExtensionTest {
     public static class PersonenelRecord {
         Name name;
         EmployeeNumber number;
-        @RestrictedString(CharacterRestriction.VisibleString)
+        @RestrictedString(CharacterRestriction.VISIBLESTRING)
         String title;
         Date dateOfHire;
         Name nameOfSpouse;
@@ -109,7 +109,7 @@ public class UperEncoderExample3ExtensionTest {
     }
 
     //"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-."
-    @RestrictedString(value = CharacterRestriction.VisibleString, alphabet = NameString.NameStringAlphabet.class)
+    @RestrictedString(value = CharacterRestriction.VISIBLESTRING, alphabet = NameString.NameStringAlphabet.class)
     @SizeRange(minValue = 1, maxValue = 64, hasExtensionMarker = true)
     public static class NameString extends Asn1String {
         public NameString() { this(""); }
@@ -130,7 +130,7 @@ public class UperEncoderExample3ExtensionTest {
         public EmployeeNumber(long value) { super(value); }
     }
 
-    @RestrictedString(value = CharacterRestriction.VisibleString, alphabet = Date.DateAlphabet.class)
+    @RestrictedString(value = CharacterRestriction.VISIBLESTRING, alphabet = Date.DateAlphabet.class)
     @SizeRange(minValue = 8, maxValue = 8, hasExtensionMarker = true)
     public static class Date extends Asn1String {
         public Date() { this(""); }

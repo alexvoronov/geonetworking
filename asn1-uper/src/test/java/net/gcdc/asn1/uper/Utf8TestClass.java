@@ -20,7 +20,7 @@ public class Utf8TestClass {
 
     @Asn1AnonymousType
     @SizeRange(minValue=1, maxValue=200)
-    @RestrictedString(CharacterRestriction.UTF8String)
+    @RestrictedString(CharacterRestriction.UTF8STRING)
     public static class CompanyName extends Asn1String {
         public CompanyName() { this(""); }
         public CompanyName(String value) { super(value); }

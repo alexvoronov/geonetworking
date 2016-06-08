@@ -51,7 +51,7 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
     public static class PersonenelRecord {
         Name name;
         EmployeeNumber number;
-        @RestrictedString(CharacterRestriction.VisibleString)
+        @RestrictedString(CharacterRestriction.VISIBLESTRING)
         String title;
         Date dateOfHire;
         Name nameOfSpouse;
@@ -80,11 +80,11 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
 
     @Sequence
     public static class Name {
-        @RestrictedString(CharacterRestriction.VisibleString)
+        @RestrictedString(CharacterRestriction.VISIBLESTRING)
         String givenName;
-        @RestrictedString(CharacterRestriction.VisibleString)
+        @RestrictedString(CharacterRestriction.VISIBLESTRING)
         String initial;
-        @RestrictedString(CharacterRestriction.VisibleString)
+        @RestrictedString(CharacterRestriction.VISIBLESTRING)
         String familyName;
 
         public Name() { this("", "", ""); }
@@ -101,7 +101,7 @@ Date ::= [APPLICATION 3] IMPLICIT VisibleString -- YYYYMMDD
         public EmployeeNumber(BigInteger value) { super(value); }
     }
 
-    @RestrictedString(CharacterRestriction.VisibleString)
+    @RestrictedString(CharacterRestriction.VISIBLESTRING)
     public static class Date extends Asn1String {
         public Date() { this(""); }
         public Date(String value) { super(value); }

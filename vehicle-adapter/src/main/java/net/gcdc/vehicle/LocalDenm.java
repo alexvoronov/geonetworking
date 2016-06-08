@@ -101,9 +101,9 @@ public class LocalDenm{
 
         /* Verify that the values are correct and attempt to replace
          * any errors with default values. */        
-        if(messageID != MessageId.denm){
+        if(messageID != MessageId.DENM){
             logger.error("Local DENM has incorrect id. Id: {} Should be: {}",
-                         messageID, MessageId.denm);
+                         messageID, MessageId.DENM);
             throw new IllegalArgumentException();
         }
         if(!checkInt(StationID.class, stationID, "StationID")) { throw new IllegalArgumentException(); }
@@ -124,12 +124,12 @@ public class LocalDenm{
             logger.warn("Termination is not valid. Value={}", termination);
             { termination = (int) Termination.defaultValue().value(); }
         }
-        if(!checkInt(Latitude. class, latitude, "Latitude")) { latitude = Latitude.unavailable; }
-        if(!checkInt(Longitude.class, longitude, "Longitude")) { longitude = Longitude.unavailable; }
-        if(!checkInt(SemiAxisLength.class, semiMajorConfidence, "SemiMajorConfidence")) { semiMajorConfidence = SemiAxisLength.unavailable; }
-        if(!checkInt(SemiAxisLength.class, semiMinorConfidence, "SemiMinorConfidence")) { semiMinorConfidence = SemiAxisLength.unavailable; }
-        if(!checkInt(HeadingValue.class, semiMajorOrientation, "SemiMajorOrientation")) { semiMajorOrientation = HeadingValue.unavailable; }
-        if(!checkInt(AltitudeValue.class, altitude, "Altitude")) { altitude = AltitudeValue.unavailable; }
+        if(!checkInt(Latitude. class, latitude, "Latitude")) { latitude = Latitude.UNAVAILABLE; }
+        if(!checkInt(Longitude.class, longitude, "Longitude")) { longitude = Longitude.UNAVAILABLE; }
+        if(!checkInt(SemiAxisLength.class, semiMajorConfidence, "SemiMajorConfidence")) { semiMajorConfidence = SemiAxisLength.UNAVAILABLE; }
+        if(!checkInt(SemiAxisLength.class, semiMinorConfidence, "SemiMinorConfidence")) { semiMinorConfidence = SemiAxisLength.UNAVAILABLE; }
+        if(!checkInt(HeadingValue.class, semiMajorOrientation, "SemiMajorOrientation")) { semiMajorOrientation = HeadingValue.UNAVAILABLE; }
+        if(!checkInt(AltitudeValue.class, altitude, "Altitude")) { altitude = AltitudeValue.UNAVAILABLE; }
         if(!RelevanceDistance.isMember(relevanceDistance)){
             logger.warn("RelevanceDistance is not valid. Value={}", relevanceDistance);
             { relevanceDistance = (int) RelevanceDistance.defaultValue().value(); }
@@ -141,15 +141,15 @@ public class LocalDenm{
         }        
         if(!checkInt(ValidityDuration.class, validityDuration, "ValidityDuration")) { validityDuration = (int) net.gcdc.camdenm.CoopIts.defaultValidity.value; }
         if(!checkInt(TransmissionInterval.class, transmissionInterval, "TransmissionInterval")) { transmissionInterval = TransmissionInterval.oneMilliSecond * 100; }
-        if(!checkInt(StationType.class, stationType, "StationType")) { stationType = StationType.unknown; }
+        if(!checkInt(StationType.class, stationType, "StationType")) { stationType = StationType.UNKNOWN; }
 
-        //if(!checkInt(situationMask)) { .unavailable; }
-        if(!checkInt(InformationQuality.class, informationQuality, "InformationQuality")) { informationQuality = InformationQuality.unavailable; }
+        //if(!checkInt(situationMask)) { .UNAVAILABLE; }
+        if(!checkInt(InformationQuality.class, informationQuality, "InformationQuality")) { informationQuality = InformationQuality.UNAVAILABLE; }
         if(!checkInt(CauseCodeType.class, causeCode, "CauseCode")) { throw new IllegalArgumentException(); }
         if(!checkInt(SubCauseCodeType.class, subCauseCode, "SubCauseCode")) { throw new IllegalArgumentException(); }
         if(!checkInt(CauseCodeType.class, linkedCauseCode, "LinkedCauseCode")) { throw new IllegalArgumentException(); }
         if(!checkInt(SubCauseCodeType.class, linkedSubCauseCode, "LinkedSubCauseCode")) { throw new IllegalArgumentException(); }
-        //if(!checkInt(alacarteMask)) { .unavailable; }
+        //if(!checkInt(alacarteMask)) { .UNAVAILABLE; }
         if(!checkInt(LanePosition.class, lanePosition, "LanePosition")) { throw new IllegalArgumentException(); }
         if(!checkInt(Temperature.class, temperature, "Temperature")) { temperature = 27; } /*  It's always 27C in Gothenburg :) */
         if(!PositioningSolutionType.isMember(positioningSolutionType)){
@@ -168,7 +168,7 @@ public class LocalDenm{
         generationDeltaTime = (int) managementContainer.getReferenceTime().value % 65536;     
         containerMask = 0;
 
-        if(messageID != MessageId.denm){
+        if(messageID != MessageId.DENM){
             logger.warn("Malformed message on BTP port 2002 from station with ID {}", stationID);
             throw new IllegalArgumentException("Malformed message on BTP port 2002");
         }
@@ -430,7 +430,7 @@ public class LocalDenm{
                                                                           new HeadingValue(semiMajorOrientation)),
                                                  new Altitude(new AltitudeValue(altitude),
                                                               //TODO: Should altitudeconfidence be added?
-                                                              AltitudeConfidence.unavailable)))
+                                                              AltitudeConfidence.UNAVAILABLE)))
             .relevanceDistance((managementMask & (1<<6)) != 0 ? RelevanceDistance.values()[relevanceDistance] : null)
             .relevanceTrafficDirection((managementMask & (1<<5)) != 0 ? RelevanceTrafficDirection.values()[relevanceTrafficDirection] : null)
             .validityDuration((managementMask & (1<<4)) != 0 ? new ValidityDuration(validityDuration) : null)
@@ -479,7 +479,7 @@ public class LocalDenm{
 
         return new Denm(
                         new ItsPduHeader(new ProtocolVersion(1),
-                                         new MessageId(MessageId.denm),
+                                         new MessageId(MessageId.DENM),
                                          new StationID(stationID)),
                         decentralizedEnvironmentalNotificationMessage);
     }

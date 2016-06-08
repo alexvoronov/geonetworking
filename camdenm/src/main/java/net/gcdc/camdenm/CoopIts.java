@@ -28,8 +28,8 @@ import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
  * Notification Message (DENM).
  *
  * @see Common Data Dictionary: <a href="http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=43353">ETSI TS 102 894-2</a>,
- * @see CAM: <a href="http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=37126">CAM: ETSI EN 302 637-2</a>,
- * @see DENM: <a href="http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=37127">ETSI EN 302 637-3</a>
+ * @see Cam: <a href="http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=37126">CAM: ETSI EN 302 637-2</a>,
+ * @see Denm: <a href="http://webapp.etsi.org/workprogram/Report_WorkItem.asp?WKI_ID=37127">ETSI EN 302 637-3</a>
  *
  */
 public class CoopIts {
@@ -44,7 +44,7 @@ public class CoopIts {
             this.cam = coopAwareness;
         }
 
-        public Cam() { this(new ItsPduHeader(new MessageId(MessageId.cam)), new CoopAwareness()); }
+        public Cam() { this(new ItsPduHeader(new MessageId(MessageId.CAM)), new CoopAwareness()); }
 
         @Override public String toString() { return "CAM(" + header + ", " + cam + ")"; }
 
@@ -83,8 +83,8 @@ public class CoopIts {
 		@Asn1AnonymousType
         @IntRange(minValue = 0, maxValue = 255)
         public static class ProtocolVersion extends Asn1Integer {
-            public static final int currentVersion = 1;
-            public ProtocolVersion() { this(currentVersion); }
+            public static final int CURRENT_VERSION = 1;
+            public ProtocolVersion() { this(CURRENT_VERSION); }
             public ProtocolVersion(int value) { super(value); }
             public ProtocolVersion(long value) { super(value); }
         }
@@ -92,13 +92,13 @@ public class CoopIts {
         @Asn1AnonymousType
         @IntRange(minValue = 0, maxValue = 255)
         public static class MessageId extends Asn1Integer {
-            public static final int denm   = 1;
-            public static final int cam    = 2;
-            public static final int poi    = 3;
-            public static final int spat   = 4;
-            public static final int map    = 5;
-            public static final int ivi    = 6;
-            public static final int ev_rsr = 7;
+            public static final int DENM   = 1;
+            public static final int CAM    = 2;
+            public static final int POI    = 3;
+            public static final int SPAT   = 4;
+            public static final int MAP    = 5;
+            public static final int IVI    = 6;
+            public static final int EV_RSR = 7;
             public MessageId() { this(0); }
             public MessageId(int value) { super(value); }
         }
@@ -147,10 +147,10 @@ public class CoopIts {
 
     @IntRange(minValue = 0, maxValue = 65535)
     public static class GenerationDeltaTime extends Asn1Integer {
-        public static final int oneMilliSec = 1;
-        public static final int oneSecond = 1000;
+        public static final int ONE_MILLI_SECOND = 1;
+        public static final int ONE_SECOND = 1000;
 
-        public GenerationDeltaTime() { this(100 * oneMilliSec); }
+        public GenerationDeltaTime() { this(100 * ONE_MILLI_SECOND); }
         public GenerationDeltaTime(int value) { super(value); }
     }
 
@@ -308,7 +308,7 @@ public class CoopIts {
                 val.vehicleWidth = new VehicleWidth();
                 val.longitudinalAcceleration = new LongitudinalAcceleration();
                 val.curvature = new Curvature();
-                val.curvatureCalculationMode = CurvatureCalculationMode.unavailable;
+                val.curvatureCalculationMode = CurvatureCalculationMode.UNAVAILABLE;
                 val.yawRate = new YawRate();
             }
 
@@ -420,21 +420,21 @@ public class CoopIts {
 
     @IntRange(minValue = 0, maxValue = 255)
     public static class StationType extends Asn1Integer {
-        public static final int unknown = 0;
-        public static final int pedestrian = 1;
-        public static final int cyclist = 2;
-        public static final int moped = 3;
-        public static final int motorcycle = 4;
-        public static final int passengerCar = 5;
-        public static final int bus = 6;
-        public static final int lightTruck = 7;
-        public static final int heavyTruck = 8;
-        public static final int trailer = 9;
-        public static final int specialVehicles = 10;
-        public static final int tram = 11;
-        public static final int roadSideUnit = 15;
+        public static final int UNKNOWN = 0;
+        public static final int PEDESTRIAN = 1;
+        public static final int CYCLIST = 2;
+        public static final int MOPED = 3;
+        public static final int MOTORCYCLE = 4;
+        public static final int PASSENGER_CAR = 5;
+        public static final int BUS = 6;
+        public static final int LIGHT_TRUCK = 7;
+        public static final int HEAVY_TRACK = 8;
+        public static final int TRAILER = 9;
+        public static final int SPECIAL_VEHICLES = 10;
+        public static final int TRAM = 11;
+        public static final int ROAD_SIDE_UNIT = 15;
 
-        public StationType() { this(unknown); }
+        public StationType() { this(UNKNOWN); }
         public StationType(int value) { super(value); }
     }
 
@@ -553,7 +553,7 @@ public class CoopIts {
         VehicleLengthConfidenceIndication vehicleLengthConfidenceIndication;
 
         public VehicleLength() {
-            this(new VehicleLengthValue(), VehicleLengthConfidenceIndication.unavailable);
+            this(new VehicleLengthValue(), VehicleLengthConfidenceIndication.UNAVAILABLE);
         }
 
         public VehicleLength(
@@ -574,11 +574,11 @@ public class CoopIts {
 
     @IntRange(minValue = 1, maxValue = 1023)
     public static class VehicleLengthValue extends Asn1Integer {
-        public static final int tenCentimeters = 1;
-        public static final int outOfRange = 1022;
-        public static final int unavailable = 1023;
+        public static final int TEN_CENTIMETERS = 1;
+        public static final int OUT_OF_RANGE = 1022;
+        public static final int UNAVAILABLE = 1023;
 
-        public VehicleLengthValue() { this(unavailable); }
+        public VehicleLengthValue() { this(UNAVAILABLE); }
         public VehicleLengthValue(int value) { super(value); }
     }
 
@@ -587,7 +587,7 @@ public class CoopIts {
         trailerPresentWithKnownLength(1),
         trailerPresentWithUnknownLength(2),
         trailerPresenceIsUnknown(3),
-        unavailable(4);
+        UNAVAILABLE(4);
 
         private final int value;
         public int value() { return value; }
@@ -596,11 +596,11 @@ public class CoopIts {
 
     @IntRange(minValue = 1, maxValue = 62)
     public static class VehicleWidth extends Asn1Integer {
-        public static final int tenCentimeters = 1;
-        public static final int outOfRange = 61;
-        public static final int unavailable = 62;
+        public static final int TEN_CENTIMETERS = 1;
+        public static final int OUT_OF_RANGE = 61;
+        public static final int UNAVAILABLE = 62;
 
-        public VehicleWidth() { this(unavailable); }
+        public VehicleWidth() { this(UNAVAILABLE); }
         public VehicleWidth(int value) { super(value); }
     }
 
@@ -625,21 +625,21 @@ public class CoopIts {
 
     @IntRange(minValue = -160, maxValue = 161)
     public static class LongitudinalAccelerationValue extends Asn1Integer {
-        public static final int pointOneMeterPerSecSquaredForward = 1;
-        public static final int pointOneMeterPerSecSquaredBackward = -1;
-        public static final int unavailable = 161;
+        public static final int POINT_PER_METER_SEC_SQUARED_FORWARD = 1;
+        public static final int POINT_PER_METER_SEC_SQUARED_BACKWARD = -1;
+        public static final int UNAVAILABLE = 161;
 
-        public LongitudinalAccelerationValue() { this(unavailable); }
+        public LongitudinalAccelerationValue() { this(UNAVAILABLE); }
         public LongitudinalAccelerationValue(int value) { super(value); }
     }
 
     @IntRange(minValue = 0, maxValue = 102)
     public static class AccelerationConfidence extends Asn1Integer {
-        public static final int pointOneMeterPerSecSquared = 1;
-        public static final int outOfRange = 101;
-        public static final int unavailable = 102;
+        public static final int POINT_PER_METER_SEC_SQUARED = 1;
+        public static final int OUT_OF_RANGE = 101;
+        public static final int UNAVAILABLE = 102;
 
-        public AccelerationConfidence() { this(unavailable); }
+        public AccelerationConfidence() { this(UNAVAILABLE); }
         public AccelerationConfidence(int value) { super(value); }
     }
 
@@ -648,7 +648,7 @@ public class CoopIts {
         CurvatureValue curvatureValue;
         CurvatureConfidence curvatureConfidence;
 
-        public Curvature() { this( new CurvatureValue(), CurvatureConfidence.unavailable ); }
+        public Curvature() { this( new CurvatureValue(), CurvatureConfidence.UNAVAILABLE ); }
         public Curvature(CurvatureValue curvatureValue, CurvatureConfidence curvatureConfidence) {
             this.curvatureValue = curvatureValue;
             this.curvatureConfidence = curvatureConfidence;
@@ -663,12 +663,12 @@ public class CoopIts {
 
     @IntRange(minValue = -30000, maxValue = 30001)
     public static class CurvatureValue extends Asn1Integer {
-        public static final int straight = 0;
-        public static final int reciprocalOf1MeterRadiusToRight = -30000;
-        public static final int reciprocalOf1MeterRadiusToLeft = 30000;
-        public static final int unavailable = 30001;
+        public static final int STRAIGHT = 0;
+        public static final int RECIPROCAL_OF_ONE_METER_RADIUS_TO_RIGHT = -30000;
+        public static final int RECIPROCAL_OF_ONE_METER_RADIUS_TO_LEFT = 30000;
+        public static final int UNAVAILABLE = 30001;
 
-        public CurvatureValue() { this(unavailable); }
+        public CurvatureValue() { this(UNAVAILABLE); }
         public CurvatureValue(int value) { super(value); }
     }
 
@@ -680,7 +680,7 @@ public class CoopIts {
         onePerMeter_0_01 (4),
         onePerMeter_0_1 (5),
         outOfRange (6),
-        unavailable (7);
+        UNAVAILABLE (7);
 
         private final int value;
         public int value() { return value; }
@@ -691,7 +691,7 @@ public class CoopIts {
     public static enum CurvatureCalculationMode {
         yawRateUsed(0),
         yawRateNotUsed(1),
-        unavailable(2);
+        UNAVAILABLE(2);
 
         private final int value;
         public int value() { return value; }
@@ -703,7 +703,7 @@ public class CoopIts {
         YawRateValue yawRateValue;
         YawRateConfidence yawRateConfidence;
 
-        public YawRate() { this(new YawRateValue(), YawRateConfidence.unavailable); }
+        public YawRate() { this(new YawRateValue(), YawRateConfidence.UNAVAILABLE); }
         public YawRate(YawRateValue yawRateValue, YawRateConfidence yawRateConfidence) {
             this.yawRateValue = yawRateValue;
             this.yawRateConfidence = yawRateConfidence;
@@ -718,12 +718,12 @@ public class CoopIts {
 
     @IntRange(minValue = -32766, maxValue = 32767)
     public static class YawRateValue extends Asn1Integer {
-        public static final int straight = 0;
+        public static final int STRAIGHT = 0;
         public static final int degSec_000_01ToRight = -1;
         public static final int degSec_000_01ToLeft = 1;
-        public static final int unavailable = 32767;
+        public static final int UNAVAILABLE = 32767;
 
-        public YawRateValue() { this(unavailable); }
+        public YawRateValue() { this(UNAVAILABLE); }
         public YawRateValue(int value) { super(value); }
     }
 
@@ -736,7 +736,7 @@ public class CoopIts {
         degSec_010_00 (5),
         degSec_100_00 (6),
         outOfRange (7),
-        unavailable (8);
+        UNAVAILABLE (8);
 
         private final int value;
         public int value() { return value; }
@@ -779,9 +779,9 @@ public class CoopIts {
     public static class SemiAxisLength extends Asn1Integer {
         public static final int oneCentimeter = 1;
         public static final int outOfRange = 4094;
-        public static final int unavailable = 4095;
+        public static final int UNAVAILABLE = 4095;
 
-        public SemiAxisLength() { this(unavailable); }
+        public SemiAxisLength() { this(UNAVAILABLE); }
         public SemiAxisLength(int value) { super(value); }
     }
 
@@ -790,7 +790,7 @@ public class CoopIts {
         AltitudeValue altitudeValue;
         AltitudeConfidence altitudeConfidence;
 
-        public Altitude() { this(new AltitudeValue(), AltitudeConfidence.unavailable); }
+        public Altitude() { this(new AltitudeValue(), AltitudeConfidence.UNAVAILABLE); }
         public Altitude(AltitudeValue altitudeValue,        AltitudeConfidence altitudeConfidence) {
             this.altitudeValue = altitudeValue;
             this.altitudeConfidence = altitudeConfidence;
@@ -811,9 +811,9 @@ public class CoopIts {
     public static class AltitudeValue extends Asn1Integer {
         public static final int referenceEllipsoidSurface = 0;
         public static final int oneCentimeter = 1;
-        public static final int unavailable = 800001;
+        public static final int UNAVAILABLE = 800001;
 
-        public AltitudeValue() { this(unavailable); }
+        public AltitudeValue() { this(UNAVAILABLE); }
         public AltitudeValue(int value) { super(value); }
     }
 
@@ -833,7 +833,7 @@ public class CoopIts {
         alt_100_00 (12),
         alt_200_00 (13),
         outOfRange (14),
-        unavailable (15);
+        UNAVAILABLE (15);
 
         private final int value;
         public int value() { return value; }
@@ -846,9 +846,9 @@ public class CoopIts {
         public static final int wgs84East = 900;
         public static final int wgs84South = 1800;
         public static final int wgs84West = 2700;
-        public static final int unavailable = 3601;
+        public static final int UNAVAILABLE = 3601;
 
-        public HeadingValue() { this(unavailable); }
+        public HeadingValue() { this(UNAVAILABLE); }
         public HeadingValue(int value) { super(value); }
     }
 
@@ -857,9 +857,9 @@ public class CoopIts {
         public static final int equalOrWithinZeroPointOneDegree = 1;
         public static final int equalOrWithinOneDegree = 10;
         public static final int outOfRange = 126;
-        public static final int unavailable = 127;
+        public static final int UNAVAILABLE = 127;
 
-        public HeadingConfidence() { this(unavailable); }
+        public HeadingConfidence() { this(UNAVAILABLE); }
         public HeadingConfidence(int value) { super(value); }
     }
 
@@ -867,9 +867,9 @@ public class CoopIts {
     public static class Latitude extends Asn1Integer {
         public static final int oneMicrodegreeNorth = 10;
         public static final int oneMicrodegreeSouth = -10;
-        public static final int unavailable = 900000001;
+        public static final int UNAVAILABLE = 900000001;
 
-        public Latitude() { this(unavailable); }
+        public Latitude() { this(UNAVAILABLE); }
         public Latitude(int value) { super(value); }
     }
 
@@ -877,9 +877,9 @@ public class CoopIts {
     public static class Longitude extends Asn1Integer {
         public static final int oneMicrodegreeEast = 10;
         public static final int oneMicrodegreeWest = -10;
-        public static final int unavailable = 1800000001;
+        public static final int UNAVAILABLE = 1800000001;
 
-        public Longitude() { this(unavailable); }
+        public Longitude() { this(UNAVAILABLE); }
         public Longitude(int value) { super(value); }
     }
 
@@ -1014,9 +1014,9 @@ public class CoopIts {
     public static class SteeringWheelAngleConfidence extends Asn1Integer {
         public static final int equalOrWithinOnePointFiveDegree = 1;
         public static final int outOfRange = 126;
-        public static final int unavailable = 127;
+        public static final int UNAVAILABLE = 127;
 
-        public SteeringWheelAngleConfidence() { this(unavailable); }
+        public SteeringWheelAngleConfidence() { this(UNAVAILABLE); }
         public SteeringWheelAngleConfidence(int value) { super(value); }
     }
 
@@ -1043,9 +1043,9 @@ public class CoopIts {
     public static class LateralAccelerationValue extends Asn1Integer {
         public static final int pointOneMeterPerSecSquaredToRight = -1;
         public static final int pointOneMeterPerSecSquaredToLeft = 1;
-        public static final int unavailable = 161;
+        public static final int UNAVAILABLE = 161;
 
-        public LateralAccelerationValue() { this(unavailable); }
+        public LateralAccelerationValue() { this(UNAVAILABLE); }
         public LateralAccelerationValue(int value) { super(value); }
     }
 
@@ -1071,19 +1071,19 @@ public class CoopIts {
     public static class VerticalAccelerationValue extends Asn1Integer {
         public static final int pointOneMeterPerSecSquaredUp = 1;
         public static final int pointOneMeterPerSecSquaredDown = -1;
-        public static final int unavailable = 161;
+        public static final int UNAVAILABLE = 161;
 
-        public VerticalAccelerationValue() { this(unavailable); }
+        public VerticalAccelerationValue() { this(UNAVAILABLE); }
         public VerticalAccelerationValue(int value) { super(value); }
     }
 
     @IntRange(minValue = 0, maxValue = 7)
     public static class PerformanceClass extends Asn1Integer {
-        public static final int unavailable = 0;
+        public static final int UNAVAILABLE = 0;
         public static final int performanceClassA = 1;
         public static final int performanceClassB = 2;
 
-        public PerformanceClass() { this(unavailable); }
+        public PerformanceClass() { this(UNAVAILABLE); }
         public PerformanceClass(int value) { super(value); }
     }
 
@@ -1448,9 +1448,9 @@ public class CoopIts {
     public static class DeltaLatitude extends Asn1Integer {
         public static final int oneMicrodegreeNorth = 10;
         public static final int oneMicrodegreeSouth = -10;
-        public static final int unavailable = 131072;
+        public static final int UNAVAILABLE = 131072;
 
-        public DeltaLatitude() { this(unavailable); }
+        public DeltaLatitude() { this(UNAVAILABLE); }
         public DeltaLatitude(int value) { super(value); }
     }
 
@@ -1458,9 +1458,9 @@ public class CoopIts {
     public static class DeltaLongitude extends Asn1Integer {
         public static final int oneMicrodegreeEast = 10;
         public static final int oneMicrodegreeWest = -10;
-        public static final int unavailable = 131072;
+        public static final int UNAVAILABLE = 131072;
 
-        public DeltaLongitude() { this(unavailable); }
+        public DeltaLongitude() { this(UNAVAILABLE); }
         public DeltaLongitude(int value) { super(value); }
     }
 
@@ -1468,9 +1468,9 @@ public class CoopIts {
     public static class DeltaAltitude extends Asn1Integer {
         public static final int oneCentimeterUp = 1;
         public static final int oneCentimeterDown = -1;
-        public static final int unavailable = 12800;
+        public static final int UNAVAILABLE = 12800;
 
-        public DeltaAltitude() { this(unavailable); }
+        public DeltaAltitude() { this(UNAVAILABLE); }
         public DeltaAltitude(int value) { super(value); }
     }
 
@@ -1732,7 +1732,7 @@ public class CoopIts {
 
     @IntRange(minValue = 0, maxValue = 255)
     public static class RoadworksSubCauseCode extends Asn1Integer {
-        public static final int unavailable = 0;
+        public static final int UNAVAILABLE = 0;
         public static final int majorRoadworks = 1;
         public static final int roadMarkingWork = 2;
         public static final int slowMovingRoadMaintenance = 3;
@@ -1740,7 +1740,7 @@ public class CoopIts {
         public static final int streetCleaning = 5;
         public static final int winterService = 6;
 
-        public RoadworksSubCauseCode() { this(unavailable); }
+        public RoadworksSubCauseCode() { this(UNAVAILABLE); }
         public RoadworksSubCauseCode(int value) { super(value); }
     }
 
@@ -2040,7 +2040,7 @@ public class CoopIts {
         ItsPduHeader header;
         DecentralizedEnvironmentalNotificationMessage denm;
 
-        public Denm() { this (new ItsPduHeader(new MessageId(MessageId.denm)), new DecentralizedEnvironmentalNotificationMessage()); }
+        public Denm() { this (new ItsPduHeader(new MessageId(MessageId.DENM)), new DecentralizedEnvironmentalNotificationMessage()); }
 
         public Denm(ItsPduHeader header, DecentralizedEnvironmentalNotificationMessage denm) {
             this.header = header;
@@ -2403,11 +2403,11 @@ public class CoopIts {
 
     @IntRange(minValue = 0, maxValue = 7)
     public static class InformationQuality extends Asn1Integer {
-        public static final int unavailable = 0;
+        public static final int UNAVAILABLE = 0;
         public static final int lowest = 1;
         public static final int highest = 7;
 
-        public InformationQuality() { this(unavailable); }
+        public InformationQuality() { this(UNAVAILABLE); }
         public InformationQuality(int value) { super(value); }
     }
 
@@ -2697,18 +2697,18 @@ public class CoopIts {
     @IntRange(minValue = 1, maxValue = 100)
     public static class HeightLonCarr extends Asn1Integer {
         public static final int oneCentimeter = 1;
-        public static final int unavailable = 100;
+        public static final int UNAVAILABLE = 100;
 
-        public HeightLonCarr() { this(unavailable); }
+        public HeightLonCarr() { this(UNAVAILABLE); }
         public HeightLonCarr(int value) { super(value); }
     }
 
     @IntRange(minValue = 1, maxValue = 127)
     public static class PosLonCarr extends Asn1Integer {
         public static final int oneCentimeter = 1;
-        public static final int unavailable = 127;
+        public static final int UNAVAILABLE = 127;
 
-        public PosLonCarr() { this(unavailable); }
+        public PosLonCarr() { this(UNAVAILABLE); }
         public PosLonCarr(int value) { super(value); }
     }
 
@@ -2837,54 +2837,54 @@ public class CoopIts {
     @IntRange(minValue = 1, maxValue = 30)
     public static class PosPillar extends Asn1Integer {
         public static final int tenCentimeters = 1;
-        public static final int unavailable = 30;
+        public static final int UNAVAILABLE = 30;
 
-        public PosPillar() { this(unavailable); }
+        public PosPillar() { this(UNAVAILABLE); }
         public PosPillar(int value) { super(value); }
     }
 
     @IntRange(minValue = 1, maxValue = 63)
     public static class PosCentMass extends Asn1Integer {
         public static final int tenCentimeters = 1;
-        public static final int unavailable = 63;
+        public static final int UNAVAILABLE = 63;
 
-        public PosCentMass() { this(unavailable); }
+        public PosCentMass() { this(UNAVAILABLE); }
         public PosCentMass(int value) { super(value); }
     }
 
     @IntRange(minValue = 1, maxValue = 127)
     public static class WheelBaseVehicle extends Asn1Integer {
         public static final int tenCentimeters = 1;
-        public static final int unavailable = 127;
+        public static final int UNAVAILABLE = 127;
 
-        public WheelBaseVehicle() { this(unavailable); }
+        public WheelBaseVehicle() { this(UNAVAILABLE); }
         public WheelBaseVehicle(int value) { super(value); }
     }
 
     @IntRange(minValue = 1, maxValue = 255)
     public static class TurningRadius extends Asn1Integer {
         public static final int point4Meters = 1;
-        public static final int unavailable = 255;
+        public static final int UNAVAILABLE = 255;
 
-        public TurningRadius() { this(unavailable); }
+        public TurningRadius() { this(UNAVAILABLE); }
         public TurningRadius(int value) { super(value); }
     }
 
     @IntRange(minValue = 1, maxValue = 20)
     public static class PosFrontAx extends Asn1Integer {
         public static final int tenCentimeters = 1;
-        public static final int unavailable = 20;
+        public static final int UNAVAILABLE = 20;
 
-        public PosFrontAx() { this(unavailable); }
+        public PosFrontAx() { this(UNAVAILABLE); }
         public PosFrontAx(int value) { super(value); }
     }
 
     @IntRange(minValue = 1, maxValue = 1024)
     public static class VehicleMass extends Asn1Integer {
         public static final int hundredKg = 1;
-        public static final int unavailable = 1024;
+        public static final int UNAVAILABLE = 1024;
 
-        public VehicleMass() { this(unavailable); }
+        public VehicleMass() { this(UNAVAILABLE); }
         public VehicleMass(int value) { super(value); }
     }
 
@@ -3037,9 +3037,9 @@ public class CoopIts {
     @IntRange(minValue = 0, maxValue = 127)
     public static class NumberOfOccupants extends Asn1Integer {
         public static final int oneOccupant = 1;
-        public static final int unavailable = 127;
+        public static final int UNAVAILABLE = 127;
 
-        public NumberOfOccupants() { this(unavailable); }
+        public NumberOfOccupants() { this(UNAVAILABLE); }
         public NumberOfOccupants(int value) { super(value); }
     }
 
@@ -3070,13 +3070,13 @@ public class CoopIts {
     }
 
     @SizeRange(minValue = 1, maxValue = 3)
-    @RestrictedString(CharacterRestriction.IA5String)
+    @RestrictedString(CharacterRestriction.IA5STRING)
     public static class WMInumber extends Asn1String {
         public WMInumber() { this(""); }
         public WMInumber(String value) { super(value); }
     }
 
-    @RestrictedString(CharacterRestriction.IA5String)
+    @RestrictedString(CharacterRestriction.IA5STRING)
     @FixedSize(6)
     public static class VDS extends Asn1String {
         public VDS() { this(""); }
@@ -3131,7 +3131,7 @@ public class CoopIts {
 
         @Asn1AnonymousType
         @SizeRange(minValue=1, maxValue=24)
-        @RestrictedString(CharacterRestriction.IA5String)
+        @RestrictedString(CharacterRestriction.IA5STRING)
         public static class EmergencyActionCode extends Asn1String {
             public EmergencyActionCode() { this(""); }
             public EmergencyActionCode(String value) { super(value); }
@@ -3139,7 +3139,7 @@ public class CoopIts {
 
         @Asn1AnonymousType
         @SizeRange(minValue=1, maxValue=24)
-        @RestrictedString(CharacterRestriction.IA5String)
+        @RestrictedString(CharacterRestriction.IA5STRING)
         public static class PhoneNumber extends Asn1String {
             public PhoneNumber() { this(""); }
             public PhoneNumber(String value) { super(value); }
@@ -3147,7 +3147,7 @@ public class CoopIts {
 
         @Asn1AnonymousType
         @SizeRange(minValue=1, maxValue=24)
-        @RestrictedString(CharacterRestriction.UTF8String)
+        @RestrictedString(CharacterRestriction.UTF8STRING)
         public static class CompanyName extends Asn1String {
             public CompanyName() { this(""); }
             public CompanyName(String value) { super(value); }

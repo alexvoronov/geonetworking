@@ -62,12 +62,12 @@ public class UperEncoderDecodeTest {
     @Test public void decodeChoice1() {
         Object pdu =
             new CoopIts.Cam(
-                new ItsPduHeader(new MessageId(MessageId.cam)),
+                new ItsPduHeader(new MessageId(MessageId.CAM)),
                 new CoopAwareness(
                     new CoopIts.GenerationDeltaTime(100),
                     new CamParameters(
                         new BasicContainer(
-                            new StationType(CoopIts.StationType.tram),
+                            new StationType(CoopIts.StationType.TRAM),
                             new ReferencePosition(
                                 new Latitude(57),
                                 new Longitude(13),
@@ -77,7 +77,7 @@ public class UperEncoderDecodeTest {
                                     new HeadingValue(42)),
                                 new Altitude(
                                     new AltitudeValue(42),
-                                    AltitudeConfidence.unavailable))),
+                                    AltitudeConfidence.UNAVAILABLE))),
                         new HighFrequencyContainer(
                             BasicVehicleContainerHighFrequency.builder()
                               .accelerationControl(AccelerationControl.builder()
@@ -103,12 +103,12 @@ public class UperEncoderDecodeTest {
     @Test public void decodeChoice2() {
         Object pdu =
             new CoopIts.Cam(
-                new ItsPduHeader(new MessageId(MessageId.cam)),
+                new ItsPduHeader(new MessageId(MessageId.CAM)),
                 new CoopAwareness(
                     new CoopIts.GenerationDeltaTime(100),
                     new CamParameters(
                         new BasicContainer(
-                            new StationType(CoopIts.StationType.tram),
+                            new StationType(CoopIts.StationType.TRAM),
                             new ReferencePosition(
                                 new Latitude(57),
                                 new Longitude(13),
@@ -118,7 +118,7 @@ public class UperEncoderDecodeTest {
                                     new HeadingValue(42)),
                                 new Altitude(
                                     new AltitudeValue(42),
-                                    AltitudeConfidence.unavailable))),
+                                    AltitudeConfidence.UNAVAILABLE))),
                         new HighFrequencyContainer(
                             new RSUContainerHighFrequency(null)
                             ))));

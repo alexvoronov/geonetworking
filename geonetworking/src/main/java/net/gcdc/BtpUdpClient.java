@@ -34,13 +34,13 @@ public class BtpUdpClient {
 
     private final static Logger logger = LoggerFactory.getLogger(BtpUdpClient.class);
 
-    private final static String usage =
+    private final static String USAGE =
             "Usage: java -cp gn.jar BtpClient --local-udp2eth-port <local-port> --remote-udp2eth-address <udp-to-ethernet-remote-host-and-port> --local-data-port <port> --remote-data-address <host:port> --gpsd-server <host:port> --mac-address <xx:xx:xx:xx:xx:xx>" + "\n" +
     "BTP ports: 2001 (CAM), 2002 (DENM), 2003 (MAP), 2004 (SPAT).";
 
     public static void main(String[] args) throws IOException {
         if (args.length < 7) {
-            System.err.println(usage);
+            System.err.println(USAGE);
             System.exit(1);
         }
 
@@ -65,7 +65,7 @@ public class BtpUdpClient {
             } else if (args[arg].startsWith("--remote-udp2eth-address")) {
                 arg++;
                 String[] hostPort = args[arg].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad udp2eth host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) { System.err.println("Bad udp2eth host:port.\n" + USAGE); System.exit(1); }
                 remoteUdp2EthAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--local-data-port")) {
                 arg++;
@@ -73,7 +73,7 @@ public class BtpUdpClient {
             } else if (args[arg].startsWith("--remote-data-address")) {
                 arg++;
                 String[] hostPort = args[arg].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + USAGE); System.exit(1); }
                 remoteDataAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--local-data-cam-port")) {
                 arg++;
@@ -81,7 +81,7 @@ public class BtpUdpClient {
             } else if (args[arg].startsWith("--remote-data-cam-address")) {
                 arg++;
                 String[] hostPort = args[arg].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + USAGE); System.exit(1); }
                 remoteDataCamAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--local-data-iclcm-port")) {
                 arg++;
@@ -89,12 +89,12 @@ public class BtpUdpClient {
             } else if (args[arg].startsWith("--remote-data-iclcm-address")) {
                 arg++;
                 String[] hostPort = args[arg].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + USAGE); System.exit(1); }
                 remoteDataIclcmAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--position")) {
                 arg++;
                 String[] latLon = args[arg].split(",");
-                if (latLon.length != 2) { System.err.println("Bad lat,lon.\n" + usage); System.exit(1); }
+                if (latLon.length != 2) { System.err.println("Bad lat,lon.\n" + USAGE); System.exit(1); }
                 final double lat = Double.parseDouble(latLon[0]);
                 final double lon = Double.parseDouble(latLon[1]);
                 final boolean isPositionConfident = true;  // Let's say we know it.
@@ -108,7 +108,7 @@ public class BtpUdpClient {
             } else if (args[arg].startsWith("--gpsd-server")) {
                 arg++;
                 String[] hostPort = args[arg].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad gpsd host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) { System.err.println("Bad gpsd host:port.\n" + USAGE); System.exit(1); }
                 positionProvider = new GpsdClient(
                         new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]))).startClient();
             } else if (args[arg].startsWith("--mac-address")) {
