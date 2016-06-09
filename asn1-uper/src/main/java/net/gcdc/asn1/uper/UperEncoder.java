@@ -39,6 +39,11 @@ public class UperEncoder {
     private final static int NUM_48K = 49152;
     @SuppressWarnings("unused")
     private final static int NUM_64K = 65536;
+    
+    private static List<Encoder> encoders = new ArrayList<>();
+    private static List<Decoder> decoders = new ArrayList<>();
+    
+    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
     public static <T> byte[] encode(T obj)
             throws IllegalArgumentException, UnsupportedOperationException {
@@ -106,9 +111,7 @@ public class UperEncoder {
         return newRange(sizeRange.minValue(), sizeRange.maxValue(), sizeRange.hasExtensionMarker());
     }
 
-    private static List<Encoder> encoders = new ArrayList<>();
-    private static List<Decoder> decoders = new ArrayList<>();
-
+    
     static {
         encoders.add(new IntCoder());
         encoders.add(new BigIntCoder());
@@ -496,7 +499,6 @@ public class UperEncoder {
         return result;
     }
 
-    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
     public static String hexStringFromBytes(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
