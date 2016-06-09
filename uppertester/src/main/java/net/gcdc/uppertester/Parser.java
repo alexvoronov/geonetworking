@@ -14,6 +14,11 @@ import org.slf4j.LoggerFactory;
 
 public class Parser {
     final static Logger logger = LoggerFactory.getLogger(Parser.class);
+    private final Map<Byte, Class<?>> msgToId = new HashMap<>();
+    
+    public Parser() {
+        refreshMessageMap();
+    }
 
     private static final List<Class<?>> staticMessages = Arrays.asList(
             BtpEventIndication.class,
@@ -65,7 +70,6 @@ public class Parser {
         refreshMessageMap();
     }
 
-    private final Map<Byte, Class<?>> msgToId = new HashMap<>();
 
     private void refreshMessageMap() {
         msgToId.clear();
@@ -88,9 +92,6 @@ public class Parser {
         }
     }
 
-    public Parser() {
-        refreshMessageMap();
-    }
 
     public Object parse2(byte[] b) throws InstantiationException, IllegalAccessException {
         byte msgType = b[0];

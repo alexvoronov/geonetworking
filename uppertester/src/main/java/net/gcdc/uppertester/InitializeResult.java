@@ -1,16 +1,17 @@
 package net.gcdc.uppertester;
 
 public class InitializeResult implements Response {
-    @Override public String toString() {
-        return "InitializeResult [messageType=" + messageType + ", result=" + result + "]";
-    }
 
+    byte messageType = 0x01;
+    byte result;
+    
     public InitializeResult() {}
 
     public InitializeResult(byte result) {
         this.result = result;
     }
-
-    byte messageType = 0x01;
-    byte result;
+    
+	@Override public String toString() {
+        return "InitializeResult [messageType=" + messageType + ", result=" + result + "]";
+    }
 }

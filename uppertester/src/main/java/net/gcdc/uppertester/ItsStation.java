@@ -138,6 +138,33 @@ public class ItsStation implements AutoCloseable {
     private final static int HIGH_DYNAMICS_CAM_COUNT = 4;
 
     public final static double CAM_LIFETIME_SECONDS = 0.9;
+    private final UpdatablePositionProvider position;
+
+    private InetAddress defaultTsAddress;
+    
+    public ItsStation(StationConfig config, LinkLayer linkLayer, UpdatablePositionProvider position, int udpPort, MacAddress macAddress, boolean withCAM) {
+        this.position = position;
+        DatagramSocket socket = null;
+        try {
+            socket = new DatagramSocket(udpPort);
+        } catch (SocketException e) {
+            logger.error("Unable to open socket for UT communication", e);
+            System.exit(1);
+        } finally {
+            rcvSocket = socket;
+        }
+        station = new GeonetStation(config, linkLayer, position, macAddress);
+        new Thread(station).start();
+        station.startBecon();
+        btpSocket = BtpSocket.on(station);
+        station.addGeonetDataListener(gnListener);
+        executor.submit(btpListener);
+        vehicle = new Vehicle(position);
+        if (withCAM) {
+            scheduledExecutor.scheduleAtFixedRate(camSender, CAM_INITIAL_DELAY_MS, CAM_INTERVAL_MIN_MS, TimeUnit.MILLISECONDS);
+        }
+    }
+
 
     private final GeonetDataListener gnListener = new GeonetDataListener() {
         @Override public void onGeonetDataReceived(GeonetData indication) {
@@ -244,10 +271,7 @@ public class ItsStation implements AutoCloseable {
 
     }
 
-    private final UpdatablePositionProvider position;
-
-    private InetAddress defaultTsAddress;
-
+    
     public static interface UpdatablePositionProvider extends PositionProvider {
         public void move(double deltaLatDegrees, double deltaLonDegrees, double deltaElevation);
         public void setSpeed(double speedMetersPerSecond);
@@ -342,31 +366,7 @@ public class ItsStation implements AutoCloseable {
         }
     }
 
-
-
-    public ItsStation(StationConfig config, LinkLayer linkLayer, UpdatablePositionProvider position, int udpPort, MacAddress macAddress, boolean withCAM) {
-        this.position = position;
-        DatagramSocket socket = null;
-        try {
-            socket = new DatagramSocket(udpPort);
-        } catch (SocketException e) {
-            logger.error("Unable to open socket for UT communication", e);
-            System.exit(1);
-        } finally {
-            rcvSocket = socket;
-        }
-        station = new GeonetStation(config, linkLayer, position, macAddress);
-        new Thread(station).start();
-        station.startBecon();
-        btpSocket = BtpSocket.on(station);
-        station.addGeonetDataListener(gnListener);
-        executor.submit(btpListener);
-        vehicle = new Vehicle(position);
-        if (withCAM) {
-            scheduledExecutor.scheduleAtFixedRate(camSender, CAM_INITIAL_DELAY_MS, CAM_INTERVAL_MIN_MS, TimeUnit.MILLISECONDS);
-        }
-    }
-
+    
     private void sendReply(Response message, InetAddress tsAddress, int tsPort) {
         logger.info((tsAddress == null ? "Skip " : "") + "Sending message to TS: " + message);
         if (tsAddress != null) {
