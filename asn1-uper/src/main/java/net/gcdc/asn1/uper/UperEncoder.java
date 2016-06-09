@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  *      TODO: Cover the rest of (useful) ASN.1 datatypes and PER-visible constraints,
  *      write unit tests for them. Clean-up, do more refactoring.
  **/
-public class UperEncoder {
+public final class UperEncoder {
     final static Logger logger = LoggerFactory.getLogger(UperEncoder.class);
 
     private final static int NUM_16K = 16384;
@@ -39,6 +39,8 @@ public class UperEncoder {
     private final static int NUM_48K = 49152;
     @SuppressWarnings("unused")
     private final static int NUM_64K = 65536;
+    
+    private UperEncoder(){}
 
     public static <T> byte[] encode(T obj)
             throws IllegalArgumentException, UnsupportedOperationException {

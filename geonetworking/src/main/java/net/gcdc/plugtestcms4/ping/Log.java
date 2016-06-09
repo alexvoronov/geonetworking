@@ -18,10 +18,11 @@ import java.util.logging.Logger;
  * @author Jan de Jongh
  * 
  */
-public class Log
+public final class Log
 {
 
   static Logger LOGGER = Logger.getLogger (Logger.GLOBAL_LOGGER_NAME);
+  private Log(){}
   
   /** Set the {@link Logger} for errors and warnings from this package.
    *
