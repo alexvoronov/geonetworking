@@ -2,12 +2,6 @@ package net.gcdc.geonetworking;
 
 
 public abstract class Destination {
-	
-	final private Area              area;
-    final private Optional<Double>  maxLifetimeSeconds;
-    final private Optional<Byte>    maxHopLimit;
-    final private Optional<Byte>    remainingHopLimit;
-    final private boolean           isAnycast;
 
     public abstract DestinationType  typeAndSubtype();
     public abstract Optional<Double> maxLifetimeSeconds();
