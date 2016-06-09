@@ -52,7 +52,7 @@ public class BtpUdpClient {
         InetSocketAddress remoteDataCamAddress = null;
         int localDataIclcmPort = 0;
         InetSocketAddress remoteDataIclcmAddress = null;
-        boolean hasEthernetHeader = false;
+        boolean hasEthernetHeader;
         PositionProvider positionProvider = null;
         short btpDestinationPort = (short) 2001;  // CAM
         hasEthernetHeader = true;

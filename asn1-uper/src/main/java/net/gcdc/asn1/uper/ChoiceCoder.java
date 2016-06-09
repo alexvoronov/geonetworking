@@ -28,7 +28,7 @@ class ChoiceCoder implements Decoder, Encoder {
         try {
             for (Field f : sorter.ordinaryFields) {
                 if (f.get(obj) != null) {
-                    nonNullIndex = currentIndex;
+                    nonNullIndex = currentIndex;;
                     nonNullFieldValue = f.get(obj);
                     nonNullField = f;
                     break;

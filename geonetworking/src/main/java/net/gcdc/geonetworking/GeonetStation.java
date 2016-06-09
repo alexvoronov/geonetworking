@@ -233,7 +233,6 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 case SINGLE_HOP: {
                     LongPositionVector senderLpv = LongPositionVector.getFrom(buffer);
                     @SuppressWarnings("unused")
-                    int reserved = buffer.getInt();  // 32 bit media-dependent info.
                     byte[] upperPayload = new byte[commonHeader.payloadLength()];
                     buffer.slice().get(upperPayload, 0, commonHeader.payloadLength());
                     GeonetData indication = new GeonetData(

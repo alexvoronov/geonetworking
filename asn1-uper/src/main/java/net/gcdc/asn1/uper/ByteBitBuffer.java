@@ -124,7 +124,6 @@ public class ByteBitBuffer implements BitBuffer {
 
     @Override public BitBuffer flip() {
         limit = position;
-        DataOutputStream d = null;
         position = 0;
         return this;
     }

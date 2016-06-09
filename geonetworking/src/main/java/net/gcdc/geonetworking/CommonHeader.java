@@ -57,7 +57,6 @@ public final class CommonHeader {
         byte flags                 = buffer.get();
         short payloadLength        = buffer.getShort();
         byte maxHopLimit           = buffer.get();
-        byte reserved              = buffer.get();
         return new CommonHeader(
                 UpperProtocolType.fromCode(nextHeaderAndReserved >> 4),
                 DestinationType.fromByte(typeAndSubtypeByte),

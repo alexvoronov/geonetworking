@@ -152,7 +152,6 @@ public class BasicHeader {
 
     public static BasicHeader getFrom(ByteBuffer buffer) {
         byte versionAndNextHeader = buffer.get();
-        byte reserved             = buffer.get();
         byte lifetimeByte         = buffer.get();
         byte remainingHopLimit    = buffer.get();
         byte version = (byte) (versionAndNextHeader >> 4);

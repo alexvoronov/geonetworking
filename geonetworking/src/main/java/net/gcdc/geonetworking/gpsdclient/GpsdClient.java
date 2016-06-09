@@ -131,16 +131,14 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
     private Future<?> createReader(){
     	 runner = executor.submit(new Runnable() {
              @Override public void run() {
-            	final int buffsize = 4096;
+            	
  	            InputStream instr = tc.getInputStream();
  	            BufferedInputStream bf = new BufferedInputStream(instr);
  	            BufferedReader reader = new BufferedReader(
  	        	        new InputStreamReader(bf, StandardCharsets.UTF_8));
 
  	            try{
- 	                byte[] buff = new byte[buffsize];
  	                int ret_read = 0;
-
  	                do{
  	                   String line = reader.readLine();
  	                   if(!line.isEmpty()){
