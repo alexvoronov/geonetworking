@@ -22,6 +22,24 @@ public class ByteBitBuffer implements BitBuffer {
     int mark;
     int position;
     int limit;
+    
+    private ByteBitBuffer(byte[] backingArray) {
+        this.bytes = backingArray;
+        this.isFinite = true;
+    }
+
+    private ByteBitBuffer(int initialCapacity) {
+        this.bytes = new byte[initialCapacity];
+        this.isFinite = false;
+    }
+
+    public static ByteBitBuffer allocate(int lengthInBits) {
+        return new ByteBitBuffer(new byte[(lengthInBits + 7) / 8]);
+    }
+
+    public static ByteBitBuffer createInfinite() {
+        return new ByteBitBuffer(64);
+    }
 
     @Override public boolean get(int index) {
         if (index < 0) {
@@ -102,24 +120,6 @@ public class ByteBitBuffer implements BitBuffer {
 
     @Override public int remaining() {
         return limit - position;
-    }
-
-    private ByteBitBuffer(byte[] backingArray) {
-        this.bytes = backingArray;
-        this.isFinite = true;
-    }
-
-    private ByteBitBuffer(int initialCapacity) {
-        this.bytes = new byte[initialCapacity];
-        this.isFinite = false;
-    }
-
-    public static ByteBitBuffer allocate(int lengthInBits) {
-        return new ByteBitBuffer(new byte[(lengthInBits + 7) / 8]);
-    }
-
-    public static ByteBitBuffer createInfinite() {
-        return new ByteBitBuffer(64);
     }
 
     @Override public BitBuffer flip() {

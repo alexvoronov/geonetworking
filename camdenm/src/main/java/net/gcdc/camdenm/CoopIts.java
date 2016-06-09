@@ -62,6 +62,19 @@ public class CoopIts {
         ProtocolVersion protocolVersion;
         MessageId messageID;
         StationID stationID;
+        
+        public ItsPduHeader() {this (new ProtocolVersion(), new MessageId(), new StationID()); }
+
+        public ItsPduHeader(ProtocolVersion protocolVersion, MessageId messageId, StationID stationId) {
+            this.protocolVersion = protocolVersion;
+            this.messageID = messageId;
+            this.stationID = stationId;
+        }
+
+        // Convenience constructor
+        public ItsPduHeader(MessageId messageId) {
+            this(new ProtocolVersion(), messageId, new StationID());
+        }
 
         @Override public String toString() {
             return "Header(protocolVersion " + protocolVersion + ", messageID " + messageID +
@@ -103,18 +116,7 @@ public class CoopIts {
             public MessageId(int value) { super(value); }
         }
 
-        public ItsPduHeader() {this (new ProtocolVersion(), new MessageId(), new StationID()); }
-
-        public ItsPduHeader(ProtocolVersion protocolVersion, MessageId messageId, StationID stationId) {
-            this.protocolVersion = protocolVersion;
-            this.messageID = messageId;
-            this.stationID = stationId;
-        }
-
-        // Convenience constructor
-        public ItsPduHeader(MessageId messageId) {
-            this(new ProtocolVersion(), messageId, new StationID());
-        }
+       
     }
 
     @IntRange(minValue = 0, maxValue = 4294967295L)
@@ -125,11 +127,8 @@ public class CoopIts {
 
     @Sequence
     public static class CoopAwareness {
-        @Override public String toString() {
-            return "CoopAwareness(generationDeltaTime=" + generationDeltaTime + ", "
-                    + camParameters + ")";
-        }
-        GenerationDeltaTime generationDeltaTime;
+    	
+    	GenerationDeltaTime generationDeltaTime;
         CamParameters camParameters;
 
         public CoopAwareness() { this(new GenerationDeltaTime(), new CamParameters()); }
@@ -137,6 +136,12 @@ public class CoopIts {
             this.generationDeltaTime = generationDeltaTime;
             this.camParameters = camParameters;
         }
+    	
+        @Override public String toString() {
+            return "CoopAwareness(generationDeltaTime=" + generationDeltaTime + ", "
+                    + camParameters + ")";
+        }
+        
 		public GenerationDeltaTime getGenerationDeltaTime() {
 			return generationDeltaTime;
 		}
@@ -157,13 +162,8 @@ public class CoopIts {
     @Sequence
     @HasExtensionMarker
     public static class CamParameters {
-        @Override public String toString() {
-            return "CamParameters(Basic: " + basicContainer + ", HF: "
-                    + highFrequencyContainer + ", LF: " + lowFrequencyContainer
-                    + ", Special: " + specialVehicleContainer + ")";
-        }
-
-        BasicContainer basicContainer;
+    	
+    	BasicContainer basicContainer;
         HighFrequencyContainer highFrequencyContainer;
         @Asn1Optional LowFrequencyContainer lowFrequencyContainer;
         @Asn1Optional SpecialVehicleContainer specialVehicleContainer;
@@ -187,6 +187,12 @@ public class CoopIts {
             this.lowFrequencyContainer = lowFrequencyContainer;
             this.specialVehicleContainer = specialVehicleContainer;
 
+        }
+        
+        @Override public String toString() {
+            return "CamParameters(Basic: " + basicContainer + ", HF: "
+                    + highFrequencyContainer + ", LF: " + lowFrequencyContainer
+                    + ", Special: " + specialVehicleContainer + ")";
         }
 
 		public BasicContainer getBasicContainer() {
@@ -235,23 +241,26 @@ public class CoopIts {
     @Choice
     @HasExtensionMarker
     public static class HighFrequencyContainer {
+    	
+    	 BasicVehicleContainerHighFrequency basicVehicleContainerHighFrequency;
+         RSUContainerHighFrequency rsuContainerHighFrequency;
+         
+         public HighFrequencyContainer() { this(BasicVehicleContainerHighFrequency.builder().create()); }
+         public HighFrequencyContainer(BasicVehicleContainerHighFrequency basicVehicleContainerHighFrequency) {
+             this.basicVehicleContainerHighFrequency = basicVehicleContainerHighFrequency;
+             this.rsuContainerHighFrequency = null;
+         }
+         public HighFrequencyContainer(RSUContainerHighFrequency rsuContainerHighFrequency) {
+             this.basicVehicleContainerHighFrequency = null;
+             this.rsuContainerHighFrequency = rsuContainerHighFrequency;
+         }
+         
         @Override public String toString() {
             return "HighFrequencyContainer[CHOICE](Basic: "
                     + basicVehicleContainerHighFrequency + ", RSU: "
                     + rsuContainerHighFrequency + ")";
         }
-        BasicVehicleContainerHighFrequency basicVehicleContainerHighFrequency;
-        RSUContainerHighFrequency rsuContainerHighFrequency;
-
-        public HighFrequencyContainer() { this(BasicVehicleContainerHighFrequency.builder().create()); }
-        public HighFrequencyContainer(BasicVehicleContainerHighFrequency basicVehicleContainerHighFrequency) {
-            this.basicVehicleContainerHighFrequency = basicVehicleContainerHighFrequency;
-            this.rsuContainerHighFrequency = null;
-        }
-        public HighFrequencyContainer(RSUContainerHighFrequency rsuContainerHighFrequency) {
-            this.basicVehicleContainerHighFrequency = null;
-            this.rsuContainerHighFrequency = rsuContainerHighFrequency;
-        }
+       
         public boolean hasBasicVehicleContainerHighFrequency(){
         	return basicVehicleContainerHighFrequency != null;
         }
@@ -295,11 +304,7 @@ public class CoopIts {
         public static class Builder {
             private BasicVehicleContainerHighFrequency val = new BasicVehicleContainerHighFrequency();
             private boolean created = false;
-            private void checkCreated() {
-                if (created) { throw new IllegalStateException("Already created"); }
-            }
-            public BasicVehicleContainerHighFrequency create() { created = true; return val; }
-
+            
             private Builder() {
                 val.heading = new Heading();
                 val.speed = new Speed();
@@ -311,6 +316,11 @@ public class CoopIts {
                 val.curvatureCalculationMode = CurvatureCalculationMode.unavailable;
                 val.yawRate = new YawRate();
             }
+            
+            private void checkCreated() {
+                if (created) { throw new IllegalStateException("Already created"); }
+            }
+            public BasicVehicleContainerHighFrequency create() { created = true; return val; }
 
             public Builder heading(Heading heading) { checkCreated(); val.heading = heading; return this; }
             public Builder speed(Speed speed) { checkCreated(); val.speed = speed; return this; }
@@ -538,13 +548,16 @@ public class CoopIts {
         UNAVAILABLE (2);
 
         private final int value;
-        public int value() { return value; }
+        
         private DriveDirection(int value) { this.value = value; }
         public static DriveDirection fromCode(int value) {
             for (DriveDirection element : values()) { if (element.value() == value) { return element; } }
             throw new IllegalArgumentException("Can't find element in enum " +
                     DriveDirection.class.getName() + " for code " + value);
         }
+        
+        public int value() { return value; }
+        
     }
 
     @Sequence
@@ -588,10 +601,12 @@ public class CoopIts {
         trailerPresentWithUnknownLength(2),
         trailerPresenceIsUnknown(3),
         unavailable(4);
+    	
+    	 private VehicleLengthConfidenceIndication(int value) { this.value = value; }
 
         private final int value;
         public int value() { return value; }
-        private VehicleLengthConfidenceIndication(int value) { this.value = value; }
+       
     }
 
     @IntRange(minValue = 1, maxValue = 62)
@@ -681,10 +696,12 @@ public class CoopIts {
         onePerMeter_0_1 (5),
         outOfRange (6),
         unavailable (7);
+    	
+    	private CurvatureConfidence(int value) { this.value = value; }
 
         private final int value;
         public int value() { return value; }
-        private CurvatureConfidence(int value) { this.value = value; }
+        
     }
 
     @HasExtensionMarker
@@ -692,10 +709,12 @@ public class CoopIts {
         yawRateUsed(0),
         yawRateNotUsed(1),
         unavailable(2);
-
+    	
+    	private CurvatureCalculationMode(int value) { this.value = value; }
+    	 
         private final int value;
         public int value() { return value; }
-        private CurvatureCalculationMode(int value) { this.value = value; }
+       
     }
 
     @Sequence
@@ -737,10 +756,12 @@ public class CoopIts {
         degSec_100_00 (6),
         outOfRange (7),
         unavailable (8);
+    	
+    	private YawRateConfidence(int value) { this.value = value; }
 
         private final int value;
         public int value() { return value; }
-        private YawRateConfidence(int value) { this.value = value; }
+        
         static public boolean isMember(int value) { return value >= 0 && value <= 8; }
 
     }
@@ -834,10 +855,12 @@ public class CoopIts {
         alt_200_00 (13),
         outOfRange (14),
         unavailable (15);
+    	
+    	private AltitudeConfidence(int value) { this.value = value; }
 
         private final int value;
         public int value() { return value; }
-        private AltitudeConfidence(int value) { this.value = value; }
+        
     }
 
     @IntRange(minValue = 0, maxValue = 3601)
@@ -901,12 +924,13 @@ public class CoopIts {
         public static class Builder {
             private AccelerationControl val = new AccelerationControl();
             private boolean created = false;
+            private Builder() {}
+            
             private void checkCreated() {
                 if (created) { throw new IllegalStateException("Already created"); }
             }
             public AccelerationControl create() { created = true; return val; }
-            private Builder() {}
-
+            
             public Builder brakePedalEngaged(boolean brakePedalEngaged) { checkCreated(); val.brakePedalEngaged = brakePedalEngaged; return this; }
             public Builder gasPedalEngaged(boolean gasPedalEngaged) { checkCreated(); val.gasPedalEngaged = gasPedalEngaged; return this; }
             public Builder emergencyBrakeEngaged(boolean emergencyBrakeEngaged) { checkCreated(); val.emergencyBrakeEngaged = emergencyBrakeEngaged; return this; }
@@ -1192,8 +1216,11 @@ public class CoopIts {
         reserved3(15);
 
         private final int value;
-        public int value() { return value; }
+        
         private VehicleRole(int value) { this.value = value; }
+        
+        public int value() { return value; }
+        
         public static VehicleRole fromCode(int value) {
             for (VehicleRole element : values()) { if (element.value() == value) { return element; } }
             throw new IllegalArgumentException("Can't find element in enum " +
@@ -1221,13 +1248,13 @@ public class CoopIts {
         public static class Builder {
             private ExteriorLights val = new ExteriorLights();
             private boolean created = false;
+            
+            private Builder() { }
+            
             private void checkCreated() {
                 if (created) { throw new IllegalStateException("Already created"); }
             }
             public ExteriorLights create() { created = true; return val; }
-
-            private Builder() { }
-
             public Builder lowBeamHeadlightsOn(boolean lowBeamHeadlightsOn) { checkCreated(); val.lowBeamHeadlightsOn = lowBeamHeadlightsOn; return this; }
             public Builder highBeamHeadlightsOn(boolean highBeamHeadlightsOn) { checkCreated(); val.highBeamHeadlightsOn = highBeamHeadlightsOn; return this; }
             public Builder leftTurnSignalOn(boolean leftTurnSignalOn) { checkCreated(); val.leftTurnSignalOn = leftTurnSignalOn; return this; }
@@ -1377,8 +1404,11 @@ public class CoopIts {
         cenDsrcTolling (0);
 
         private final int value;
-        public int value() { return value; }
+        
         private ProtectedZoneType(int value) { this.value = value; }
+        
+        public int value() { return value; }
+        
     }
 
     @IntRange(minValue = 0, maxValue = 4398046511103L)
@@ -1683,10 +1713,12 @@ public class CoopIts {
         radioactiveMaterial(17),
         corrosiveSubstances(18),
         miscellaneousDangerousSubstances(19);
+    	
+    	private DangerousGoodsBasic(int value) { this.value = value; }
 
         private final int value;
         public int value() { return value; }
-        private DangerousGoodsBasic(int value) { this.value = value; }
+       
         public static DangerousGoodsBasic defaultValue() { return explosives1; }
         public static DangerousGoodsBasic fromCode(int value) {
             for (DangerousGoodsBasic element : values()) { if (element.value() == value) { return element; } }
@@ -1793,10 +1825,12 @@ public class CoopIts {
         vailableForStopping(0),
         closed(1),
         availableForDriving(2);
-
-        private final int value;
+    	private final int value;
+    	
+    	private HardShoulderStatus(int value) { this.value = value; }
+    	
         public int value() { return value; }
-        private HardShoulderStatus(int value) { this.value = value; }
+        
         public static HardShoulderStatus defaultValue() { return vailableForStopping; }
     }
 
@@ -1804,9 +1838,9 @@ public class CoopIts {
     @SizeRange(minValue = 1, maxValue = 14)
     public static class DrivingLaneStatus extends Asn1VarSizeBitstring {
 
-        public boolean outermostLaneClosed() { return getBit(1); }
-        public boolean secondLaneFromOutsideClosed() { return getBit(2); }
+    	protected DrivingLaneStatus() { super(new ArrayList<Boolean>()); }
 
+        protected DrivingLaneStatus(Builder builder) { super(builder.bitset); }
         public DrivingLaneStatus(Collection<Boolean> coll) {
             super(coll);
         }
@@ -1814,10 +1848,9 @@ public class CoopIts {
         public DrivingLaneStatus(Boolean... coll) {
             this(Arrays.asList(coll));
         }
-
-        protected DrivingLaneStatus() { super(new ArrayList<Boolean>()); }
-
-        protected DrivingLaneStatus(Builder builder) { super(builder.bitset); }
+    	
+    	public boolean outermostLaneClosed() { return getBit(1); }
+        public boolean secondLaneFromOutsideClosed() { return getBit(2); }
 
         public static Builder builder() { return new Builder(); }
 
@@ -1825,6 +1858,9 @@ public class CoopIts {
             private static final int minSize = Builder.class.getDeclaringClass().getAnnotation(SizeRange.class).minValue();
             private static final int maxSize = Builder.class.getDeclaringClass().getAnnotation(SizeRange.class).maxValue();
             BitSet bitset = new BitSet();
+            
+            private Builder() { }
+            
             public DrivingLaneStatus create() {
                 if (bitset.size() < minSize) {
                     throw new IllegalStateException("Too few elements: have " + bitset.size() +
@@ -1832,8 +1868,6 @@ public class CoopIts {
                 }
                 return new DrivingLaneStatus(this);
             }
-
-            private Builder() { }
 
             public Builder setBit(int bitIndex, boolean value) {
                 if (bitIndex >= maxSize) {
@@ -2023,8 +2057,10 @@ public class CoopIts {
         passToLeft(3);
 
         private final int value;
-        public int value() { return value; }
         private TrafficRule(int value) { this.value = value; }
+        
+        public int value() { return value; }
+        
         public static TrafficRule defaultValue() { return noPassing; }
     }
 
@@ -2126,16 +2162,6 @@ public class CoopIts {
         @Asn1Optional ValidityDuration validityDuration = defaultValidity;
         @Asn1Optional TransmissionInterval transmissionInterval;
         StationType stationType;
-
-        @Override
-        public String toString(){
-        	return "ManagementContainer("+actionID+", "+detectionTime+", "+ referenceTime+", "+ eventPosition+", "+ stationType+", "
-        			+(termination!=null?termination.toString():"Termination(null)")+", "
-        			+(relevanceDistance!=null?relevanceDistance.toString():"RelevanceDistance(null)")+", "
-        			+(relevanceTrafficDirection!=null?relevanceTrafficDirection.toString():"RelevanceTrafficDirection(null)")+", "
-		        	+(validityDuration!=null?validityDuration.toString():"ValidityDuration(null)")+", "
-		        	+(transmissionInterval!=null?transmissionInterval.toString():"TransmissionInterval(null)")+")";
-        }
         
         public ManagementContainer() {
             this.actionID = new ActionID();
@@ -2182,7 +2208,17 @@ public class CoopIts {
                     builder.transmissionInterval,
                     builder.stationType);
         }
-
+        
+        @Override
+        public String toString(){
+        	return "ManagementContainer("+actionID+", "+detectionTime+", "+ referenceTime+", "+ eventPosition+", "+ stationType+", "
+        			+(termination!=null?termination.toString():"Termination(null)")+", "
+        			+(relevanceDistance!=null?relevanceDistance.toString():"RelevanceDistance(null)")+", "
+        			+(relevanceTrafficDirection!=null?relevanceTrafficDirection.toString():"RelevanceTrafficDirection(null)")+", "
+		        	+(validityDuration!=null?validityDuration.toString():"ValidityDuration(null)")+", "
+		        	+(transmissionInterval!=null?transmissionInterval.toString():"TransmissionInterval(null)")+")";
+        }
+        
         public static Builder builder() { return new Builder(); }
 
         public static class Builder {
@@ -2196,10 +2232,10 @@ public class CoopIts {
             ValidityDuration validityDuration;
             TransmissionInterval transmissionInterval;
             StationType stationType;
+            
+            private Builder() { }
 
             public ManagementContainer create() { return new ManagementContainer(this); }
-
-            private Builder() { }
 
             public Builder actionID                  (ActionID                  actionID)                  { this.actionID                  = actionID;                  return this; }
             public Builder detectionTime             (TimestampIts              detectionTime)             { this.detectionTime             = detectionTime;             return this; }
@@ -2301,8 +2337,10 @@ public class CoopIts {
         over10km(7);
 
         private final int value;
-        public int value() { return value; }
+        
         private RelevanceDistance(int value) { this.value = value; }
+        
+        public int value() { return value; }
         public static RelevanceDistance defaultValue() { return lessThan50m; }
         public static boolean isMember(int value) { return value >= 0 && value <= 7; }
     }
@@ -2314,8 +2352,10 @@ public class CoopIts {
         oppositeTraffic(3);
 
         private final int value;
-        public int value() { return value; }
+        
         private RelevanceTrafficDirection(int value) { this.value = value; }
+        
+        public int value() { return value; }
         public static RelevanceTrafficDirection defaultValue() { return allTrafficDirections; }
         public static boolean isMember(int value) { return value >= 0 && value <= 3; }        
     }
@@ -2351,8 +2391,10 @@ public class CoopIts {
         isNegation (1);
 
         private final int value;
-        public int value() { return value; }
+        
         private Termination(int value) { this.value = value; }
+        
+        public int value() { return value; }
         public static Termination defaultValue() { return isCancellation; }
         public static boolean isMember(int value){ return value >= 0 && value <= 1; }
     }
@@ -2918,9 +2960,12 @@ public class CoopIts {
         response(1);
 
         private final int value;
+        
+        private RequestResponseIndication(int value) { this.value = value; }
+        
         public int value() { return value; }
         public static RequestResponseIndication defaultValue() { return request; }
-        private RequestResponseIndication(int value) { this.value = value; }
+        
     }
 
 
@@ -2954,8 +2999,10 @@ public class CoopIts {
         dR(5);
 
         private final int value;
-        public int value() { return value; }
+        
         private PositioningSolutionType(int value) { this.value = value; }
+        
+        public int value() { return value; }
         public static boolean isMember(int value) { return value >= 0 && value <= 5; }
     }
 
@@ -3029,8 +3076,10 @@ public class CoopIts {
         equalOrGreater15Minutes(3);
 
         private final int value;
-        public int value() { return value; }
+        
         private StationarySince(int value) { this.value = value; }
+        
+        public int value() { return value; }
         public static StationarySince defaultValue() { return lessThan1Minute; }
     }
 
@@ -3094,9 +3143,6 @@ public class CoopIts {
         boolean gasoline;  // Bit 5
         boolean ammonia;  // Bit 6
         
-        public boolean[] values(){
-        	return new boolean[]{hydrogenStorage,electricEnergyStorage,liquidPropaneGas,compressedNaturalGas,diesel,gasoline,ammonia};
-        }
         public EnergyStorageType(boolean[] data){
         	hydrogenStorage = data[0];
         	electricEnergyStorage = data[1];
@@ -3108,6 +3154,11 @@ public class CoopIts {
         }
         
         public EnergyStorageType(){}
+        
+        public boolean[] values(){
+        	return new boolean[]{hydrogenStorage,electricEnergyStorage,liquidPropaneGas,compressedNaturalGas,diesel,gasoline,ammonia};
+        }
+        
     }
 
     @Sequence
