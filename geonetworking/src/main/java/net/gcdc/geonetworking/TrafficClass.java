@@ -9,7 +9,13 @@ package net.gcdc.geonetworking;
  */
 public final class TrafficClass {
 
-    @Override
+	private final byte code;
+
+    public TrafficClass(byte code) {
+        this.code = code;
+    }
+	
+	@Override
     public String toString() {
         return "TrafficClass [0x" + Integer.toHexString(code) + "]";
     }
@@ -34,12 +40,6 @@ public final class TrafficClass {
         if (code != other.code)
             return false;
         return true;
-    }
-
-    private final byte code;
-
-    public TrafficClass(byte code) {
-        this.code = code;
     }
 
     public byte asByte() {

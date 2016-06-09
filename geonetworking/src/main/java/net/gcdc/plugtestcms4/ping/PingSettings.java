@@ -8,62 +8,67 @@ import java.util.Map;
 
 public class PingSettings
 {
+	private boolean active = false;
+	private Thread pingStatusThread = null;
+	private int pollInterval_ms = 10000;
+	private int timeout_ms = 50;
+	private boolean useExternalPing = false;
+	private String[] hostAddressesToMonitor = new String[] { };
+	private final Map<String, Boolean> hostAddressStatus = new HashMap<> ();
+	  
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// PROPERTY CHANGE SUPPORT
+	//
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //
-  // PROPERTY CHANGE SUPPORT
-  //
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	protected final PropertyChangeSupport pcs = new PropertyChangeSupport (this);
+
+	public void addPropertyChangeListener (PropertyChangeListener listener)
+	{
+		this.pcs.addPropertyChangeListener (listener);
+	}
+
+	public void removePropertyChangeListener (PropertyChangeListener listener)
+	{
+		this.pcs.removePropertyChangeListener (listener);
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//
+	// PROPERTY active
+	//
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	public final synchronized boolean getActive ()
+	{
+		return this.active;
+	}
   
-  protected final PropertyChangeSupport pcs = new PropertyChangeSupport (this);
-
-  public void addPropertyChangeListener (PropertyChangeListener listener)
-  {
-    this.pcs.addPropertyChangeListener (listener);
-  }
-
-  public void removePropertyChangeListener (PropertyChangeListener listener)
-  {
-    this.pcs.removePropertyChangeListener (listener);
-  }
-
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //
-  // PROPERTY active
-  //
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  private boolean active = false;
-  
-  public final synchronized boolean getActive ()
-  {
-    return this.active;
-  }
-  
-  public final /* synchronized */ void setActive (boolean active)
-  {
-    boolean fireEvent = false;
-    synchronized (this)
-    {
-      if (active != this.active)
-      {
-        fireEvent = true;
-        if (this.pingStatusThread != null)
-        {
-          this.pingStatusThread.interrupt ();
-          this.pingStatusThread = null;
-        }
-        this.active = active;
-        if (this.active)
-        {
-          this.pingStatusThread = new PingStatusThread (this);
-          this.pingStatusThread.start ();
-        }
-      }
+	public final /* synchronized */ void setActive (boolean active)
+	{
+		boolean fireEvent = false;
+		synchronized (this)
+		{
+			if (active != this.active)
+			{
+				fireEvent = true;
+				if (this.pingStatusThread != null)
+				{
+					this.pingStatusThread.interrupt ();
+					this.pingStatusThread = null;
+				}
+				this.active = active;
+				if (this.active)
+				{
+					this.pingStatusThread = new PingStatusThread (this);
+					this.pingStatusThread.start ();
+				}
+		 }
     }
-    if (fireEvent)
+     if (fireEvent)
       this.pcs.firePropertyChange ("active", ! this.active, this.active);
-  }
+    }
   
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   //
@@ -71,7 +76,6 @@ public class PingSettings
   //
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  private Thread pingStatusThread = null;
   
   public final synchronized Thread getPingStatusThread ()
   {
@@ -84,7 +88,7 @@ public class PingSettings
   //
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  private int pollInterval_ms = 10000;
+ 
   
   public final synchronized int getPollInterval_ms ()
   {
@@ -109,7 +113,7 @@ public class PingSettings
   //
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  private int timeout_ms = 50;
+  
   
   public final synchronized int getTimeout_ms ()
   {
@@ -133,8 +137,6 @@ public class PingSettings
   // PROPERTY useExternalPing
   //
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  private boolean useExternalPing = false;
   
   public final boolean getUseExternalPing ()
   {
@@ -155,8 +157,6 @@ public class PingSettings
   // PROPERTY hostAddressesToMonitor
   //
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  private String[] hostAddressesToMonitor = new String[] { };
 
   public final synchronized String[] getHostAddressesToMonitor ()
   {
@@ -186,8 +186,6 @@ public class PingSettings
   //
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  private final Map<String, Boolean> hostAddressStatus = new HashMap<> ();
-  
   public final synchronized PingStatus[] getHostStatus ()
   {
     final PingStatus[] hostStatus = new PingStatus[this.hostAddressesToMonitor.length];

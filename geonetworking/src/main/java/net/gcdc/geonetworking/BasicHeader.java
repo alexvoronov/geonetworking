@@ -68,6 +68,14 @@ public class BasicHeader {
      */
     public static class Lifetime {
 
+        
+        final static double MAX_MULTIPLIER = 63;  // Max unsigned 6-bit integer.
+
+        public final static Lifetime MAX_VALUE = new Lifetime(Base.X100S, (byte)MAX_MULTIPLIER);
+
+        private final byte multiplier;  // bits 0-5
+        private final Base base;        // bits 6-7
+        
         public static enum Base {
             X50MS  (  0.050, 0),  // Up to 3.15 seconds.
             X1S    (  1.000, 1),  // From 4 up to 63 seconds.
@@ -90,12 +98,18 @@ public class BasicHeader {
             }
         }
 
-        final static double MAX_MULTIPLIER = 63;  // Max unsigned 6-bit integer.
-
-        public final static Lifetime MAX_VALUE = new Lifetime(Base.X100S, (byte)MAX_MULTIPLIER);
-
-        private final byte multiplier;  // bits 0-5
-        private final Base base;        // bits 6-7
+        
+        public BasicHeader(
+                byte version,
+                NextHeader nextHeader,
+                Lifetime lifetime,
+                byte remainingHopLimit
+                ) {
+            this.version              = version;
+            this.nextHeader           = nextHeader;
+            this.lifetime             = lifetime;
+            this.remainingHopLimit    = remainingHopLimit;
+        }
 
         private Lifetime(Base base, byte multiplier) {
             this.base       = base;
@@ -128,17 +142,6 @@ public class BasicHeader {
 
     }
 
-    public BasicHeader(
-            byte version,
-            NextHeader nextHeader,
-            Lifetime lifetime,
-            byte remainingHopLimit
-            ) {
-        this.version              = version;
-        this.nextHeader           = nextHeader;
-        this.lifetime             = lifetime;
-        this.remainingHopLimit    = remainingHopLimit;
-    }
 
     public ByteBuffer putTo(ByteBuffer buffer) {
         byte versionAndNextHeader = (byte) (version << 4 | nextHeader.value());

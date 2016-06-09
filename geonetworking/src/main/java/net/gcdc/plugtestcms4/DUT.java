@@ -5,18 +5,27 @@ import net.gcdc.plugtestcms4.ping.PingSettings;
 
 public class DUT
 {
+	private boolean active = false;
+	private String rootPassword = "voyage";
+	private String name = "Unset";
+	private String ipv4AddressEth = "Unset";
+	private String ipv4AddressWLAN = "Unset";
+	private boolean transmits = false;
+	private boolean receives = false;
+	private PingSettings pingSettings = null;
+	private Object pingSettingsLock = new Object ();
+	private int rxPort = 1236;
+	private int txPort = 1235;
 
-  public DUT (String name, String ipv4AddressEth, String ipv4AddressWLAN, int rxPort)
-  {
-    if (name == null || ipv4AddressEth == null || ipv4AddressWLAN == null)
-      throw new IllegalArgumentException ();
-    this.name = name;
-    this.ipv4AddressEth = ipv4AddressEth;
-    this.ipv4AddressWLAN = ipv4AddressWLAN;
-    this.rxPort = rxPort;
-  }
-
-  private boolean active = false;
+	public DUT (String name, String ipv4AddressEth, String ipv4AddressWLAN, int rxPort)
+	{
+		if (name == null || ipv4AddressEth == null || ipv4AddressWLAN == null)
+			throw new IllegalArgumentException ();
+		this.name = name;
+		this.ipv4AddressEth = ipv4AddressEth;
+		this.ipv4AddressWLAN = ipv4AddressWLAN;
+		this.rxPort = rxPort;
+	}
 
   public synchronized boolean getActive ()
   {
@@ -53,9 +62,7 @@ public class DUT
       }
     }
   }
-
-  private String name = "Unset";
-
+  
   public String getName ()
   {
     return this.name;
@@ -66,16 +73,12 @@ public class DUT
     if (name == null)
       throw new IllegalArgumentException ();
     this.name = name;
-  }
-
-  private String rootPassword = "voyage";
+  } 
 
   public final String getRootPassword ()
   {
     return this.rootPassword;
   }
-
-  private String ipv4AddressEth = "Unset";
 
   public String getIpv4AddressEth ()
   {
@@ -92,8 +95,6 @@ public class DUT
     }
   }
 
-  private String ipv4AddressWLAN = "Unset";
-
   public String getIpv4AddressWLAN ()
   {
     return this.ipv4AddressWLAN ;
@@ -109,8 +110,6 @@ public class DUT
     }
   }
 
-  private boolean receives = false;
-
   public boolean getReceives ()
   {
     return this.receives;
@@ -123,8 +122,6 @@ public class DUT
       this.receives = receives;
     }
   }
-
-  private int rxPort = 1236;
 
   public int getRxPort ()
   {
@@ -139,8 +136,6 @@ public class DUT
     }
   }
 
-  private boolean transmits = false;
-
   public boolean getTransmits ()
   {
     return this.transmits;
@@ -154,8 +149,6 @@ public class DUT
     }
   }
 
-  private int txPort = 1235;
-
   public int getTxPort ()
   {
     return this.txPort;
@@ -168,10 +161,6 @@ public class DUT
       this.txPort = txPort;
     }
   }
-
-  private PingSettings pingSettings = null;
-
-  private Object pingSettingsLock = new Object ();
 
   public PingStatus getPingStatus ()
   {
@@ -187,5 +176,4 @@ public class DUT
       return hostStatus[0];
     }
   }
-
 }

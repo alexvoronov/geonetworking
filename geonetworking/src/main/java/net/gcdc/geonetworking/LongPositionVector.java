@@ -41,32 +41,21 @@ import org.threeten.bp.ZoneOffset;
  * Later it has to be encoded as an unsigned units of 0.1 degree from North.
  */
 public final class LongPositionVector {
+	
+	/** Long Position Vector length in bytes. */
+    public static final int LENGTH = 24;
 
-    @Override
-    public String toString() {
-        return "LPV[" + (address.isPresent() ? address.get() : "") + " " + timestamp
-                + " " + position + " PAI=" + isPositionConfident
-                + ", " + speedMetersPerSecond + " m/s, bearing "
-                + headingDegreesFromNorth + " degrees]";
-    }
-
-    private final Optional<Address>  address;
+    private final static double SPEED_STORE_SCALE   = 0.01;  // 0.01 meters per second.
+    private final static double HEADING_STORE_SCALE = 0.1;   // 0.1 degrees from north.
+    private static final long LEAP_SECONDS_SINCE_2004 = 4;  // Let's assume we're always in 2015.
+    
+	private final Optional<Address>  address;
     private final Instant            timestamp;
     private final Position           position;
     private final boolean            isPositionConfident;
     private final double             speedMetersPerSecond;
     private final double             headingDegreesFromNorth;
-
-    public Optional<Address> address()                 { return address; }
-    public Instant           timestamp()               { return timestamp; }
-    public Position          position()                { return position; }
-    public boolean           isPositionConfident()     { return isPositionConfident; }
-    public double            speedMetersPerSecond()    { return speedMetersPerSecond; }
-    public double            headingDegreesFromNorth() { return headingDegreesFromNorth; }
-
-
-    //private long taiMillisSince2004Mod32;
-
+    
     public LongPositionVector(
             Address  address,
             Instant  timestamp,
@@ -99,13 +88,25 @@ public final class LongPositionVector {
         this.headingDegreesFromNorth = headingDegreesFromNorth;
     }
 
-    /** Long Position Vector length in bytes. */
-    public static final int LENGTH = 24;
+    
+	@Override
+    public String toString() {
+        return "LPV[" + (address.isPresent() ? address.get() : "") + " " + timestamp
+                + " " + position + " PAI=" + isPositionConfident
+                + ", " + speedMetersPerSecond + " m/s, bearing "
+                + headingDegreesFromNorth + " degrees]";
+    }
+
+    public Optional<Address> address()                 { return address; }
+    public Instant           timestamp()               { return timestamp; }
+    public Position          position()                { return position; }
+    public boolean           isPositionConfident()     { return isPositionConfident; }
+    public double            speedMetersPerSecond()    { return speedMetersPerSecond; }
+    public double            headingDegreesFromNorth() { return headingDegreesFromNorth; }
 
 
-    private final static double SPEED_STORE_SCALE   = 0.01;  // 0.01 meters per second.
-    private final static double HEADING_STORE_SCALE = 0.1;   // 0.1 degrees from north.
-
+    
+  
     private int speedAsStoreUnit(double speedMetersPerSecond) {
         return (int) Math.round(speedMetersPerSecond / SPEED_STORE_SCALE);
     }
@@ -167,9 +168,9 @@ public final class LongPositionVector {
             headingDegreesFromNorth
             );
     }
-
-    private static final long LEAP_SECONDS_SINCE_2004 = 4;  // Let's assume we're always in 2015.
-
+    
+    //private long taiMillisSince2004Mod32;
+    
     /** Returns TAI milliseconds mod 2^32 for the given date.
      *
      * Since java int is signed 32 bit integer, return long instead.

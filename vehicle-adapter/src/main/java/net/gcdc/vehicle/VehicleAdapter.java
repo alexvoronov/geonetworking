@@ -186,6 +186,29 @@ public class VehicleAdapter {
     private static int num_rx_cam = 0;
     private static int num_rx_denm = 0;
     private static int num_rx_iclcm= 0;            
+    
+    public VehicleAdapter(int portRcvFromSimulink, StationConfig config,
+            LinkLayer linkLayer, PositionProvider position,
+            MacAddress macAddress) throws SocketException {
+rcvSocket = new DatagramSocket(portRcvFromSimulink);
+station = new GeonetStation(config, linkLayer, position, macAddress);
+new Thread(station).start();
+
+/* TODO: Race conditions in the beaconing service is causing
+* it to send too many beacons. Turn off until it's fixed. We
+* don't need the beaconing service for anything we're using
+* it for anyway as it's supposed to be quiet when sending
+* other traffic. */
+/* TODO: Thread crashes when attempting to send when the
+* beaconing service isn't running. */
+station.startBecon();
+
+btpSocket = BtpSocket.on(station);
+executor.submit(receiveFromSimulinkLoop);
+executor.submit(sendToSimulinkLoop);
+executor.submit(printStatistics);
+}
+    
     private Runnable printStatistics = new Runnable() {            
             @Override public void run() {
                 try{
@@ -563,27 +586,7 @@ public class VehicleAdapter {
         }
     }
 
-    public VehicleAdapter(int portRcvFromSimulink, StationConfig config,
-                          LinkLayer linkLayer, PositionProvider position,
-                          MacAddress macAddress) throws SocketException {
-        rcvSocket = new DatagramSocket(portRcvFromSimulink);
-        station = new GeonetStation(config, linkLayer, position, macAddress);
-        new Thread(station).start();
-
-        /* TODO: Race conditions in the beaconing service is causing
-         * it to send too many beacons. Turn off until it's fixed. We
-         * don't need the beaconing service for anything we're using
-         * it for anyway as it's supposed to be quiet when sending
-         * other traffic. */
-        /* TODO: Thread crashes when attempting to send when the
-         * beaconing service isn't running. */
-        station.startBecon();
-        
-        btpSocket = BtpSocket.on(station);
-        executor.submit(receiveFromSimulinkLoop);
-        executor.submit(sendToSimulinkLoop);
-        executor.submit(printStatistics);
-    }
+    
     
     public static void main(String[] args) throws IOException {
         //Parse CLI options

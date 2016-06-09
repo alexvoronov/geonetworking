@@ -50,12 +50,10 @@ public class GeonetStation implements Runnable, AutoCloseable {
             Executors.newSingleThreadScheduledExecutor();
 
     private boolean isPromiscuous = true;
-
-    // Common function to get the current time.
-    private Instant timeInstantNow() {
-        return Instant.now();  // Add clock here for non-real-time.
-    }
-
+ // Do we need concurrent?
+    private final Map<PacketId, ScheduledFuture<?>> contentionSet = new ConcurrentHashMap<>();
+    private final Set<PacketId> seenPackets = new HashSet<>();
+    
     public GeonetStation(StationConfig config, LinkLayer linkLayer, PositionProvider positionProvider) {
         this(config, linkLayer, positionProvider, EMPTY_MAC);
     }
@@ -72,6 +70,11 @@ public class GeonetStation implements Runnable, AutoCloseable {
             @Override public StationConfig config() { return GeonetStation.this.config;}
         });
         logger.info("Initialized station with GN address {} and MAC address {}", config.itsGnLoacalGnAddr, this.senderMac);
+    }
+
+    // Common function to get the current time.
+    private Instant timeInstantNow() {
+        return Instant.now();  // Add clock here for non-real-time.
     }
 
     private short sequenceNumber() {
@@ -365,9 +368,6 @@ public class GeonetStation implements Runnable, AutoCloseable {
         }
     }
 
-    // Do we need concurrent?
-    private final Map<PacketId, ScheduledFuture<?>> contentionSet = new ConcurrentHashMap<>();
-
     private void sendForwardedPacket(GeonetData data, int sequenceNumber, Instant timeAdded, MacAddress dstMac) {
         if (!linkLayer.hasEthernetHeader()) { return; }  // Forwarding does not work without MAC.
         double queuingTimeInSeconds = Duration.between(timeAdded, timeInstantNow()).toMillis() * 0.001;
@@ -586,8 +586,6 @@ public class GeonetStation implements Runnable, AutoCloseable {
             logger.error("Exception in LinkLayer close()", e);
         }
     }
-
-    private final Set<PacketId> seenPackets = new HashSet<>();
 
     private class PacketId {
         private final Instant timestamp;
