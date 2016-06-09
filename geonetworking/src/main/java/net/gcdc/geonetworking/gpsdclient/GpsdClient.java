@@ -43,6 +43,11 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
     private Future<?>       runner;
 
     private static TelnetClient tc = null;
+    
+    public GpsdClient(InetSocketAddress address) throws IOException {
+        logger.info("Starting GPSd client");
+        gpsdAddress = address;
+    }
 
     @Override
     public void run(){
@@ -163,11 +168,7 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
     	 return runner;
     }
 
-    public GpsdClient(InetSocketAddress address) throws IOException {
-        logger.info("Starting GPSd client");
-        gpsdAddress = address;
-    }
-
+    
     @Override
     public LongPositionVector getLatestPosition() {
         Optional<Address> emptyAddress = Optional.empty();

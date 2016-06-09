@@ -20,26 +20,25 @@ import java.nio.ByteBuffer;
  * 32 bit signed integer in [1/10 micro-degree] units.
  */
 public final class Position {
-    @Override
+	
+	final static double MICRODEGREE = 1E-6;
+	final static double STORE_UNIT = 0.1 * MICRODEGREE;
+	final static double earthRadius = 6371000; // In meters. In miles: 3958.75;
+	public static final int LENGTH = 2*4;  // Two 32-bit integers.
+
+	private final double lattitudeDegrees;
+	private final double longitudeDegrees;
+
+	public Position(double lattitudeDegrees, double longitudeDegrees) {
+	    this.lattitudeDegrees = lattitudeDegrees;
+	    this.longitudeDegrees = longitudeDegrees;
+	}
+	
+	@Override
     public String toString() {
         return "Pos(" + lattitudeDegrees + ", " + longitudeDegrees + ")";
     }
-
-    final static double MICRODEGREE = 1E-6;
-    final static double STORE_UNIT = 0.1 * MICRODEGREE;
-    final static double earthRadius = 6371000; // In meters. In miles: 3958.75;
-
-
-    private final double lattitudeDegrees;
-    private final double longitudeDegrees;
-
-    public Position(double lattitudeDegrees, double longitudeDegrees) {
-        this.lattitudeDegrees = lattitudeDegrees;
-        this.longitudeDegrees = longitudeDegrees;
-    }
-
-    public static final int LENGTH = 2*4;  // Two 32-bit integers.
-
+    
     public double lattitudeDegrees() { return lattitudeDegrees; }
     public double longitudeDegrees() { return longitudeDegrees; }
 
