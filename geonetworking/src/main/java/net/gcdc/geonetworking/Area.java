@@ -11,17 +11,27 @@ import java.nio.ByteBuffer;
  */
 public final class Area {
 
-    @Override public String toString() {
-        return "Area [center=" + center + ", distanceAmeters=" + distanceAmeters
-                + ", distanceBmeters=" + distanceBmeters + ", angleDegreesFromNorth="
-                + angleDegreesFromNorth + ", type=" + type + "]";
-    }
 
     private final Position center;
     private final double   distanceAmeters;
     private final double   distanceBmeters;
     private final double   angleDegreesFromNorth;
     private final Type     type;
+
+
+    private Area(Position center, double distanceA, double distanceB, double angleDegreesFromNorth, Type type) {
+        this.center    = center;
+        this.distanceAmeters = distanceA;
+        this.distanceBmeters = distanceB;
+        this.angleDegreesFromNorth = angleDegreesFromNorth;
+        this.type = type;
+    }
+    
+	@Override public String toString() {
+        return "Area [center=" + center + ", distanceAmeters=" + distanceAmeters
+                + ", distanceBmeters=" + distanceBmeters + ", angleDegreesFromNorth="
+                + angleDegreesFromNorth + ", type=" + type + "]";
+    }
 
     @Override
     public int hashCode() {
@@ -73,15 +83,6 @@ public final class Area {
             for (Area.Type h: Area.Type.values()) { if (h.code() == code) { return h; } }
             throw new IllegalArgumentException("Can't recognize area type: " + code);
         }
-    }
-
-
-    private Area(Position center, double distanceA, double distanceB, double angleDegreesFromNorth, Type type) {
-        this.center    = center;
-        this.distanceAmeters = distanceA;
-        this.distanceBmeters = distanceB;
-        this.angleDegreesFromNorth = angleDegreesFromNorth;
-        this.type = type;
     }
 
     public static Area getFrom(ByteBuffer buffer, Area.Type type) {

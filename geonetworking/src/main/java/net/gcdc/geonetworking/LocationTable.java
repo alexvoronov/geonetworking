@@ -51,6 +51,17 @@ public class LocationTable {
         private final boolean isNeighbour;
         private final int sequenceNumber;
         private final Instant timestamp;
+        
+        private Entry(Builder builder) {
+            this.address = builder.address;
+            this.macAddress = builder.macAddress;
+            this.position = builder.position;
+            this.locationServicePending = builder.locationServicePending;
+            this.isNeighbour = builder.isNeighbour;
+            this.sequenceNumber = builder.sequenceNumber;
+            this.timestamp = builder.timestamp;
+        }
+
 
         public Address address() { return address; }
         public MacAddress macAddress() { return macAddress; }
@@ -65,16 +76,7 @@ public class LocationTable {
         public Entry withIsNeighbour(boolean isNeighbour) { return new Builder(this).isNeighbour(isNeighbour).create(); }
         public Entry withTimestamp(Instant timestamp) { return new Builder(this).timestamp(timestamp).create(); }
 
-        private Entry(Builder builder) {
-            this.address = builder.address;
-            this.macAddress = builder.macAddress;
-            this.position = builder.position;
-            this.locationServicePending = builder.locationServicePending;
-            this.isNeighbour = builder.isNeighbour;
-            this.sequenceNumber = builder.sequenceNumber;
-            this.timestamp = builder.timestamp;
-        }
-
+        
         public Builder builder() { return new Builder(); }
 
         public static class Builder {

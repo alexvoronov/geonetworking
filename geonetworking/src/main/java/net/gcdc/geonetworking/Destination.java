@@ -7,7 +7,7 @@ public abstract class Destination {
     public abstract Optional<Double> maxLifetimeSeconds();
     public abstract Optional<Byte>   maxHopLimit();
     public abstract Optional<Byte>   remainingHopLimit();
-
+    
     public static final class SingleHop extends Destination {
         private final Optional<Double> maxLifetimeSeconds;
 
@@ -43,7 +43,28 @@ public abstract class Destination {
     }
 
     public static final class Geobroadcast extends Destination {
-        @Override
+        
+    	final private Area              area;
+        final private Optional<Double>  maxLifetimeSeconds;
+        final private Optional<Byte>    maxHopLimit;
+        final private Optional<Byte>    remainingHopLimit;
+        final private boolean           isAnycast;
+
+        private Geobroadcast (
+                Area              area,
+                Optional<Double>  maxLifetimeSeconds,
+                Optional<Byte>    maxHopLimit,
+                Optional<Byte>    remainingHopLimit,
+                boolean           isAnycast
+                ) {
+            this.area               = area;
+            this.maxLifetimeSeconds = maxLifetimeSeconds;
+            this.maxHopLimit        = maxHopLimit;
+            this.remainingHopLimit  = remainingHopLimit;
+            this.isAnycast          = isAnycast;
+        }
+
+    	@Override
         public int hashCode() {
             final int prime = 31;
             int result = 1;
@@ -89,25 +110,6 @@ public abstract class Destination {
             } else if (!remainingHopLimit.equals(other.remainingHopLimit))
                 return false;
             return true;
-        }
-        final private Area              area;
-        final private Optional<Double>  maxLifetimeSeconds;
-        final private Optional<Byte>    maxHopLimit;
-        final private Optional<Byte>    remainingHopLimit;
-        final private boolean           isAnycast;
-
-        private Geobroadcast (
-                Area              area,
-                Optional<Double>  maxLifetimeSeconds,
-                Optional<Byte>    maxHopLimit,
-                Optional<Byte>    remainingHopLimit,
-                boolean           isAnycast
-                ) {
-            this.area               = area;
-            this.maxLifetimeSeconds = maxLifetimeSeconds;
-            this.maxHopLimit        = maxHopLimit;
-            this.remainingHopLimit  = remainingHopLimit;
-            this.isAnycast          = isAnycast;
         }
 
         public Area area() { return area; }
