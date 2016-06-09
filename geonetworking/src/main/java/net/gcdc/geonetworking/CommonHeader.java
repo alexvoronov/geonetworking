@@ -12,14 +12,7 @@ public final class CommonHeader {
 
     /** Header length in bytes. */
     public static final int LENGTH = 8;
-
-    public UpperProtocolType nextHeader()      { return nextHeader;      }
-    public DestinationType   typeAndSubtype()  { return typeAndSubtype;  }
-    public TrafficClass      trafficClass()    { return trafficClass;    }
-    public boolean           isMobile()        { return isMobile;        }
-    public short             payloadLength()   { return payloadLength;   }
-    public byte              maximumHopLimit() { return maximumHopLimit; }
-
+    
     public CommonHeader(
             UpperProtocolType nextHeader,
             DestinationType   typeAndSubtype,
@@ -35,6 +28,13 @@ public final class CommonHeader {
         this.payloadLength   = payloadLength;
         this.maximumHopLimit = maximumHopLimit;
     }
+
+    public UpperProtocolType nextHeader()      { return nextHeader;      }
+    public DestinationType   typeAndSubtype()  { return typeAndSubtype;  }
+    public TrafficClass      trafficClass()    { return trafficClass;    }
+    public boolean           isMobile()        { return isMobile;        }
+    public short             payloadLength()   { return payloadLength;   }
+    public byte              maximumHopLimit() { return maximumHopLimit; }
 
     public ByteBuffer putTo(ByteBuffer buffer) {
         byte  nextHeaderAndReserved = (byte) (nextHeader.value() << 4);

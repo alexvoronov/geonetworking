@@ -59,13 +59,16 @@ public class Parser {
             );
 
     private final List<Class<?>> allMessages = new ArrayList<>(staticMessages);
+    private final Map<Byte, Class<?>> msgToId = new HashMap<>();
+    
+    public Parser() {
+        refreshMessageMap();
+    }
 
     void registerMessage(Class<?> message) {
         allMessages.add(message);
         refreshMessageMap();
     }
-
-    private final Map<Byte, Class<?>> msgToId = new HashMap<>();
 
     private void refreshMessageMap() {
         msgToId.clear();
@@ -88,10 +91,7 @@ public class Parser {
         }
     }
 
-    public Parser() {
-        refreshMessageMap();
-    }
-
+   
     public Object parse2(byte[] b) throws InstantiationException, IllegalAccessException {
         byte msgType = b[0];
         return parse(ByteBuffer.wrap(b), msgToId.get(msgType));

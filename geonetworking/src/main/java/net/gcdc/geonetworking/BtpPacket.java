@@ -4,6 +4,8 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class BtpPacket {
+	
+	public static final int HEADER_LENGTH = 4;
 
     private final Optional<Short>              sourcePort;
     private final short                        destinationPort;
@@ -133,8 +135,6 @@ public class BtpPacket {
         }
         return gnPayload;
     }
-
-    public static final int HEADER_LENGTH = 4;
 
     private ByteBuffer putHeaderTo(ByteBuffer buffer) {
         return buffer.putShort(destinationPort)

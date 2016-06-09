@@ -43,6 +43,21 @@ public abstract class Destination {
     }
 
     public static final class Geobroadcast extends Destination {
+    	
+    	private Geobroadcast (
+                Area              area,
+                Optional<Double>  maxLifetimeSeconds,
+                Optional<Byte>    maxHopLimit,
+                Optional<Byte>    remainingHopLimit,
+                boolean           isAnycast
+                ) {
+            this.area               = area;
+            this.maxLifetimeSeconds = maxLifetimeSeconds;
+            this.maxHopLimit        = maxHopLimit;
+            this.remainingHopLimit  = remainingHopLimit;
+            this.isAnycast          = isAnycast;
+        }
+    	
         @Override
         public int hashCode() {
             final int prime = 31;
@@ -89,25 +104,6 @@ public abstract class Destination {
             } else if (!remainingHopLimit.equals(other.remainingHopLimit))
                 return false;
             return true;
-        }
-        final private Area              area;
-        final private Optional<Double>  maxLifetimeSeconds;
-        final private Optional<Byte>    maxHopLimit;
-        final private Optional<Byte>    remainingHopLimit;
-        final private boolean           isAnycast;
-
-        private Geobroadcast (
-                Area              area,
-                Optional<Double>  maxLifetimeSeconds,
-                Optional<Byte>    maxHopLimit,
-                Optional<Byte>    remainingHopLimit,
-                boolean           isAnycast
-                ) {
-            this.area               = area;
-            this.maxLifetimeSeconds = maxLifetimeSeconds;
-            this.maxHopLimit        = maxHopLimit;
-            this.remainingHopLimit  = remainingHopLimit;
-            this.isAnycast          = isAnycast;
         }
 
         public Area area() { return area; }

@@ -160,10 +160,7 @@ public class Iclcm {
 			this(new VehicleRearAxleLocation(),new ControllerType(), 
 					new VehicleResponseTime(), new TargetLongitudonalAcceleration(), new TimeHeadway(), new CruiseSpeed());
 		}
-		@Override public String toString() { return "VehicleContainerHighFrequency(" + vehicleRearAxleLocation + ", " 
-				+ controllerType + ", " + vehicleResponseTime + ", " + targetLongitudinalAcceleration + ", " 
-						+ timeHeadway + ", " + cruisespeed + ")"; }
-		
+			
 		public VehicleContainerHighFrequency(VehicleRearAxleLocation vehicleRearAxleLocation,ControllerType controllerType,
 				VehicleResponseTime vehicleResponseTime,TargetLongitudonalAcceleration targetLongitudinalAcceleration,
 				TimeHeadway timeHeadway,CruiseSpeed cruisespeed){
@@ -198,6 +195,10 @@ public class Iclcm {
 		public CruiseSpeed getCruisespeed() {
 			return cruisespeed;
 		}
+		
+		@Override public String toString() { return "VehicleContainerHighFrequency(" + vehicleRearAxleLocation + ", " 
+				+ controllerType + ", " + vehicleResponseTime + ", " + targetLongitudinalAcceleration + ", " 
+						+ timeHeadway + ", " + cruisespeed + ")"; }
 	}
 	@Sequence
     public static class VehicleContainerLowFrequency{
