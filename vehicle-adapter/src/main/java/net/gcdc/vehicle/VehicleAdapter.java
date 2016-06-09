@@ -589,11 +589,6 @@ public class VehicleAdapter {
         //Parse CLI options
         CliOptions opts = CliFactory.parseArguments(CliOptions.class, args);
 
-        StationConfig config = new StationConfig();
-        LinkLayer linkLayer =
-            new LinkLayerUdpToEthernet(opts.getLocalPortForUdpLinkLayer(),
-                                       opts.getRemoteAddressForUdpLinkLayer().asInetSocketAddress(),
-                                       true);
         simulink_address = InetAddress.getByName(opts.getSimulinkAddress());
         
         MacAddress senderMac = opts.getMacAddress();
@@ -607,9 +602,6 @@ public class VehicleAdapter {
 
         simulink_cam_port = opts.getPortSendCam();
         simulink_denm_port = opts.getPortSendDenm();
-        simulink_iclcm_port = opts.getPortSendIclcm();
-
-        /* Create the vehicle adapter. */
-        VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer, vehiclePositionProvider, senderMac);
+        simulink_iclcm_port = opts.getPortSendIclcm();   
     }
 }
