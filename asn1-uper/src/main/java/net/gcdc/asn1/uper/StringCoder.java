@@ -15,8 +15,12 @@ import net.gcdc.asn1.datatypes.DefaultAlphabet;
 import net.gcdc.asn1.datatypes.FixedSize;
 import net.gcdc.asn1.datatypes.RestrictedString;
 import net.gcdc.asn1.datatypes.SizeRange;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class StringCoder implements Decoder, Encoder {
+
+    private  static final Logger LOGGER = LoggerFactory.getLogger(StringCoder.class);
 
     @Override public <T> boolean canEncode(T obj, Annotation[] extraAnnotations) {
         return obj instanceof String || obj instanceof Asn1String;
@@ -173,6 +177,7 @@ class StringCoder implements Decoder, Encoder {
                     try {
                         chars = UperEncoder.instantiate(restriction.alphabet()).chars().toCharArray();
                     } catch (IllegalArgumentException e) {
+                        LOGGER.info("Uninstantinatable alphabet ", e);
                         throw new IllegalArgumentException("Uninstantinatable alphabet"
                                 + restriction.alphabet().getName());
                     }
@@ -233,6 +238,7 @@ class StringCoder implements Decoder, Encoder {
                     try {
                         chars = UperEncoder.instantiate(restrictionAnnotation.alphabet()).chars().toCharArray();
                     } catch (IllegalArgumentException e) {
+                        LOGGER.info("Uninstantinatable alphabet ", e);
                         throw new IllegalArgumentException("Uninstantinatable alphabet"
                                 + restrictionAnnotation.alphabet().getName());
                     }

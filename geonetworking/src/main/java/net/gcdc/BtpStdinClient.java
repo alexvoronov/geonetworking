@@ -9,6 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 
+
 import net.gcdc.geonetworking.Address;
 import net.gcdc.geonetworking.BtpPacket;
 import net.gcdc.geonetworking.BtpSocket;
@@ -21,6 +22,8 @@ import net.gcdc.geonetworking.PositionProvider;
 import net.gcdc.geonetworking.StationConfig;
 import net.gcdc.geonetworking.gpsdclient.GpsdClient;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.threeten.bp.Instant;
 
 public final class BtpStdinClient {
@@ -30,6 +33,8 @@ public final class BtpStdinClient {
     "BTP ports: 2001 (CAM), 2002 (DENM), 2003 (MAP), 2004 (SPAT).";
     
     private BtpStdinClient(){}
+
+    private   static  final Logger LOGGER  = LoggerFactory.getLogger(BtpUdpClient.class);
 
     public static void main(String[] args) throws IOException {
         if (args.length < 7) {
@@ -112,7 +117,7 @@ public final class BtpStdinClient {
                         dataToSend = br.readLine();  // Consecutive lines.
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.info("socket sen error ", e.getMessage(), e);
                 }
             }
         };

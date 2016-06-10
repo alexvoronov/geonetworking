@@ -7,6 +7,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.Arrays;
+import java.util.logging.Level;
 
 import net.gcdc.geonetworking.Address;
 import net.gcdc.geonetworking.BtpPacket;
@@ -174,7 +175,7 @@ public final  class BtpUdpClient {
                                 ));
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.info("data socket sending error " ,e);
                 }
             }
         };
@@ -195,7 +196,7 @@ public final  class BtpUdpClient {
                         socket.send(BtpPacket.singleHop(btpPayload, btpDestinationPort));
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                   logger.info("Datagram socket sending error ", e);
                 }
             }
         };
@@ -216,7 +217,7 @@ public final  class BtpUdpClient {
                         socket.send(BtpPacket.singleHop(btpPayload, btpDestinationPort));
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.info("DatagramSocket error ", e);
                 }
             }
         };
@@ -270,7 +271,7 @@ public final  class BtpUdpClient {
                         }
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                   logger.info("BtpPacket error :", e);
                 }
             }
         };
