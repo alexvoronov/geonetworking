@@ -90,11 +90,11 @@ public abstract class Destination {
                 return false;
             return true;
         }
-        final private Area              area;
-        final private Optional<Double>  maxLifetimeSeconds;
-        final private Optional<Byte>    maxHopLimit;
-        final private Optional<Byte>    remainingHopLimit;
-        final private boolean           isAnycast;
+        private final Area              area;
+        private final Optional<Double>  maxLifetimeSeconds;
+        private final Optional<Byte>    maxHopLimit;
+        private final Optional<Byte>    remainingHopLimit;
+        private final  boolean           isAnycast;
 
         private Geobroadcast (
                 Area              area,

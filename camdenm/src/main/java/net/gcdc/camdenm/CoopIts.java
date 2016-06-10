@@ -741,7 +741,7 @@ public class CoopIts {
         private final int value;
         public int value() { return value; }
         private YawRateConfidence(int value) { this.value = value; }
-        static public boolean isMember(int value) { return value >= 0 && value <= 8; }
+        public static  boolean isMember(int value) { return value >= 0 && value <= 8; }
 
     }
 

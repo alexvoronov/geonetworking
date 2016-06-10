@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LinkLayerUdpToEthernet implements LinkLayer, AutoCloseable {
-    private final static Logger logger = LoggerFactory.getLogger(LinkLayerUdpToEthernet.class);
+    private static final Logger logger = LoggerFactory.getLogger(LinkLayerUdpToEthernet.class);
 
     final SocketAddress remoteAddress;
     final boolean hasEthernetHeader;
@@ -23,7 +23,7 @@ public class LinkLayerUdpToEthernet implements LinkLayer, AutoCloseable {
     final byte[] buffer = new byte[BUFFER_LENGTH];
     final DatagramPacket receptionPacket = new DatagramPacket(buffer, BUFFER_LENGTH);
 
-    private final static int ETHERTYPE_START_BIT = 12;
+    private static final int ETHERTYPE_START_BIT = 12;
 
     public LinkLayerUdpToEthernet(int localPort, SocketAddress remoteAddress, boolean hasEthernetHeader)
             throws SocketException {

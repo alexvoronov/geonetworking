@@ -25,7 +25,7 @@ import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
 import net.gcdc.asn1.datatypes.IntRange;
 
 public class LocalDenm{
-    private final static Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
+    private static final Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
     private final int LOCAL_DENM_LENGTH = 101;
     /* TODO: Is this the right way to keep sequence numbers? */
     private static int denmSequenceNumber = 0;

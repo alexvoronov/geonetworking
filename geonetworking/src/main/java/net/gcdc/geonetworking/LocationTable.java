@@ -19,7 +19,7 @@ import org.threeten.bp.Instant;
  * Entries in the Location Table expire after itsGnLifetimeLocTE.
  * */
 public class LocationTable {
-    private final static Logger logger = LoggerFactory.getLogger(LocationTable.class);
+    private static final Logger logger = LoggerFactory.getLogger(LocationTable.class);
 
     private final ConfigProvider configProvider;
 

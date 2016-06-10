@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  * @param <T> type of elements contained.
  */
 public abstract class Asn1SequenceOf<T> extends AbstractList<T> {
-    private final static Logger logger = LoggerFactory.getLogger(Asn1SequenceOf.class);
+    private static final Logger logger = LoggerFactory.getLogger(Asn1SequenceOf.class);
 
     private final List<T> bakingList;
 

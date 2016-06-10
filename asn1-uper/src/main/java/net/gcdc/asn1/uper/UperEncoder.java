@@ -32,13 +32,13 @@ import org.slf4j.LoggerFactory;
 public class UperEncoder {
     final static Logger logger = LoggerFactory.getLogger(UperEncoder.class);
 
-    private final static int NUM_16K = 16384;
+    private static final int NUM_16K = 16384;
     @SuppressWarnings("unused")
-    private final static int NUM_32K = 32768;
+    private  static final int NUM_32K = 32768;
     @SuppressWarnings("unused")
-    private final static int NUM_48K = 49152;
+    private  static final int NUM_48K = 49152;
     @SuppressWarnings("unused")
-    private final static int NUM_64K = 65536;
+    private  static final int NUM_64K = 65536;
 
     public static <T> byte[] encode(T obj)
             throws IllegalArgumentException, UnsupportedOperationException {
@@ -496,7 +496,7 @@ public class UperEncoder {
         return result;
     }
 
-    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
+    static final protected  char[] hexArray = "0123456789ABCDEF".toCharArray();
 
     public static String hexStringFromBytes(byte[] bytes) {
         char[] hexChars = new char[bytes.length * 2];
