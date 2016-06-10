@@ -61,42 +61,33 @@ public final  class BtpUdpClient {
         hasEthernetHeader = true;
         MacAddress macAddress = new MacAddress(0);
 
-        for (int arg = 0; arg < args.length; arg++) {
+        for (int arg = 0; arg < args.length; arg += 2) {
             if (args[arg].startsWith("--local-udp2eth-port")) {
-                arg++;
-                localUdp2EthPort = Integer.parseInt(args[arg]);
+                localUdp2EthPort = Integer.parseInt(args[arg + 1]);
             } else if (args[arg].startsWith("--remote-udp2eth-address")) {
-                arg++;
-                String[] hostPort = args[arg].split(":");
+                String[] hostPort = args[arg + 1].split(":");
                 if (hostPort.length != 2) { System.err.println("Bad udp2eth host:port.\n" + usage); System.exit(1); }
                 remoteUdp2EthAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--local-data-port")) {
-                arg++;
-                localDataPort = Integer.parseInt(args[arg]);
+                localDataPort = Integer.parseInt(args[arg + 1]);
             } else if (args[arg].startsWith("--remote-data-address")) {
-                arg++;
-                String[] hostPort = args[arg].split(":");
+                String[] hostPort = args[arg + 1].split(":");
                 if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
                 remoteDataAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--local-data-cam-port")) {
-                arg++;
-                localDataCamPort = Integer.parseInt(args[arg]);
+                localDataCamPort = Integer.parseInt(args[arg + 1]);
             } else if (args[arg].startsWith("--remote-data-cam-address")) {
-                arg++;
-                String[] hostPort = args[arg].split(":");
+                String[] hostPort = args[arg + 1].split(":");
                 if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
                 remoteDataCamAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--local-data-iclcm-port")) {
-                arg++;
-                localDataIclcmPort = Integer.parseInt(args[arg]);
+                localDataIclcmPort = Integer.parseInt(args[arg + 1]);
             } else if (args[arg].startsWith("--remote-data-iclcm-address")) {
-                arg++;
-                String[] hostPort = args[arg].split(":");
+                String[] hostPort = args[arg + 1].split(":");
                 if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
                 remoteDataIclcmAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--position")) {
-                arg++;
-                String[] latLon = args[arg].split(",");
+                String[] latLon = args[arg + 1].split(",");
                 if (latLon.length != 2) { System.err.println("Bad lat,lon.\n" + usage); System.exit(1); }
                 final double lat = Double.parseDouble(latLon[0]);
                 final double lon = Double.parseDouble(latLon[1]);
@@ -109,14 +100,12 @@ public final  class BtpUdpClient {
                     }
                 };
             } else if (args[arg].startsWith("--gpsd-server")) {
-                arg++;
-                String[] hostPort = args[arg].split(":");
+                String[] hostPort = args[arg + 1].split(":");
                 if (hostPort.length != 2) { System.err.println("Bad gpsd host:port.\n" + usage); System.exit(1); }
                 positionProvider = new GpsdClient(
                         new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]))).startClient();
             } else if (args[arg].startsWith("--mac-address")) {
-                arg++;
-                macAddress = new MacAddress(MacAddress.parseFromString(args[arg]));
+                macAddress = new MacAddress(MacAddress.parseFromString(args[arg + 1]));
             } else {
                 throw new IllegalArgumentException("Unrecognized argument: " + args[arg]);
             }
