@@ -34,6 +34,10 @@ import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
  */
 public class CoopIts {
 
+    private static final String ALREADY_CREATED = "Already created";
+    private static final String CANNOT_FIND_ELEMENT = "Can't find element in enum ";
+    private static final String FOR_CODE = " for code ";
+
     @Sequence
     public static class Cam {
         ItsPduHeader header;
@@ -296,7 +300,7 @@ public class CoopIts {
             private BasicVehicleContainerHighFrequency val = new BasicVehicleContainerHighFrequency();
             private boolean created = false;
             private void checkCreated() {
-                if (created) { throw new IllegalStateException("Already created"); }
+                if (created) { throw new IllegalStateException(ALREADY_CREATED); }
             }
             public BasicVehicleContainerHighFrequency create() { created = true; return val; }
 
@@ -542,8 +546,8 @@ public class CoopIts {
         private DriveDirection(int value) { this.value = value; }
         public static DriveDirection fromCode(int value) {
             for (DriveDirection element : values()) { if (element.value() == value) { return element; } }
-            throw new IllegalArgumentException("Can't find element in enum " +
-                    DriveDirection.class.getName() + " for code " + value);
+            throw new IllegalArgumentException(CANNOT_FIND_ELEMENT +
+                    DriveDirection.class.getName() + FOR_CODE + value);
         }
     }
 
@@ -902,7 +906,7 @@ public class CoopIts {
             private AccelerationControl val = new AccelerationControl();
             private boolean created = false;
             private void checkCreated() {
-                if (created) { throw new IllegalStateException("Already created"); }
+                if (created) { throw new IllegalStateException(ALREADY_CREATED); }
             }
             public AccelerationControl create() { created = true; return val; }
             private Builder() {}
@@ -1196,8 +1200,8 @@ public class CoopIts {
         private VehicleRole(int value) { this.value = value; }
         public static VehicleRole fromCode(int value) {
             for (VehicleRole element : values()) { if (element.value() == value) { return element; } }
-            throw new IllegalArgumentException("Can't find element in enum " +
-                    VehicleRole.class.getName() + " for code " + value);
+            throw new IllegalArgumentException(CANNOT_FIND_ELEMENT +
+                    VehicleRole.class.getName() + FOR_CODE + value);
         }
         public static boolean isMember(int value) { return value >= 0 && value <= 15; }
     }
@@ -1222,7 +1226,7 @@ public class CoopIts {
             private ExteriorLights val = new ExteriorLights();
             private boolean created = false;
             private void checkCreated() {
-                if (created) { throw new IllegalStateException("Already created"); }
+                if (created) { throw new IllegalStateException(ALREADY_CREATED); }
             }
             public ExteriorLights create() { created = true; return val; }
 
@@ -1690,8 +1694,8 @@ public class CoopIts {
         public static DangerousGoodsBasic defaultValue() { return explosives1; }
         public static DangerousGoodsBasic fromCode(int value) {
             for (DangerousGoodsBasic element : values()) { if (element.value() == value) { return element; } }
-            throw new IllegalArgumentException("Can't find element in enum " +
-                    DangerousGoodsBasic.class.getName() + " for code " + value);
+            throw new IllegalArgumentException(CANNOT_FIND_ELEMENT +
+                    DangerousGoodsBasic.class.getName() + FOR_CODE + value);
         }
 
     }

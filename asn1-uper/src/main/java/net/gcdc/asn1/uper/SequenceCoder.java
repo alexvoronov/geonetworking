@@ -10,6 +10,9 @@ import net.gcdc.asn1.uper.UperEncoder.Asn1ContainerFieldSorter;
 
 class SequenceCoder implements Decoder, Encoder {
 
+    private static final String ABSENT = "absent";
+    private static final String PRESENT = "present";
+
     @Override public <T> boolean canEncode(T obj, Annotation[] extraAnnotations) {
         Class<?> type = obj.getClass();
         AnnotationStore annotations = new AnnotationStore(type.getAnnotations(),
@@ -35,7 +38,7 @@ class SequenceCoder implements Decoder, Encoder {
             for (Field f : sorter.optionalOrdinaryFields) {
                 boolean fieldPresent = f.get(obj) != null;
                 UperEncoder.logger.debug("with optional field {} {}, presence encoded as bit <{}>",
-                        f.getName(), fieldPresent ? "present" : "absent", fieldPresent);
+                        f.getName(), fieldPresent ? PRESENT : ABSENT, fieldPresent);
                 bitbuffer.put(fieldPresent);  // null means the field is absent.
             }
             // All ordinary fields (fields within extension root).
@@ -64,7 +67,7 @@ class SequenceCoder implements Decoder, Encoder {
                 for (Field f : sorter.extensionFields) {
                     boolean fieldIsPresent = f.get(obj) != null;
                     UperEncoder.logger.debug("Extension {} is {}, presence encoded as <{}>", f.getName(),
-                            fieldIsPresent ? "present" : "absent", fieldIsPresent ? "1" : "0");
+                            fieldIsPresent ? PRESENT : ABSENT, fieldIsPresent ? "1" : "0");
                     bitbuffer.put(fieldIsPresent);
                 }
                 // Values of extensions themselves.
@@ -103,7 +106,7 @@ class SequenceCoder implements Decoder, Encoder {
         if (UperEncoder.hasExtensionMarker(annotations)) {
             extensionPresent = bitbuffer.get();
             UperEncoder.logger.debug("with extension marker, extension {}", extensionPresent ? "present!"
-                    : "absent");
+                    : ABSENT);
         }
         // Bitmask for optional fields.
         Deque<Boolean> optionalFieldsMask = new ArrayDeque<>(
@@ -111,7 +114,7 @@ class SequenceCoder implements Decoder, Encoder {
         for (Field f : sorter.optionalOrdinaryFields) {
             optionalFieldsMask.add(bitbuffer.get());
             UperEncoder.logger.debug("with optional field {} {}", f.getName(),
-                    optionalFieldsMask.getLast() ? "present" : "absent");
+                    optionalFieldsMask.getLast() ? PRESENT : ABSENT);
         }
         // All ordinary fields (fields within extension root).
         for (Field f : sorter.ordinaryFields) {
@@ -134,14 +137,14 @@ class SequenceCoder implements Decoder, Encoder {
             boolean[] bitmaskValueIsPresent = new boolean[numExtensions];
             for (int i = 0; i < numExtensions; i++) {
                 bitmaskValueIsPresent[i] = bitbuffer.get();
-                UperEncoder.logger.debug("extension {} is {}", i, bitmaskValueIsPresent[i] ? "present"
-                        : "absent");
+                UperEncoder.logger.debug("extension {} is {}", i, bitmaskValueIsPresent[i] ? PRESENT
+                        : ABSENT);
             }
             // Values.
             UperEncoder.logger.debug("decoding extensions values...");
             for (int i = 0; i < numExtensions; i++) {
                 UperEncoder.logger.debug("sequence extension {} {}", i,
-                        bitmaskValueIsPresent[i] ? "present" : "absent");
+                        bitmaskValueIsPresent[i] ? PRESENT : ABSENT);
                 if (bitmaskValueIsPresent[i]) {
                     UperEncoder.logger.debug("decoding extension {}...", i);
                     Field field = sorter.extensionFields.size() > i ? sorter.extensionFields

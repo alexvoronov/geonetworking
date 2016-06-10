@@ -18,6 +18,8 @@ import net.gcdc.asn1.datatypes.SizeRange;
 
 class StringCoder implements Decoder, Encoder {
 
+    private static final String  CHAR_DECORATION = "decoded more than one char (";
+
     @Override public <T> boolean canEncode(T obj, Annotation[] extraAnnotations) {
         return obj instanceof String || obj instanceof Asn1String;
     }
@@ -222,7 +224,7 @@ class StringCoder implements Decoder, Encoder {
                 byte charByte = (byte) UperEncoder.decodeConstrainedInt(bitqueue, UperEncoder.newRange(0, 127, false));
                 byte[] bytes = new byte[] { charByte };
                 String result = StandardCharsets.US_ASCII.decode(ByteBuffer.wrap(bytes)).toString();
-                if (result.length() != 1) { throw new AssertionError("decoded more than one char ("
+                if (result.length() != 1) { throw new AssertionError(CHAR_DECORATION
                         + result + ")"); }
                 return result;
             }
@@ -252,7 +254,7 @@ class StringCoder implements Decoder, Encoder {
                         String result = StandardCharsets.US_ASCII.decode(ByteBuffer.wrap(bytes))
                                 .toString();
                         if (result.length() != 1) { throw new AssertionError(
-                                "decoded more than one char (" + result + ")"); }
+                                CHAR_DECORATION + result + ")"); }
                         return result;
                     }
                 } else {  // Encode normally
@@ -261,7 +263,7 @@ class StringCoder implements Decoder, Encoder {
                     String result = StandardCharsets.US_ASCII.decode(ByteBuffer.wrap(bytes))
                             .toString();
                     if (result.length() != 1) { throw new AssertionError(
-                            "decoded more than one char (" + result + ")"); }
+                            CHAR_DECORATION + result + ")"); }
                     return result;
                 }
             }
