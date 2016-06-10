@@ -163,10 +163,10 @@ public class VehicleAdapter {
 
     /* Ports and IP address used for communicating with the vehicle
      * control system. */
-    public static int simulink_cam_port = 5000;
-    public static int simulink_denm_port = 5000;
-    public static int simulink_iclcm_port = 5000;
-    public static InetAddress simulink_address;
+    private static  int simulink_cam_port = 5000;
+    private static int simulink_denm_port = 5000;
+    private static int simulink_iclcm_port = 5000;
+    private static InetAddress simulink_address;
 
 
     /* TODO: Investigate other ways of creating the threads that will
@@ -174,10 +174,12 @@ public class VehicleAdapter {
     //public static final ExecutorService executor = Executors.newCachedThreadPool();
     public static final ExecutorService executor = Executors.newFixedThreadPool(10);
 
+
+
     /* For keeping track of the current vehicle position. Used for the
-     * broadcasting service and for generating Geonetworking
-     * addresses. */
-    public static VehiclePositionProvider vehiclePositionProvider;
+         * broadcasting service and for generating Geonetworking
+         * addresses. */
+    public static  VehiclePositionProvider vehiclePositionProvider;
     
     /* Print statistics in one second intervals. */
     private static int num_tx_cam = 0;
@@ -185,7 +187,9 @@ public class VehicleAdapter {
     private static int num_tx_iclcm= 0;
     private static int num_rx_cam = 0;
     private static int num_rx_denm = 0;
-    private static int num_rx_iclcm= 0;            
+    private static int num_rx_iclcm= 0;
+
+
     private Runnable printStatistics = new Runnable() {            
             @Override public void run() {
                 try{
@@ -528,11 +532,11 @@ public class VehicleAdapter {
      * creating the Geobroadcast address used for DENM messages.
      */
     public static class VehiclePositionProvider implements PositionProvider{
-        public Address address;        
-        public Position position;
-        public boolean isPositionConfident;
-        public double speedMetersPerSecond;
-        public double headingDegreesFromNorth;
+        public static  Address address;
+        public static Position position;
+        public static boolean isPositionConfident;
+        public static double speedMetersPerSecond;
+        public static double headingDegreesFromNorth;
 
         VehiclePositionProvider(Address address){
             this.address = address;
@@ -612,4 +616,5 @@ public class VehicleAdapter {
         /* Create the vehicle adapter. */
         VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer, vehiclePositionProvider, senderMac);
     }
+
 }
