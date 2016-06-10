@@ -13,7 +13,7 @@ import java.util.Arrays;
 
 public class UdpDuplicator {
 
-    private  static final  Logger LOGGER = LoggerFactory.getLogger(BtpUdpClient.class);
+    private  static final  Logger LOGGER = LoggerFactory.getLogger(UdpDuplicator.class);
 
     private class Client implements Runnable {
         public final int            localPort;
