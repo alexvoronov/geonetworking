@@ -36,11 +36,12 @@ import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
  * under grant agreement no 612035.
  *
  */
-public class Iclcm {
+public final  class Iclcm {
 	/**
 	 * MessageID of i-GAME cooperative lane change message
 	 */
 	public static final int MessageID_iCLCM = 10;
+	private Iclcm(){}
 	
 	@Sequence
     public static class IgameCooperativeLaneChangeMessage {
