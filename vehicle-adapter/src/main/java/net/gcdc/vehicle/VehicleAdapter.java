@@ -140,7 +140,7 @@ import net.gcdc.geonetworking.Optional;
 import org.threeten.bp.Instant;
 
 public class VehicleAdapter {
-    private final static Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
+    private static final Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
 
     /* Sockets and GeonetStation used to send and receive BTP and UDP
      * packets. */
@@ -149,17 +149,17 @@ public class VehicleAdapter {
     private final BtpSocket btpSocket;
 
     /* BTP ports for CAM/DENM/iCLCM */
-    private final static short PORT_CAM  = 2001;
-    private final static short PORT_DENM = 2002;
-    private final static short PORT_ICLCM = 2010;
+    private static final short PORT_CAM  = 2001;
+    private static final short PORT_DENM = 2002;
+    private static final short PORT_ICLCM = 2010;
 
     /* Seconds for which the message is relevant. */
-    public final static double CAM_LIFETIME_SECONDS = 0.9;
-    public final static double iCLCM_LIFETIME_SECONDS = 0.9;
+    public static final double CAM_LIFETIME_SECONDS = 0.9;
+    public static final double iCLCM_LIFETIME_SECONDS = 0.9;
 
     /* Maximum size of the UDP buffer. Needs to be at least as large
      * as the maximum message size. */
-    public final static int MAX_UDP_LENGTH = 300;
+    public static final int MAX_UDP_LENGTH = 300;
 
     /* Ports and IP address used for communicating with the vehicle
      * control system. */

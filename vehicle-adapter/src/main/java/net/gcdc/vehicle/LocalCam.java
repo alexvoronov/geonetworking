@@ -28,7 +28,7 @@ import net.gcdc.asn1.datatypes.IntRange;
 import net.gcdc.asn1.datatypes.Asn1Integer;
 
 public class LocalCam{
-    private final static Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
+    private static final Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
     private final int LOCAL_CAM_LENGTH = 82;
     
     byte messageID = 2;

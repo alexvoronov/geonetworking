@@ -32,9 +32,9 @@ import org.threeten.bp.Instant;
 
 public class BtpUdpClient {
 
-    private final static Logger logger = LoggerFactory.getLogger(BtpUdpClient.class);
+    private  static final Logger logger = LoggerFactory.getLogger(BtpUdpClient.class);
 
-    private final static String usage =
+    private  static final String usage =
             "Usage: java -cp gn.jar BtpClient --local-udp2eth-port <local-port> --remote-udp2eth-address <udp-to-ethernet-remote-host-and-port> --local-data-port <port> --remote-data-address <host:port> --gpsd-server <host:port> --mac-address <xx:xx:xx:xx:xx:xx>" + "\n" +
     "BTP ports: 2001 (CAM), 2002 (DENM), 2003 (MAP), 2004 (SPAT).";
 

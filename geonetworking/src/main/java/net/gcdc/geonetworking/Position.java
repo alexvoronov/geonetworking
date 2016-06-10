@@ -25,9 +25,9 @@ public final class Position {
         return "Pos(" + lattitudeDegrees + ", " + longitudeDegrees + ")";
     }
 
-    final static double MICRODEGREE = 1E-6;
-    final static double STORE_UNIT = 0.1 * MICRODEGREE;
-    final static double earthRadius = 6371000; // In meters. In miles: 3958.75;
+    static final double MICRODEGREE = 1E-6;
+    static final double STORE_UNIT = 0.1 * MICRODEGREE;
+    static final double earthRadius = 6371000; // In meters. In miles: 3958.75;
 
 
     private final double lattitudeDegrees;

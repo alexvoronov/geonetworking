@@ -39,10 +39,10 @@ public class GeonetStation implements Runnable, AutoCloseable {
     private LocationTable locationTable;
     private final static Logger logger = LoggerFactory.getLogger(GeonetStation.class);
 
-    public final static short GN_ETHER_TYPE = (short) 0x8947;
-    private final static MacAddress BROADCAST_MAC = new MacAddress(0xff_ff_ff_ff_ff_ffL);
-    private final static MacAddress EMPTY_MAC = new MacAddress(0);
-    private final static int ETHER_HEADER_LENGTH = 14;
+    public  static final short GN_ETHER_TYPE = (short) 0x8947;
+    private static final  MacAddress BROADCAST_MAC = new MacAddress(0xff_ff_ff_ff_ff_ffL);
+    private static final MacAddress EMPTY_MAC = new MacAddress(0);
+    private static final int ETHER_HEADER_LENGTH = 14;
 
     // Common scheduler for beacon, Duplicate packet detection and Contention-based forwarding.
     // Change to custom-clock scheduler for non-real-time time. (Dependency injection?)

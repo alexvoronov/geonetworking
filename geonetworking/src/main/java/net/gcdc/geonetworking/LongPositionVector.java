@@ -103,8 +103,8 @@ public final class LongPositionVector {
     public static final int LENGTH = 24;
 
 
-    private final static double SPEED_STORE_SCALE   = 0.01;  // 0.01 meters per second.
-    private final static double HEADING_STORE_SCALE = 0.1;   // 0.1 degrees from north.
+    private static final double SPEED_STORE_SCALE   = 0.01;  // 0.01 meters per second.
+    private static final double HEADING_STORE_SCALE = 0.1;   // 0.1 degrees from north.
 
     private int speedAsStoreUnit(double speedMetersPerSecond) {
         return (int) Math.round(speedMetersPerSecond / SPEED_STORE_SCALE);

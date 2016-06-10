@@ -25,7 +25,7 @@ import org.threeten.bp.Instant;
 
 public class BtpStdinClient {
 
-    private final static String usage =
+    private static final  String usage =
             "Usage: java -cp gn.jar StdinClient --local-port <local-port> --remote-address <udp-to-ethernet-remote-host-and-port> <--has-ethernet-header | --no-ethernet-header> <--position <lat>,<lon> | --gpsd-server <host>:<port>> --btp-destination-port <port>" + "\n" +
     "BTP ports: 2001 (CAM), 2002 (DENM), 2003 (MAP), 2004 (SPAT).";
 

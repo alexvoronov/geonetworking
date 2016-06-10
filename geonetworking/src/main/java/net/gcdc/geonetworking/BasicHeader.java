@@ -90,9 +90,9 @@ public class BasicHeader {
             }
         }
 
-        final static double MAX_MULTIPLIER = 63;  // Max unsigned 6-bit integer.
+         static final double MAX_MULTIPLIER = 63;  // Max unsigned 6-bit integer.
 
-        public final static Lifetime MAX_VALUE = new Lifetime(Base.X100S, (byte)MAX_MULTIPLIER);
+        public static final Lifetime MAX_VALUE = new Lifetime(Base.X100S, (byte)MAX_MULTIPLIER);
 
         private final byte multiplier;  // bits 0-5
         private final Base base;        // bits 6-7

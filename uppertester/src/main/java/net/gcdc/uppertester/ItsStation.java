@@ -107,7 +107,7 @@ import com.lexicalscope.jewel.cli.Option;
  *
  */
 public class ItsStation implements AutoCloseable {
-    private final static Logger logger = LoggerFactory.getLogger(ItsStation.class);
+    private static final Logger logger = LoggerFactory.getLogger(ItsStation.class);
 
     private int defaultUpperTesterPort = 5000;
 
@@ -120,24 +120,24 @@ public class ItsStation implements AutoCloseable {
     private final ExecutorService executor = Executors.newCachedThreadPool();
     private final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(5);
 
-    private final static double MICRODEGREE = 1E-6;
-    private final static byte REPLY_SUCCESS = 0x01;
-    private final static byte REPLY_FAILURE = 0x00;
+    private static final double MICRODEGREE = 1E-6;
+    private static final byte REPLY_SUCCESS = 0x01;
+    private static final byte REPLY_FAILURE = 0x00;
 
-    private final static short PORT_CAM  = 2001;
-    private final static short PORT_DENM = 2002;
+    private static final short PORT_CAM  = 2001;
+    private static final short PORT_DENM = 2002;
 //    private final static short PORT_MAP  = 2003;
 //    private final static short PORT_SPAT = 2004;
 
-    private final static long CAM_INTERVAL_MIN_MS = 100;
-    private final static long CAM_INTERVAL_MAX_MS = 1000;
-    private final static long CAM_LOW_FREQ_INTERVAL_MS = 500;
+    private static final long CAM_INTERVAL_MIN_MS = 100;
+    private static final long CAM_INTERVAL_MAX_MS = 1000;
+    private static final long CAM_LOW_FREQ_INTERVAL_MS = 500;
 
-    private final static long CAM_INITIAL_DELAY_MS = 20;  // At startup.
+    private static final long CAM_INITIAL_DELAY_MS = 20;  // At startup.
 
-    private final static int HIGH_DYNAMICS_CAM_COUNT = 4;
+    private static final int HIGH_DYNAMICS_CAM_COUNT = 4;
 
-    public final static double CAM_LIFETIME_SECONDS = 0.9;
+    public static final double CAM_LIFETIME_SECONDS = 0.9;
 
     private final GeonetDataListener gnListener = new GeonetDataListener() {
         @Override public void onGeonetDataReceived(GeonetData indication) {

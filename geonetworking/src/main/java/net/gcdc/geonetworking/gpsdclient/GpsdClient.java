@@ -34,7 +34,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotificationHandler,Runnable {
-    private final static Logger logger = LoggerFactory.getLogger(GpsdClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(GpsdClient.class);
 
     private TPV                   lastSeenTPV = null;
     private final Gson            gson        = new GsonBuilder().create();

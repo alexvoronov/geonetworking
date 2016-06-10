@@ -27,7 +27,7 @@ import net.gcdc.camdenm.Iclcm.*;
 import net.gcdc.asn1.datatypes.IntRange;
 
 public class LocalIclcm{
-    private final static Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
+    private static final Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
     private final int LOCAL_iCLCM_LENGTH = 111;
 
     byte messageID;

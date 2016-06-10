@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Parser {
-    final static Logger logger = LoggerFactory.getLogger(Parser.class);
+    static final Logger logger = LoggerFactory.getLogger(Parser.class);
 
     private static final List<Class<?>> staticMessages = Arrays.asList(
             BtpEventIndication.class,
