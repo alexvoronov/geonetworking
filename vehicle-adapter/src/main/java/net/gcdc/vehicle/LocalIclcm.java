@@ -161,24 +161,8 @@ public class LocalIclcm{
         if(!checkInt(Intention.class, intention, "Intention")){ throw new IllegalArgumentException(); }
         if(!checkInt(Counter.class, counter, "Counter")){ counter = 0; }
     }
-
-    /* Return true if the local CAM has a low frequency container. */
-    boolean hasLowFrequencyContainer(){
-        return (containerMask & (1<<7)) != 0;
-    }
-
-    boolean hasParticipantsReady(){
-        return (lowFrequencyMask & (1<<7)) != 0;
-    }
-
-    boolean hasStartPlatoon(){
-        return (lowFrequencyMask & (1<<6)) != 0;
-    }
-
-    boolean hasEndOfScenario(){
-        return (lowFrequencyMask & (1<<5)) != 0;
-    }    
     
+
     /* For creating a local iCLCM from a iCLCM message as received from another ITS station. */
     LocalIclcm(IgameCooperativeLaneChangeMessage iCLCM){
         IgameCooperativeLaneChangeMessageBody iclcm = iCLCM.getIclm();
@@ -259,6 +243,23 @@ public class LocalIclcm{
     }
 
 
+    /* Return true if the local CAM has a low frequency container. */
+    boolean hasLowFrequencyContainer(){
+        return (containerMask & (1<<7)) != 0;
+    }
+
+    boolean hasParticipantsReady(){
+        return (lowFrequencyMask & (1<<7)) != 0;
+    }
+
+    boolean hasStartPlatoon(){
+        return (lowFrequencyMask & (1<<6)) != 0;
+    }
+
+    boolean hasEndOfScenario(){
+        return (lowFrequencyMask & (1<<5)) != 0;
+    }    
+    
     /* Return the IntRange min and max value as a nice string. */
     String getIntRangeString(IntRange intRange){
         String string = "minValue=" + intRange.minValue() + ", maxValue=" + intRange.maxValue();

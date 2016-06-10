@@ -140,476 +140,515 @@ import net.gcdc.geonetworking.Optional;
 import org.threeten.bp.Instant;
 
 public class VehicleAdapter {
-    private final static Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
+	private final static Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);
 
-    /* Sockets and GeonetStation used to send and receive BTP and UDP
-     * packets. */
-    private final DatagramSocket rcvSocket;
-    private final GeonetStation station;
-    private final BtpSocket btpSocket;
+	/*
+	 * Sockets and GeonetStation used to send and receive BTP and UDP packets.
+	 */
+	private final DatagramSocket rcvSocket;
+	private final GeonetStation station;
+	private final BtpSocket btpSocket;
 
-    /* BTP ports for CAM/DENM/iCLCM */
-    private final static short PORT_CAM  = 2001;
-    private final static short PORT_DENM = 2002;
-    private final static short PORT_ICLCM = 2010;
+	/* BTP ports for CAM/DENM/iCLCM */
+	private final static short PORT_CAM = 2001;
+	private final static short PORT_DENM = 2002;
+	private final static short PORT_ICLCM = 2010;
 
-    /* Seconds for which the message is relevant. */
-    public final static double CAM_LIFETIME_SECONDS = 0.9;
-    public final static double iCLCM_LIFETIME_SECONDS = 0.9;
+	/* Seconds for which the message is relevant. */
+	public final static double CAM_LIFETIME_SECONDS = 0.9;
+	public final static double iCLCM_LIFETIME_SECONDS = 0.9;
 
-    /* Maximum size of the UDP buffer. Needs to be at least as large
-     * as the maximum message size. */
-    public final static int MAX_UDP_LENGTH = 300;
+	/*
+	 * Maximum size of the UDP buffer. Needs to be at least as large as the
+	 * maximum message size.
+	 */
+	public final static int MAX_UDP_LENGTH = 300;
 
-    /* Ports and IP address used for communicating with the vehicle
-     * control system. */
-    public static int simulink_cam_port = 5000;
-    public static int simulink_denm_port = 5000;
-    public static int simulink_iclcm_port = 5000;
-    public static InetAddress simulink_address;
+	/*
+	 * Ports and IP address used for communicating with the vehicle control
+	 * system.
+	 */
+	public static int simulink_cam_port = 5000;
+	public static int simulink_denm_port = 5000;
+	public static int simulink_iclcm_port = 5000;
+	public static InetAddress simulink_address;
 
+	/*
+	 * TODO: Investigate other ways of creating the threads that will enforce
+	 * lower delay.
+	 */
+	// public static final ExecutorService executor =
+	// Executors.newCachedThreadPool();
+	public static final ExecutorService executor = Executors.newFixedThreadPool(10);
 
-    /* TODO: Investigate other ways of creating the threads that will
-     * enforce lower delay. */
-    //public static final ExecutorService executor = Executors.newCachedThreadPool();
-    public static final ExecutorService executor = Executors.newFixedThreadPool(10);
+	public VehicleAdapter(int portRcvFromSimulink, StationConfig config, LinkLayer linkLayer, PositionProvider position,
+			MacAddress macAddress) throws SocketException {
+		rcvSocket = new DatagramSocket(portRcvFromSimulink);
+		station = new GeonetStation(config, linkLayer, position, macAddress);
+		new Thread(station).start();
 
-    /* For keeping track of the current vehicle position. Used for the
-     * broadcasting service and for generating Geonetworking
-     * addresses. */
-    public static VehiclePositionProvider vehiclePositionProvider;
-    
-    /* Print statistics in one second intervals. */
-    private static int num_tx_cam = 0;
-    private static int num_tx_denm = 0;
-    private static int num_tx_iclcm= 0;
-    private static int num_rx_cam = 0;
-    private static int num_rx_denm = 0;
-    private static int num_rx_iclcm= 0;            
-    private Runnable printStatistics = new Runnable() {            
-            @Override public void run() {
-                try{
-                    Thread.sleep(1000);
-                } catch(InterruptedException e) {
-                    logger.warn("Interrupted during sleep.");
-                }                
-                System.out.println("#### Vehicle Adapter ####" + 
-                                   "\nListening on port " + rcvSocket.getLocalPort() +
-                                   "\nVehicle Control System IP is " + simulink_address +
-                                   "\nSending incoming CAM to port " + simulink_cam_port +
-                                   "\nSending incoming DENM to port " + simulink_denm_port + 
-                                   "\nSending incoming iCLCM to port " + simulink_iclcm_port+
-                                   "\nCopyright: Albin Severinson (albin@severinson.org) License: Apache 2.0" +
-                                   "\nNotice: GeoNetworking library by Alexey Voronov" +
-                                   "\n");
-                
-                while(true){
-                    try{
-                        Thread.sleep(1000);
-                    } catch(InterruptedException e) {
-                        logger.warn("Interrupted during sleep.");
-                    }
-                    logger.info("#CAM (Tx/Rx): {}/{}\t#DENM (Tx/Rx): {}/{}\t#iCLCM (Tx/Rx): {}/{}",
-                                num_tx_cam,num_rx_cam,num_tx_denm,num_rx_denm,num_tx_iclcm,num_rx_iclcm);                    
-                }
-            }
-        };
+		/*
+		 * TODO: Race conditions in the beaconing service is causing it to send
+		 * too many beacons. Turn off until it's fixed. We don't need the
+		 * beaconing service for anything we're using it for anyway as it's
+		 * supposed to be quiet when sending other traffic.
+		 */
+		/*
+		 * TODO: Thread crashes when attempting to send when the beaconing
+		 * service isn't running.
+		 */
+		station.startBecon();
 
-    /* Receive local CAM/DENM/iCLCM from Simulink, parse them and
-     * create the proper messages, and send them to the link layer. */
-    private Runnable receiveFromSimulinkLoop = new Runnable() {
-            byte[] buffer = new byte[MAX_UDP_LENGTH];
-            private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-            @Override public void run() {
-                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-                try {
-                    while (true) {
-                        logger.debug("Waiting for packet from vehicle control...");
-                        rcvSocket.receive(packet);
-                        byte[] receivedData = Arrays.copyOfRange(packet.getData(),
-                                                                 packet.getOffset(),
-                                                                 packet.getOffset() + packet.getLength());
-                        assert (receivedData.length == packet.getLength());
-                        logger.debug("Received packet from vehicle control! ID: " + receivedData[0] + " Data: " + receivedData);
+		btpSocket = BtpSocket.on(station);
+		executor.submit(receiveFromSimulinkLoop);
+		executor.submit(sendToSimulinkLoop);
+		executor.submit(printStatistics);
+	}
 
-                        /*
-                        executor.submit(new UdpParser(Arrays.copyOfRange(packet.getData(),
-                                                                         packet.getOffset(),
-                                                                         packet.getOffset() + packet.getLength())));
-                        */
-                        
-                        /* First byte is the MessageId */
-                        switch(receivedData[0]){
-                        case MessageId.cam: {
-                            num_tx_cam++;
-                            try{
-                                LocalCam localCam = new LocalCam(receivedData);
-                                Cam cam = localCam.asCam();
-                                send(cam);
-                                
-                                double latitude = (double) localCam.latitude;
-                                latitude /= 1e7;
+	/*
+	 * For keeping track of the current vehicle position. Used for the
+	 * broadcasting service and for generating Geonetworking addresses.
+	 */
+	public static VehiclePositionProvider vehiclePositionProvider;
 
-                                double longitude = (double) localCam.longitude;
-                                longitude /= 1e7;
-                                
-                                vehiclePositionProvider.updatePosition(latitude,longitude);
-                            }catch(IllegalArgumentException e){
-                                logger.error("Irrecoverable error when creating CAM. Ignoring message.", e);
-                            }
-                            break;
-                        }
+	/* Print statistics in one second intervals. */
+	private static int num_tx_cam = 0;
+	private static int num_tx_denm = 0;
+	private static int num_tx_iclcm = 0;
+	private static int num_rx_cam = 0;
+	private static int num_rx_denm = 0;
+	private static int num_rx_iclcm = 0;
+	private Runnable printStatistics = new Runnable() {
+		@Override
+		public void run() {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				logger.warn("Interrupted during sleep.");
+			}
+			System.out.println("#### Vehicle Adapter ####" + "\nListening on port " + rcvSocket.getLocalPort()
+					+ "\nVehicle Control System IP is " + simulink_address + "\nSending incoming CAM to port "
+					+ simulink_cam_port + "\nSending incoming DENM to port " + simulink_denm_port
+					+ "\nSending incoming iCLCM to port " + simulink_iclcm_port
+					+ "\nCopyright: Albin Severinson (albin@severinson.org) License: Apache 2.0"
+					+ "\nNotice: GeoNetworking library by Alexey Voronov" + "\n");
 
-                        case MessageId.denm: {
-                            num_tx_denm++;
-                            try{
-                                LocalDenm localDenm = new LocalDenm(receivedData);
-                                Denm denm = localDenm.asDenm();                        
+			while (true) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					logger.warn("Interrupted during sleep.");
+				}
+				logger.info("#CAM (Tx/Rx): {}/{}\t#DENM (Tx/Rx): {}/{}\t#iCLCM (Tx/Rx): {}/{}", num_tx_cam, num_rx_cam,
+						num_tx_denm, num_rx_denm, num_tx_iclcm, num_rx_iclcm);
+			}
+		}
+	};
 
-                                /* TODO: How does GeoNetworking addressing work in
-                                 * GCDC16? For now let's just broadcast
-                                 * everything in a large radius.
-                                 */
-                                send(denm, Geobroadcast.geobroadcast(Area.circle(vehiclePositionProvider.getPosition(), Double.MAX_VALUE)));
-                            }catch(IllegalArgumentException e){
-                                logger.error("Irrecoverable error when creating DENM. Ignoring message.", e);
-                            }
-                            break;
-                        }
-                        
-                        case net.gcdc.camdenm.Iclcm.MessageID_iCLCM: {
-                            num_tx_iclcm++;
-                            try{
-                                LocalIclcm localIclcm = new LocalIclcm(receivedData);
-                                IgameCooperativeLaneChangeMessage iclcm = localIclcm.asIclcm();
-                                send(iclcm);
-                            }catch(IllegalArgumentException e){
-                                logger.error("Irrecoverable error when creating iCLCM. Ignoring message.", e);
-                            }
-                            break;
-                        }
-                        
-                        default:
-                            logger.warn("Received incorrectly formated message! ID: {} Data: {}", 
-                                        receivedData[0], receivedData);
-                        }
-                    }
-                } catch (IOException e) {
-                    logger.error("Failed to receive packet from Simulink, terminating", e);
-                    System.exit(1);
-                }
-            }
-        };
+	/*
+	 * Receive local CAM/DENM/iCLCM from Simulink, parse them and create the
+	 * proper messages, and send them to the link layer.
+	 */
+	private Runnable receiveFromSimulinkLoop = new Runnable() {
+		byte[] buffer = new byte[MAX_UDP_LENGTH];
+		private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
-    /* Take a received UDP packet, parse it and send it as a
-     * GeoNetworking packet. */
-    /* TODO: The performance benefit of parallelizing this part was
-     * quite low. Needs some more research if we're gonna do it.
-     */
-    private class UdpParser implements Runnable {
-        byte[] receivedData;
-        
-        UdpParser(byte[] receivedData){
-            this.receivedData = receivedData;
-        }
-        
-        @Override public void run() {
-            logger.info("This souldn't run!");
-        }
-    }
+		@Override
+		public void run() {
+			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+			try {
+				while (true) {
+					logger.debug("Waiting for packet from vehicle control...");
+					rcvSocket.receive(packet);
+					byte[] receivedData = Arrays.copyOfRange(packet.getData(), packet.getOffset(),
+							packet.getOffset() + packet.getLength());
+					assert(receivedData.length == packet.getLength());
+					logger.debug(
+							"Received packet from vehicle control! ID: " + receivedData[0] + " Data: " + receivedData);
 
-    /* Receive incoming CAM/DENM/iCLCM to Simulink, convert them to
-     * their local representation, and send them to Simulink over UDP. */
-    private Runnable sendToSimulinkLoop = new Runnable() {            
-            @Override public void run() {
-                Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
-                
-                try {
-                    while(true){
-                        BtpPacket btpPacket;;                            
-                        btpPacket = btpSocket.receive();
-                        executor.submit(new BtpParser(btpPacket));                        
-                    }
-                } catch (InterruptedException e) {
-                    logger.warn("BTP socket receive was interrupted", e);
-                }
-            }
-        };
+					/*
+					 * executor.submit(new
+					 * UdpParser(Arrays.copyOfRange(packet.getData(),
+					 * packet.getOffset(), packet.getOffset() +
+					 * packet.getLength())));
+					 */
 
-    /* Take a received BtpPacket, decode it and send it to the control
-     * system. */
-    private class BtpParser implements Runnable{
-        private byte[] buffer = new byte[MAX_UDP_LENGTH];
-        private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-        private BtpPacket btpPacket;
+					/* First byte is the MessageId */
+					switch (receivedData[0]) {
+					case MessageId.cam: {
+						num_tx_cam++;
+						try {
+							LocalCam localCam = new LocalCam(receivedData);
+							Cam cam = localCam.asCam();
+							send(cam);
 
-        BtpParser(BtpPacket btpPacket){
-            this.btpPacket = btpPacket;
-        }
+							double latitude = (double) localCam.latitude;
+							latitude /= 1e7;
 
-        @Override public void run() {
-            Thread.currentThread().setPriority(Thread.MAX_PRIORITY);            
-            packet.setAddress(simulink_address);
-            switch (btpPacket.destinationPort()) {
-            case PORT_CAM: {
-                Cam cam;
-                try {
-                    num_rx_cam++;
-                    cam = UperEncoder.decode(btpPacket.payload(), Cam.class);
-                    LocalCam localCam = new LocalCam(cam);
+							double longitude = (double) localCam.longitude;
+							longitude /= 1e7;
 
-                    buffer = localCam.asByteArray();
-                    packet.setData(buffer, 0, buffer.length);                                
+							vehiclePositionProvider.updatePosition(latitude, longitude);
+						} catch (IllegalArgumentException e) {
+							logger.error("Irrecoverable error when creating CAM. Ignoring message.", e);
+						}
+						break;
+					}
 
-                    packet.setPort(simulink_cam_port);
+					case MessageId.denm: {
+						num_tx_denm++;
+						try {
+							LocalDenm localDenm = new LocalDenm(receivedData);
+							Denm denm = localDenm.asDenm();
 
-                    try {
-                        rcvSocket.send(packet);
-                    } catch (IOException e) {
-                        logger.warn("Failed to send CAM to Simulink", e);
-                    }
-                } catch(NullPointerException e){
-                    logger.warn("Can't decode CAM: Incorrect formatting.");
-                } catch (IllegalArgumentException | UnsupportedOperationException | BufferOverflowException e) {
-                    logger.warn("Can't decode CAM:", e);
-                }
-                break;
-            }
+							/*
+							 * TODO: How does GeoNetworking addressing work in
+							 * GCDC16? For now let's just broadcast everything
+							 * in a large radius.
+							 */
+							send(denm, Geobroadcast.geobroadcast(
+									Area.circle(vehiclePositionProvider.getPosition(), Double.MAX_VALUE)));
+						} catch (IllegalArgumentException e) {
+							logger.error("Irrecoverable error when creating DENM. Ignoring message.", e);
+						}
+						break;
+					}
 
-            case PORT_DENM: {
-                Denm denm;
-                try {
-                    num_rx_denm++;
-                    denm = UperEncoder.decode(btpPacket.payload(), Denm.class);                                
-                    LocalDenm localDenm = new LocalDenm(denm);
+					case net.gcdc.camdenm.Iclcm.MessageID_iCLCM: {
+						num_tx_iclcm++;
+						try {
+							LocalIclcm localIclcm = new LocalIclcm(receivedData);
+							IgameCooperativeLaneChangeMessage iclcm = localIclcm.asIclcm();
+							send(iclcm);
+						} catch (IllegalArgumentException e) {
+							logger.error("Irrecoverable error when creating iCLCM. Ignoring message.", e);
+						}
+						break;
+					}
 
-                    buffer = localDenm.asByteArray();
-                    packet.setData(buffer, 0, buffer.length);
+					default:
+						logger.warn("Received incorrectly formated message! ID: {} Data: {}", receivedData[0],
+								receivedData);
+					}
+				}
+			} catch (IOException e) {
+				logger.error("Failed to receive packet from Simulink, terminating", e);
+				System.exit(1);
+			}
+		}
+	};
 
-                    packet.setPort(simulink_denm_port);
+	/*
+	 * Take a received UDP packet, parse it and send it as a GeoNetworking
+	 * packet.
+	 */
+	/*
+	 * TODO: The performance benefit of parallelizing this part was quite low.
+	 * Needs some more research if we're gonna do it.
+	 */
+	private class UdpParser implements Runnable {
+		byte[] receivedData;
 
-                    try {
-                        rcvSocket.send(packet);
-                    } catch (IOException e) {
-                        logger.warn("Failed to send DENM to Simulink", e);
-                    }
-                } catch(NullPointerException e){
-                    logger.warn("Can't decode DENM: Incorrect formatting.");                                
-                } catch (IllegalArgumentException | UnsupportedOperationException  | BufferOverflowException e) {
-                    logger.warn("Can't decode DENM:", e);
-                }
-                break;                          
-            }
+		UdpParser(byte[] receivedData) {
+			this.receivedData = receivedData;
+		}
 
-            case PORT_ICLCM: {
-                IgameCooperativeLaneChangeMessage iclcm;
-                try {
-                    num_rx_iclcm++;
-                    iclcm = UperEncoder.decode(btpPacket.payload(), IgameCooperativeLaneChangeMessage.class);
-                    LocalIclcm localIclcm = new LocalIclcm(iclcm);
+		@Override
+		public void run() {
+			logger.info("This souldn't run!");
+		}
+	}
 
-                    buffer = localIclcm.asByteArray();
-                    packet.setData(buffer, 0, buffer.length);
+	/*
+	 * Receive incoming CAM/DENM/iCLCM to Simulink, convert them to their local
+	 * representation, and send them to Simulink over UDP.
+	 */
+	private Runnable sendToSimulinkLoop = new Runnable() {
+		@Override
+		public void run() {
+			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
 
-                    packet.setPort(simulink_iclcm_port);
+			try {
+				while (true) {
+					BtpPacket btpPacket;
+					;
+					btpPacket = btpSocket.receive();
+					executor.submit(new BtpParser(btpPacket));
+				}
+			} catch (InterruptedException e) {
+				logger.warn("BTP socket receive was interrupted", e);
+			}
+		}
+	};
 
-                    try {
-                        rcvSocket.send(packet);                                
-                    } catch(IOException e) {
-                        logger.warn("Failed to send iCLCM to Simulink", e);
-                    }
-                } catch(NullPointerException e){
-                    logger.warn("Can't decode iCLCM: Incorrect formatting.");
-                } catch(IllegalArgumentException | UnsupportedOperationException  | BufferOverflowException e){
-                    logger.warn("Can't decode iCLCM:", e);
-                }
-                break;
-            }
+	/*
+	 * Take a received BtpPacket, decode it and send it to the control system.
+	 */
+	private class BtpParser implements Runnable {
+		private byte[] buffer = new byte[MAX_UDP_LENGTH];
+		private final DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+		private BtpPacket btpPacket;
 
-            default:
-                //fallthrough
-            }
-        }
-    };
+		BtpParser(BtpPacket btpPacket) {
+			this.btpPacket = btpPacket;
+		}
 
-    
-    public void send(Cam cam) {
-        byte[] bytes;
-        try {
-            bytes = UperEncoder.encode(cam);
-        } catch (IllegalArgumentException | UnsupportedOperationException e) {
-            logger.warn("Failed to encode CAM {}, ignoring", cam, e);
-            return;
-        }
-        BtpPacket packet = BtpPacket.singleHop(bytes, PORT_CAM, CAM_LIFETIME_SECONDS);
-        try {
-            btpSocket.send(packet);
-        } catch (IOException e) {
-            logger.warn("failed to send cam", e);
-        }
-    }
+		@Override
+		public void run() {
+			Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+			packet.setAddress(simulink_address);
+			switch (btpPacket.destinationPort()) {
+			case PORT_CAM: {
+				Cam cam;
+				try {
+					num_rx_cam++;
+					cam = UperEncoder.decode(btpPacket.payload(), Cam.class);
+					LocalCam localCam = new LocalCam(cam);
 
-    private void send(Denm denm, Geobroadcast destination) {
-        byte[] bytes;
-        try {
-            bytes = UperEncoder.encode(denm);
-        } catch (IllegalArgumentException | UnsupportedOperationException e) {
-            logger.error("Failed to encode DENM {}, ignoring", denm, e);
-            return;
-        }
-        BtpPacket packet = BtpPacket.customDestination(bytes, PORT_DENM, destination);
-        try {
-            btpSocket.send(packet);
-        } catch (IOException e) {
-            logger.warn("failed to send denm", e);
-        }
-    }
+					buffer = localCam.asByteArray();
+					packet.setData(buffer, 0, buffer.length);
 
-    private void send(IgameCooperativeLaneChangeMessage iclcm){
-        byte[] bytes;
-        try {
-            bytes = UperEncoder.encode(iclcm);
-        } catch (IllegalArgumentException | UnsupportedOperationException e) {
-            logger.error("Failed to encode iCLCM {}, ignoring", iclcm, e);
-            return;
-        }
-        BtpPacket packet = BtpPacket.singleHop(bytes, PORT_ICLCM, iCLCM_LIFETIME_SECONDS);
-        try {
-            btpSocket.send(packet);
-        } catch (IOException e) {
-            logger.warn("Failed to send iclcm", e);
-        }
-    }
+					packet.setPort(simulink_cam_port);
 
-    public static class SocketAddressFromString {  // Public, otherwise JewelCLI can't access it!
-        private final InetSocketAddress address;
+					try {
+						rcvSocket.send(packet);
+					} catch (IOException e) {
+						logger.warn("Failed to send CAM to Simulink", e);
+					}
+				} catch (NullPointerException e) {
+					logger.warn("Can't decode CAM: Incorrect formatting.");
+				} catch (IllegalArgumentException | UnsupportedOperationException | BufferOverflowException e) {
+					logger.warn("Can't decode CAM:", e);
+				}
+				break;
+			}
 
-        public SocketAddressFromString(final String addressStr) {
-            String[] hostAndPort = addressStr.split(":");
-            if (hostAndPort.length != 2) { throw new ArgumentValidationException(
-                                                                                 "Expected host:port, got " + addressStr); }
-            String hostname = hostAndPort[0];
-            int port = Integer.parseInt(hostAndPort[1]);
-            this.address = new InetSocketAddress(hostname, port);
-        }
+			case PORT_DENM: {
+				Denm denm;
+				try {
+					num_rx_denm++;
+					denm = UperEncoder.decode(btpPacket.payload(), Denm.class);
+					LocalDenm localDenm = new LocalDenm(denm);
 
-        public InetSocketAddress asInetSocketAddress() {
-            return address;
-        }
-    }
+					buffer = localDenm.asByteArray();
+					packet.setData(buffer, 0, buffer.length);
 
-    private static interface CliOptions{
-        /* Port to receive messages from Simulink on */       
-        @Option int getPortRcvFromSimulink();
+					packet.setPort(simulink_denm_port);
 
-        /* Ports to send CAM, DENM, iCLCM messages on. These ports can
-         * be the same or different. */
-        @Option int getPortSendCam();
-        @Option int getPortSendDenm();
-        @Option int getPortSendIclcm();
+					try {
+						rcvSocket.send(packet);
+					} catch (IOException e) {
+						logger.warn("Failed to send DENM to Simulink", e);
+					}
+				} catch (NullPointerException e) {
+					logger.warn("Can't decode DENM: Incorrect formatting.");
+				} catch (IllegalArgumentException | UnsupportedOperationException | BufferOverflowException e) {
+					logger.warn("Can't decode DENM:", e);
+				}
+				break;
+			}
 
-        /* IP of Simulink */
-        @Option String getSimulinkAddress();
+			case PORT_ICLCM: {
+				IgameCooperativeLaneChangeMessage iclcm;
+				try {
+					num_rx_iclcm++;
+					iclcm = UperEncoder.decode(btpPacket.payload(), IgameCooperativeLaneChangeMessage.class);
+					LocalIclcm localIclcm = new LocalIclcm(iclcm);
 
-        /* The local port and remote address for the link layer. The
-         * link layer can either run on the same machine or a separate
-         * one. */
-        @Option int getLocalPortForUdpLinkLayer();
-        @Option SocketAddressFromString getRemoteAddressForUdpLinkLayer();
+					buffer = localIclcm.asByteArray();
+					packet.setData(buffer, 0, buffer.length);
 
-        /* Mac address to use when broadcasting. */
-        @Option MacAddress getMacAddress();
+					packet.setPort(simulink_iclcm_port);
 
-        /* Country code */
-        @Option int getCountryCode();
-    }
+					try {
+						rcvSocket.send(packet);
+					} catch (IOException e) {
+						logger.warn("Failed to send iCLCM to Simulink", e);
+					}
+				} catch (NullPointerException e) {
+					logger.warn("Can't decode iCLCM: Incorrect formatting.");
+				} catch (IllegalArgumentException | UnsupportedOperationException | BufferOverflowException e) {
+					logger.warn("Can't decode iCLCM:", e);
+				}
+				break;
+			}
 
-    /* PositionProvider is used by the beaconing service and for
-     * creating the Geobroadcast address used for DENM messages.
-     */
-    public static class VehiclePositionProvider implements PositionProvider{
-        public Address address;        
-        public Position position;
-        public boolean isPositionConfident;
-        public double speedMetersPerSecond;
-        public double headingDegreesFromNorth;
+			default:
+				// fallthrough
+			}
+		}
+	};
 
-        VehiclePositionProvider(Address address){
-            this.address = address;
-            this.position = new Position(0, 0);
-            this.isPositionConfident = false;
-            this.speedMetersPerSecond = 0;
-            this.headingDegreesFromNorth = 0;
-        }
+	public void send(Cam cam) {
+		byte[] bytes;
+		try {
+			bytes = UperEncoder.encode(cam);
+		} catch (IllegalArgumentException | UnsupportedOperationException e) {
+			logger.warn("Failed to encode CAM {}, ignoring", cam, e);
+			return;
+		}
+		BtpPacket packet = BtpPacket.singleHop(bytes, PORT_CAM, CAM_LIFETIME_SECONDS);
+		try {
+			btpSocket.send(packet);
+		} catch (IOException e) {
+			logger.warn("failed to send cam", e);
+		}
+	}
 
-        /* TODO: Is the formatting of lat/long the same as in the CAM
-         * message? */
-        public void updatePosition(double latitude, double longitude){
-            this.position = new Position(latitude, longitude);
-            logger.debug("VehiclePositionProvider position updated: {}", this.position);
-        }
+	private void send(Denm denm, Geobroadcast destination) {
+		byte[] bytes;
+		try {
+			bytes = UperEncoder.encode(denm);
+		} catch (IllegalArgumentException | UnsupportedOperationException e) {
+			logger.error("Failed to encode DENM {}, ignoring", denm, e);
+			return;
+		}
+		BtpPacket packet = BtpPacket.customDestination(bytes, PORT_DENM, destination);
+		try {
+			btpSocket.send(packet);
+		} catch (IOException e) {
+			logger.warn("failed to send denm", e);
+		}
+	}
 
-        public Position getPosition(){
-            return position;
-        }
+	private void send(IgameCooperativeLaneChangeMessage iclcm) {
+		byte[] bytes;
+		try {
+			bytes = UperEncoder.encode(iclcm);
+		} catch (IllegalArgumentException | UnsupportedOperationException e) {
+			logger.error("Failed to encode iCLCM {}, ignoring", iclcm, e);
+			return;
+		}
+		BtpPacket packet = BtpPacket.singleHop(bytes, PORT_ICLCM, iCLCM_LIFETIME_SECONDS);
+		try {
+			btpSocket.send(packet);
+		} catch (IOException e) {
+			logger.warn("Failed to send iclcm", e);
+		}
+	}
 
-        public LongPositionVector getLatestPosition(){
-            return new LongPositionVector(address,
-                                          Instant.now(),
-                                          position,
-                                          isPositionConfident,
-                                          speedMetersPerSecond,
-                                          headingDegreesFromNorth);
-        }
-    }
+	public static class SocketAddressFromString { // Public, otherwise JewelCLI
+													// can't access it!
+		private final InetSocketAddress address;
 
-    public VehicleAdapter(int portRcvFromSimulink, StationConfig config,
-                          LinkLayer linkLayer, PositionProvider position,
-                          MacAddress macAddress) throws SocketException {
-        rcvSocket = new DatagramSocket(portRcvFromSimulink);
-        station = new GeonetStation(config, linkLayer, position, macAddress);
-        new Thread(station).start();
+		public SocketAddressFromString(final String addressStr) {
+			String[] hostAndPort = addressStr.split(":");
+			if (hostAndPort.length != 2) {
+				throw new ArgumentValidationException("Expected host:port, got " + addressStr);
+			}
+			String hostname = hostAndPort[0];
+			int port = Integer.parseInt(hostAndPort[1]);
+			this.address = new InetSocketAddress(hostname, port);
+		}
 
-        /* TODO: Race conditions in the beaconing service is causing
-         * it to send too many beacons. Turn off until it's fixed. We
-         * don't need the beaconing service for anything we're using
-         * it for anyway as it's supposed to be quiet when sending
-         * other traffic. */
-        /* TODO: Thread crashes when attempting to send when the
-         * beaconing service isn't running. */
-        station.startBecon();
-        
-        btpSocket = BtpSocket.on(station);
-        executor.submit(receiveFromSimulinkLoop);
-        executor.submit(sendToSimulinkLoop);
-        executor.submit(printStatistics);
-    }
-    
-    public static void main(String[] args) throws IOException {
-        //Parse CLI options
-        CliOptions opts = CliFactory.parseArguments(CliOptions.class, args);
+		public InetSocketAddress asInetSocketAddress() {
+			return address;
+		}
+	}
 
-        StationConfig config = new StationConfig();
-        LinkLayer linkLayer =
-            new LinkLayerUdpToEthernet(opts.getLocalPortForUdpLinkLayer(),
-                                       opts.getRemoteAddressForUdpLinkLayer().asInetSocketAddress(),
-                                       true);
-        simulink_address = InetAddress.getByName(opts.getSimulinkAddress());
-        
-        MacAddress senderMac = opts.getMacAddress();
-        
-        Address address = new Address(true, //isManual
-                                      net.gcdc.geonetworking.StationType.values()[5], //5 for passenger car
-                                      opts.getCountryCode(), //countryCode
-                                      senderMac.value()); //lowLevelAddress
-        
-        vehiclePositionProvider = new VehiclePositionProvider(address);
+	private static interface CliOptions {
+		/* Port to receive messages from Simulink on */
+		@Option
+		int getPortRcvFromSimulink();
 
-        simulink_cam_port = opts.getPortSendCam();
-        simulink_denm_port = opts.getPortSendDenm();
-        simulink_iclcm_port = opts.getPortSendIclcm();
+		/*
+		 * Ports to send CAM, DENM, iCLCM messages on. These ports can be the
+		 * same or different.
+		 */
+		@Option
+		int getPortSendCam();
 
-        /* Create the vehicle adapter. */
-        VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer, vehiclePositionProvider, senderMac);
-    }
+		@Option
+		int getPortSendDenm();
+
+		@Option
+		int getPortSendIclcm();
+
+		/* IP of Simulink */
+		@Option
+		String getSimulinkAddress();
+
+		/*
+		 * The local port and remote address for the link layer. The link layer
+		 * can either run on the same machine or a separate one.
+		 */
+		@Option
+		int getLocalPortForUdpLinkLayer();
+
+		@Option
+		SocketAddressFromString getRemoteAddressForUdpLinkLayer();
+
+		/* Mac address to use when broadcasting. */
+		@Option
+		MacAddress getMacAddress();
+
+		/* Country code */
+		@Option
+		int getCountryCode();
+	}
+
+	/*
+	 * PositionProvider is used by the beaconing service and for creating the
+	 * Geobroadcast address used for DENM messages.
+	 */
+	public static class VehiclePositionProvider implements PositionProvider {
+		public Address address;
+		public Position position;
+		public boolean isPositionConfident;
+		public double speedMetersPerSecond;
+		public double headingDegreesFromNorth;
+
+		VehiclePositionProvider(Address address) {
+			this.address = address;
+			this.position = new Position(0, 0);
+			this.isPositionConfident = false;
+			this.speedMetersPerSecond = 0;
+			this.headingDegreesFromNorth = 0;
+		}
+
+		/*
+		 * TODO: Is the formatting of lat/long the same as in the CAM message?
+		 */
+		public void updatePosition(double latitude, double longitude) {
+			this.position = new Position(latitude, longitude);
+			logger.debug("VehiclePositionProvider position updated: {}", this.position);
+		}
+
+		public Position getPosition() {
+			return position;
+		}
+
+		public LongPositionVector getLatestPosition() {
+			return new LongPositionVector(address, Instant.now(), position, isPositionConfident, speedMetersPerSecond,
+					headingDegreesFromNorth);
+		}
+	}
+
+	public static void main(String[] args) throws IOException {
+		// Parse CLI options
+		CliOptions opts = CliFactory.parseArguments(CliOptions.class, args);
+
+		StationConfig config = new StationConfig();
+		LinkLayer linkLayer = new LinkLayerUdpToEthernet(opts.getLocalPortForUdpLinkLayer(),
+				opts.getRemoteAddressForUdpLinkLayer().asInetSocketAddress(), true);
+		simulink_address = InetAddress.getByName(opts.getSimulinkAddress());
+
+		MacAddress senderMac = opts.getMacAddress();
+
+		Address address = new Address(true, // isManual
+				net.gcdc.geonetworking.StationType.values()[5], // 5 for
+																// passenger car
+				opts.getCountryCode(), // countryCode
+				senderMac.value()); // lowLevelAddress
+
+		vehiclePositionProvider = new VehiclePositionProvider(address);
+
+		simulink_cam_port = opts.getPortSendCam();
+		simulink_denm_port = opts.getPortSendDenm();
+		simulink_iclcm_port = opts.getPortSendIclcm();
+
+		/* Create the vehicle adapter. */
+		VehicleAdapter va = new VehicleAdapter(opts.getPortRcvFromSimulink(), config, linkLayer,
+				vehiclePositionProvider, senderMac);
+	}
 }
