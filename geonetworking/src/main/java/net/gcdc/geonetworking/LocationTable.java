@@ -168,7 +168,7 @@ public class LocationTable {
                     gnMap.remove(address);
                     janitorFutures.remove(address);
                     notifyListeners();} },
-                configProvider.config().itsGnLifetimeLocTE,
+                configProvider.config().getItsGnLifetimeLocTE(),
                 TimeUnit.SECONDS);
         janitorFutures.put(address, future);
         notifyListeners();

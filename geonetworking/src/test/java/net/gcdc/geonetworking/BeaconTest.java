@@ -17,8 +17,8 @@ public class BeaconTest {
         LinkLayer l2 = d.get();
 
         StationConfig config1 = new StationConfig();
-        config1.itsGnBeaconServiceRetransmitTimer = 40;
-        config1.itsGnBeaconServiceMaxJitter = 10;
+        config1.setItsGnBeaconServiceRetransmitTimer(40);
+        config1.setItsGnBeaconServiceMaxJitter(10);
 
         final Optional<Address> emptyAddress = Optional.empty();
 

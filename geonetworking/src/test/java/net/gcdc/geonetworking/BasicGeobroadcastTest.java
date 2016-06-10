@@ -32,18 +32,18 @@ public class BasicGeobroadcastTest {
         LinkLayer l4 = d.get();
 
         StationConfig config1 = new StationConfig();
-        config1.itsGnBeaconServiceRetransmitTimer = 500;
-        config1.itsGnBeaconServiceMaxJitter = 500;
+        config1.setItsGnBeaconServiceRetransmitTimer(500);
+        config1.setItsGnBeaconServiceMaxJitter(500);
 
         StationConfig config2 = new StationConfig();
-        config2.itsGnBeaconServiceRetransmitTimer = 500;
-        config2.itsGnBeaconServiceMaxJitter = 500;
-        config2.itsGnGeoBroadcastCbfMaxTime = 5;
+        config2.setItsGnBeaconServiceRetransmitTimer(500);
+        config2.setItsGnBeaconServiceMaxJitter(500);
+        config2.setItsGnGeoBroadcastCbfMaxTime(5);
 
         StationConfig config3 = new StationConfig();
-        config3.itsGnBeaconServiceRetransmitTimer = 500;
-        config3.itsGnBeaconServiceMaxJitter = 500;
-        config3.itsGnGeoBroadcastCbfMinTime = 99;
+        config3.setItsGnBeaconServiceRetransmitTimer(500);
+        config3.setItsGnBeaconServiceMaxJitter(500);
+        config3.setItsGnGeoBroadcastCbfMinTime(99);
 
         StationConfig config4 = new StationConfig();
 
