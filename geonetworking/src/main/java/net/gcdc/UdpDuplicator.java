@@ -1,5 +1,8 @@
 package net.gcdc;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -9,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class UdpDuplicator {
+
+    private  static final  Logger LOGGER = LoggerFactory.getLogger(BtpUdpClient.class);
 
     private class Client implements Runnable {
         public final int            localPort;
@@ -38,7 +43,7 @@ public class UdpDuplicator {
                 }
             } catch (IOException e) {
                 // TODO Auto-generated catch block
-                e.printStackTrace();
+               LOGGER.info("packetsending or receiving error ", e);
             }
         }
     }

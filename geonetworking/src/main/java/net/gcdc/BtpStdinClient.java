@@ -8,7 +8,9 @@ import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.util.logging.Level;
 
+import com.sun.istack.internal.logging.Logger;
 import net.gcdc.geonetworking.Address;
 import net.gcdc.geonetworking.BtpPacket;
 import net.gcdc.geonetworking.BtpSocket;
@@ -21,13 +23,17 @@ import net.gcdc.geonetworking.PositionProvider;
 import net.gcdc.geonetworking.StationConfig;
 import net.gcdc.geonetworking.gpsdclient.GpsdClient;
 
+import org.slf4j.LoggerFactory;
 import org.threeten.bp.Instant;
+import sun.util.logging.PlatformLogger;
 
 public class BtpStdinClient {
 
     private final static String usage =
             "Usage: java -cp gn.jar StdinClient --local-port <local-port> --remote-address <udp-to-ethernet-remote-host-and-port> <--has-ethernet-header | --no-ethernet-header> <--position <lat>,<lon> | --gpsd-server <host>:<port>> --btp-destination-port <port>" + "\n" +
     "BTP ports: 2001 (CAM), 2002 (DENM), 2003 (MAP), 2004 (SPAT).";
+
+    private static final Logger LOGGER = Logger.getLogger(BtpStdinClient.class);
 
     public static void main(String[] args) throws IOException {
         if (args.length < 7) {
@@ -110,7 +116,7 @@ public class BtpStdinClient {
                         dataToSend = br.readLine();  // Consecutive lines.
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.log(Level.WARNING, e.getMessage(), e);
                 }
             }
         };
