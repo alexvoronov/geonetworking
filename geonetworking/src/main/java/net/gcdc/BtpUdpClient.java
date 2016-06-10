@@ -37,6 +37,7 @@ public class BtpUdpClient {
     private final static String usage =
             "Usage: java -cp gn.jar BtpClient --local-udp2eth-port <local-port> --remote-udp2eth-address <udp-to-ethernet-remote-host-and-port> --local-data-port <port> --remote-data-address <host:port> --gpsd-server <host:port> --mac-address <xx:xx:xx:xx:xx:xx>" + "\n" +
     "BTP ports: 2001 (CAM), 2002 (DENM), 2003 (MAP), 2004 (SPAT).";
+    private static final String BAD_DATA = "Bad DATA host:port.\n";
 
     public static void main(String[] args) throws IOException {
         if (args.length < 7) {
@@ -73,7 +74,7 @@ public class BtpUdpClient {
             } else if (args[arg].startsWith("--remote-data-address")) {
                 arg++;
                 String[] hostPort = args[arg].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) { System.err.println(BAD_DATA + usage); System.exit(1); }
                 remoteDataAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--local-data-cam-port")) {
                 arg++;
@@ -81,7 +82,7 @@ public class BtpUdpClient {
             } else if (args[arg].startsWith("--remote-data-cam-address")) {
                 arg++;
                 String[] hostPort = args[arg].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) { System.err.println(BAD_DATA + usage); System.exit(1); }
                 remoteDataCamAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--local-data-iclcm-port")) {
                 arg++;
@@ -89,7 +90,7 @@ public class BtpUdpClient {
             } else if (args[arg].startsWith("--remote-data-iclcm-address")) {
                 arg++;
                 String[] hostPort = args[arg].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) { System.err.println(BAD_DATA + usage); System.exit(1); }
                 remoteDataIclcmAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--position")) {
                 arg++;
