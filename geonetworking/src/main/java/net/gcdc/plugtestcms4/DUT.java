@@ -5,7 +5,18 @@ import net.gcdc.plugtestcms4.ping.PingSettings;
 
 public class DUT
 {
-
+	private boolean active = false;
+	private String name = "Unset";
+	private String rootPassword = "voyage";
+	private String ipv4AddressEth = "Unset";
+	private String ipv4AddressWLAN = "Unset";
+	private boolean receives = false;
+	private int rxPort = 1236;
+	private boolean transmits = false;
+	private int txPort = 1235;
+	private PingSettings pingSettings = null;
+	private Object pingSettingsLock = new Object ();
+	 
   public DUT (String name, String ipv4AddressEth, String ipv4AddressWLAN, int rxPort)
   {
     if (name == null || ipv4AddressEth == null || ipv4AddressWLAN == null)
@@ -16,7 +27,6 @@ public class DUT
     this.rxPort = rxPort;
   }
 
-  private boolean active = false;
 
   public synchronized boolean getActive ()
   {
@@ -54,8 +64,6 @@ public class DUT
     }
   }
 
-  private String name = "Unset";
-
   public String getName ()
   {
     return this.name;
@@ -68,14 +76,12 @@ public class DUT
     this.name = name;
   }
 
-  private String rootPassword = "voyage";
 
   public final String getRootPassword ()
   {
     return this.rootPassword;
   }
 
-  private String ipv4AddressEth = "Unset";
 
   public String getIpv4AddressEth ()
   {
@@ -92,7 +98,6 @@ public class DUT
     }
   }
 
-  private String ipv4AddressWLAN = "Unset";
 
   public String getIpv4AddressWLAN ()
   {
@@ -109,8 +114,6 @@ public class DUT
     }
   }
 
-  private boolean receives = false;
-
   public boolean getReceives ()
   {
     return this.receives;
@@ -124,7 +127,6 @@ public class DUT
     }
   }
 
-  private int rxPort = 1236;
 
   public int getRxPort ()
   {
@@ -139,8 +141,7 @@ public class DUT
     }
   }
 
-  private boolean transmits = false;
-
+ 
   public boolean getTransmits ()
   {
     return this.transmits;
@@ -154,7 +155,6 @@ public class DUT
     }
   }
 
-  private int txPort = 1235;
 
   public int getTxPort ()
   {
@@ -169,9 +169,6 @@ public class DUT
     }
   }
 
-  private PingSettings pingSettings = null;
-
-  private Object pingSettingsLock = new Object ();
 
   public PingStatus getPingStatus ()
   {

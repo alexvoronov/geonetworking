@@ -11,11 +11,8 @@ import java.util.Arrays;
  * {@link #hashCode()}.
  */
 public final class MacAddress {
-    @Override public String toString() {
-        return "MacAddress[" + address + "]";
-    }
-
-    private final long address;
+    
+	private final long address;
 
     public MacAddress(long address) {
         if ((address & 0xffff_0000_0000_0000L) != 0) {
@@ -28,6 +25,11 @@ public final class MacAddress {
         this(parseFromString(str));
     }
 
+	@Override public String toString() {
+        return "MacAddress[" + address + "]";
+    }
+
+    
     public long value() { return address; }
 
     /** Returns 6-bytes array representing this address. */
