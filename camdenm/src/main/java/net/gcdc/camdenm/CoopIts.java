@@ -37,23 +37,23 @@ public class CoopIts {
     @Sequence
     public static class Cam {
         ItsPduHeader header;
-        CoopAwareness cam;
+        CoopAwareness camField;
 
         public Cam(ItsPduHeader itsPduHeader, CoopAwareness coopAwareness) {
             this.header = itsPduHeader;
-            this.cam = coopAwareness;
+            this.camField = coopAwareness;
         }
 
         public Cam() { this(new ItsPduHeader(new MessageId(MessageId.cam)), new CoopAwareness()); }
 
-        @Override public String toString() { return "CAM(" + header + ", " + cam + ")"; }
+        @Override public String toString() { return "CAM(" + header + ", " + camField + ")"; }
 
 		public ItsPduHeader getHeader() {
 			return header;
 		}
 
 		public CoopAwareness getCam() {
-			return cam;
+			return camField;
 		}
     }
 

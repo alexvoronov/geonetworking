@@ -500,7 +500,7 @@ public final  class Iclcm {
 	@IntRange(minValue = 0, maxValue = 1)
 	public static class MergeRequest extends Asn1Integer {
 		public static final int noMergeRequest = 0;
-		public static final int mergeRequest = 1;
+		public static final int mergeRequestNo = 1;
 		
 		public MergeRequest() { this(noMergeRequest); }
 		public MergeRequest(int value) { super(value); }
@@ -622,9 +622,9 @@ public final  class Iclcm {
 	
 	@IntRange(minValue = 1, maxValue = 1)
 	public static class EndOfScenario extends Asn1Integer {
-		public static final int endOfScenario = 1;
+		public static final int endOfScenarioNo = 1;
 		
-		public EndOfScenario() { this(endOfScenario); }
+		public EndOfScenario() { this(endOfScenarioNo); }
 		public EndOfScenario(int value) { super(value); }
 	}
 	
