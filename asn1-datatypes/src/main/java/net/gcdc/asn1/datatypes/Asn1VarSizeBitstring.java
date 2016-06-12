@@ -3,6 +3,7 @@ package net.gcdc.asn1.datatypes;
 import java.util.AbstractList;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Objects;
 
 public class Asn1VarSizeBitstring extends AbstractList<Boolean> {
 
@@ -37,4 +38,17 @@ public class Asn1VarSizeBitstring extends AbstractList<Boolean> {
         return backing.get(bitIndex);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Asn1VarSizeBitstring booleen = (Asn1VarSizeBitstring) o;
+        return Objects.equals(backing, booleen.backing);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), backing);
+    }
 }

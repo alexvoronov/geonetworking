@@ -1,10 +1,7 @@
 package net.gcdc.asn1.datatypes;
 
 import java.lang.reflect.ParameterizedType;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,5 +47,19 @@ public abstract class Asn1SequenceOf<T> extends AbstractList<T> {
                 ((ParameterizedType)getClass().getGenericSuperclass()).getActualTypeArguments()[0],
                 coll);
         bakingList = new ArrayList<>(coll);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Asn1SequenceOf<?> that = (Asn1SequenceOf<?>) o;
+        return Objects.equals(bakingList, that.bakingList);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), bakingList);
     }
 }
