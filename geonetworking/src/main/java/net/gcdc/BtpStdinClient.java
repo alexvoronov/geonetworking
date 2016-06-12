@@ -55,7 +55,9 @@ public final class BtpStdinClient {
             } else if (args[arg].startsWith("--remote-address")) {
                 arg++;
                 String[] hostPort = args[arg].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad utoepy host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) {
+                    System.err.println("Bad utoepy host:port.\n" + usage); System.exit(1);
+                }
                 remoteAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--has-ethernet-header")) {
                 hasEthernetHeader = true;
@@ -78,7 +80,9 @@ public final class BtpStdinClient {
             } else if (args[arg].startsWith("--gpsd-server")) {
                 arg++;
                 String[] hostPort = args[arg].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad gpsd host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) {
+                    System.err.println("Bad gpsd host:port.\n" + usage); System.exit(1);
+                }
                 positionProvider = new GpsdClient(
                         new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1])));
             } else if (args[arg].startsWith("--btp-destination-port")) {

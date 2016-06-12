@@ -66,29 +66,39 @@ public final  class BtpUdpClient {
                 localUdp2EthPort = Integer.parseInt(args[arg + 1]);
             } else if (args[arg].startsWith("--remote-udp2eth-address")) {
                 String[] hostPort = args[arg + 1].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad udp2eth host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) {
+                    System.err.println("Bad udp2eth host:port.\n" + usage); System.exit(1);
+                }
                 remoteUdp2EthAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--local-data-port")) {
                 localDataPort = Integer.parseInt(args[arg + 1]);
             } else if (args[arg].startsWith("--remote-data-address")) {
                 String[] hostPort = args[arg + 1].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) {
+                    System.err.println("Bad DATA host:port.\n" + usage); System.exit(1);
+                }
                 remoteDataAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--local-data-cam-port")) {
                 localDataCamPort = Integer.parseInt(args[arg + 1]);
             } else if (args[arg].startsWith("--remote-data-cam-address")) {
                 String[] hostPort = args[arg + 1].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) {
+                    System.err.println("Bad DATA host:port.\n" + usage); System.exit(1);
+                }
                 remoteDataCamAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--local-data-iclcm-port")) {
                 localDataIclcmPort = Integer.parseInt(args[arg + 1]);
             } else if (args[arg].startsWith("--remote-data-iclcm-address")) {
                 String[] hostPort = args[arg + 1].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad DATA host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) {
+                    System.err.println("Bad DATA host:port.\n" + usage); System.exit(1);
+                }
                 remoteDataIclcmAddress = new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]));
             } else if (args[arg].startsWith("--position")) {
                 String[] latLon = args[arg + 1].split(",");
-                if (latLon.length != 2) { System.err.println("Bad lat,lon.\n" + usage); System.exit(1); }
+                if (latLon.length != 2) {
+                    System.err.println("Bad lat,lon.\n" + usage); System.exit(1);
+                }
                 final double lat = Double.parseDouble(latLon[0]);
                 final double lon = Double.parseDouble(latLon[1]);
                 final boolean isPositionConfident = true;  // Let's say we know it.
@@ -101,7 +111,9 @@ public final  class BtpUdpClient {
                 };
             } else if (args[arg].startsWith("--gpsd-server")) {
                 String[] hostPort = args[arg + 1].split(":");
-                if (hostPort.length != 2) { System.err.println("Bad gpsd host:port.\n" + usage); System.exit(1); }
+                if (hostPort.length != 2) {
+                    System.err.println("Bad gpsd host:port.\n" + usage); System.exit(1);
+                }
                 positionProvider = new GpsdClient(
                         new InetSocketAddress(hostPort[0], Integer.parseInt(hostPort[1]))).startClient();
             } else if (args[arg].startsWith("--mac-address")) {

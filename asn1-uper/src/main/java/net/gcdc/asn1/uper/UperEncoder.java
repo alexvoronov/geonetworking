@@ -63,9 +63,11 @@ public final class UperEncoder {
             UnsupportedOperationException {
         BitBuffer bitQueue = bitBufferFromBinaryString(binaryStringFromBytes(bytes));
         T result = decode2(bitQueue, classOfT, new Annotation[] {});
-        if (bitQueue.remaining() > 7) { throw new IllegalArgumentException("Can't fully decode "
+        if (bitQueue.remaining() > 7) {
+            throw new IllegalArgumentException("Can't fully decode "
                 + classOfT.getName() + ", got (" + result.getClass().getName() + "): " + result
-                + "; remaining " + bitQueue.remaining() + "  bits: " + bitQueue); }
+                + "; remaining " + bitQueue.remaining() + "  bits: " + bitQueue);
+        }
         return result;
     }
 
@@ -97,7 +99,9 @@ public final class UperEncoder {
             final long maxValue,
             final boolean hasExtensionMarker) {
         return new IntRange() {
-            @Override public Class<? extends Annotation> annotationType() { return IntRange.class; }
+            @Override public Class<? extends Annotation> annotationType() {
+                return IntRange.class;
+            }
             @Override public long minValue() { return minValue; }
             @Override public long maxValue() { return maxValue; }
             @Override public boolean hasExtensionMarker() { return hasExtensionMarker; }
@@ -248,15 +252,21 @@ public final class UperEncoder {
         long lowerBound = intRange.minValue();
         long upperBound = intRange.maxValue();
         boolean hasExtensionMarker = intRange.hasExtensionMarker();
-        if (upperBound < lowerBound) { throw new IllegalArgumentException("Lower bound "
-                + lowerBound + " is larger that upper bound " + upperBound); }
+        if (upperBound < lowerBound) {
+            throw new IllegalArgumentException("Lower bound "
+                + lowerBound + " is larger that upper bound " + upperBound);
+        }
         if (hasExtensionMarker) {
             boolean extensionIsActive = bitqueue.get();
-            if (extensionIsActive) { throw new UnsupportedOperationException(
-                    "int extension are not supported yet"); }
+            if (extensionIsActive) {
+                throw new UnsupportedOperationException(
+                    "int extension are not supported yet");
+            }
         }
         final long range = upperBound - lowerBound + 1;
-        if (range == 1) { return lowerBound; }
+        if (range == 1) {
+            return lowerBound;
+        }
         int bitlength = BigInteger.valueOf(range - 1).bitLength();
         logger.trace("This int will require {} bits, available {}", bitlength, bitqueue.remaining());
         BitBuffer relevantBits = ByteBitBuffer.allocate( ((bitlength + 7) / 8) * 8);  // Full bytes.
@@ -273,9 +283,11 @@ public final class UperEncoder {
         logger.debug("bits {} decoded as {} plus lower bound {} give {}",
                 relevantBits.toBooleanStringFromPosition(0), big.longValue(), lowerBound, result);
         if ((result < intRange.minValue() || intRange.maxValue() < result)
-                && !intRange.hasExtensionMarker()) { throw new AssertionError("Decoded value "
+                && !intRange.hasExtensionMarker()) {
+            throw new AssertionError("Decoded value "
                 + result + " is outside of range (" + intRange.minValue() + ".."
-                + intRange.maxValue() + ")"); }
+                + intRange.maxValue() + ")");
+        }
         return result;
     }
 
@@ -286,14 +298,17 @@ public final class UperEncoder {
     }
 
     private static boolean isExtension(Field f) {
+
         return f.getAnnotation(IsExtension.class) != null;
     }
 
     static boolean isMandatory(Field f) {
+
         return !isOptional(f);
     }
 
     static boolean isOptional(Field f) {
+
         return f.getAnnotation(Asn1Optional.class) != null;
     }
 
@@ -372,8 +387,10 @@ public final class UperEncoder {
                 encodeConstrainedInt(bitbuffer, n, 0, 127);
                 logger.debug("Length determinant {}, encoded as <{}>", n,
                         bitbuffer.toBooleanStringFromPosition(position));
-                if (bitbuffer.position() - position != 8) { throw new AssertionError(
-                        "length determinant encoded not as 8 bits"); }
+                if (bitbuffer.position() - position != 8) {
+                    throw new AssertionError(
+                        "length determinant encoded not as 8 bits");
+                }
                 return;
             } else if (n < NUM_16K) {
                 bitbuffer.put(true);
@@ -381,8 +398,9 @@ public final class UperEncoder {
                 encodeConstrainedInt(bitbuffer, n, 0, NUM_16K - 1);
                 logger.debug("Length determinant {}, encoded as 2bits+14bits: <{}>", n,
                         bitbuffer.toBooleanStringFromPosition(position));
-                if (bitbuffer.position() - position != 16) { throw new AssertionError(
-                        "length determinant encoded not as 16 bits"); }
+                if (bitbuffer.position() - position != 16) {
+                    throw new AssertionError("length determinant encoded not as 16 bits");
+                }
                 return;
             } else {
                 throw new UnsupportedOperationException(
@@ -446,11 +464,15 @@ public final class UperEncoder {
             final long upperBound,
             final boolean hasExtensionMarker
             ) throws Asn1EncodingException {
-        if (upperBound < lowerBound) { throw new IllegalArgumentException("Lower bound "
-                + lowerBound + " is larger than upper bound " + upperBound); }
-        if (!hasExtensionMarker && (value < lowerBound || value > upperBound)) { throw new Asn1EncodingException(
+        if (upperBound < lowerBound) {
+            throw new IllegalArgumentException("Lower bound "
+                + lowerBound + " is larger than upper bound " + upperBound);
+        }
+        if (!hasExtensionMarker && (value < lowerBound || value > upperBound)) {
+            throw new Asn1EncodingException(
                 " Value " + value + " is outside of fixed range " +
-                        lowerBound + ".." + upperBound); }
+                        lowerBound + ".." + upperBound);
+        }
         final long range = upperBound - lowerBound + 1;
         final int position = bitbuffer.position();
         if (hasExtensionMarker) {
@@ -458,8 +480,10 @@ public final class UperEncoder {
             logger.debug("constrained int with extension marker, {} extension range",
                     outsideOfRange ? "outside" : "within", outsideOfRange ? "1" : "0");
             bitbuffer.put(outsideOfRange);
-            if (outsideOfRange) { throw new UnsupportedOperationException(
-                    "INT extensions are not supported yet"); }
+            if (outsideOfRange) {
+                throw new UnsupportedOperationException(
+                    "INT extensions are not supported yet");
+            }
         }
         if (range == 1) {
             logger.debug("constrained int of empty range, resulting in empty encoding <>");
@@ -541,8 +565,10 @@ public final class UperEncoder {
     private static BitBuffer bitBufferFromBinaryString(String s) {
         ByteBitBuffer result = ByteBitBuffer.allocate(s.length());
         for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) != '1' && s.charAt(i) != '0') { throw new IllegalArgumentException(
-                    "bad character in 'binary' string " + s.charAt(i)); }
+            if (s.charAt(i) != '1' && s.charAt(i) != '0') {
+                throw new IllegalArgumentException(
+                    "bad character in 'binary' string " + s.charAt(i));
+            }
             result.put(s.charAt(i) == '1');
         }
         result.flip();

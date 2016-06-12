@@ -25,8 +25,10 @@ class BitStringCoder implements Decoder, Encoder {
         AnnotationStore annotations = new AnnotationStore(type.getAnnotations(),
                 extraAnnotations);
         if (!(obj instanceof Asn1VarSizeBitstring)) {
-            if (UperEncoder.hasExtensionMarker(annotations)) { throw new UnsupportedOperationException(
-                    "Bitstring with extensions is not implemented yet"); }
+            if (UperEncoder.hasExtensionMarker(annotations)) {
+                throw new UnsupportedOperationException(
+                    "Bitstring with extensions is not implemented yet");
+            }
             FixedSize size = type.getAnnotation(FixedSize.class);
             int position = bitbuffer.position();
             if (size != null) {
@@ -96,7 +98,8 @@ class BitStringCoder implements Decoder, Encoder {
             UperEncoder.logger.debug("Bitlist(fixed-size, all-named)");
             FixedSize fixedSize = annotations.getAnnotation(FixedSize.class);
             if (fixedSize == null) { throw new UnsupportedOperationException(
-                    "bitstrings of non-fixed size that do not extend Asn1VarSizeBitstring are not supported yet"); }
+                    "bitstrings of non-fixed size that do not extend Asn1VarSizeBitstring are not supported yet");
+            }
             Asn1ContainerFieldSorter sorter = new Asn1ContainerFieldSorter(classOfT);
             if (fixedSize.value() != sorter.ordinaryFields.size()) { throw new IllegalArgumentException(
                     "Fixed size annotation " + fixedSize.value()
