@@ -83,7 +83,6 @@ public class Parser {
                 msgToId.put(msgType, c);
             } catch (InstantiationException | NoSuchFieldException | IllegalAccessException e) {
                 logger.error("Error adding class {}", c.getName());
-                e.printStackTrace();
             }
         }
     }

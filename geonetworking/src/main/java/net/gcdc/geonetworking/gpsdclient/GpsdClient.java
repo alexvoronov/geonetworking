@@ -60,7 +60,7 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
         catch (InvalidTelnetOptionException e){
             logger.error("GpsdClient:Error registering option handlers: " + e.getMessage());
         } catch (IOException e) {
-			e.printStackTrace();
+            logger.error("IO Error : " + e.getMessage(), e);
 		}
 
         while (true){
@@ -123,7 +123,7 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
     		//ignore for printing
     		logger.debug("Json parsing error (NumberFormatException) :"+n.getMessage()+" :: "+line);
     	}catch(Exception e){
-    		e.printStackTrace();
+    		logger.info("Error " + e.getMessage(), e);
     		return;
     	}
     }
@@ -236,7 +236,7 @@ public class GpsdClient implements PositionProvider, AutoCloseable,TelnetNotific
             }
         } catch (IOException | InterruptedException e) {
             // TODO Auto-generated catch block
-            e.printStackTrace();
+           logger.info("Exception :"+e.getMessage(), e);
         }
         System.err.println("Stopping GpsdClient..");
     }
