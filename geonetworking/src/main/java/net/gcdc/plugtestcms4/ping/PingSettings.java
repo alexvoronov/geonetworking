@@ -3,7 +3,6 @@ package net.gcdc.plugtestcms4.ping;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class PingSettings

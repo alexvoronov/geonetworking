@@ -1,14 +1,9 @@
 package net.gcdc.plugtestcms4;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import javax.swing.JTable;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableModel;
 import net.gcdc.geonetworking.LocationTable;
-import net.gcdc.plugtestcms4.ping.PingStatus;
+
 
 public class LocationTableTableModel
 extends AbstractTableModel
@@ -26,6 +21,7 @@ implements TableModel
   @Override
   public int getColumnCount ()
   {
+
     return 1;
   }
 

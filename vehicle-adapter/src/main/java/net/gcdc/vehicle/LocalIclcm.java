@@ -17,9 +17,8 @@ package net.gcdc.vehicle;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.nio.ByteBuffer;
-import java.nio.BufferOverflowException;
 
+import java.nio.ByteBuffer;
 import net.gcdc.camdenm.CoopIts.*;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
