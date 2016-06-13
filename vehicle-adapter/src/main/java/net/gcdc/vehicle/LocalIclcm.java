@@ -127,11 +127,11 @@ public class LocalIclcm{
         if(!checkInt(StationID.class, stationID, "StationID")){ throw new IllegalArgumentException(); }
         if(!checkInt(VehicleRearAxleLocation.class, rearAxleLocation, "RearAxleLocation")){ throw new IllegalArgumentException(); }
         if(!checkInt(ControllerType.class, controllerType, "ControllerType")){ throw new IllegalArgumentException(); }
-        if(!checkInt(VehicleResponseTimeConstant.class, responseTimeConstant, "ResponseTimeConstant")){ responseTimeConstant = VehicleResponseTimeConstant.unavailable; }
-        if(!checkInt(VehicleResponseTimeDelay.class, responseTimeDelay, "ResponseTimeDelay")){ responseTimeDelay = VehicleResponseTimeDelay.unavailable; }
-        if(!checkInt(TargetLongitudonalAcceleration.class, targetLongAcc, "TargetLongitudinalAcceleration")){ targetLongAcc = TargetLongitudonalAcceleration.unavailable; }
-        if(!checkInt(TimeHeadway.class, timeHeadway, "TimeHeadway")){ timeHeadway = TimeHeadway.unavailable; }
-        if(!checkInt(CruiseSpeed.class, cruiseSpeed, "CruiseSpeed")){ cruiseSpeed = CruiseSpeed.unavailable; }
+        if(!checkInt(VehicleResponseTimeConstant.class, responseTimeConstant, "ResponseTimeConstant")){ responseTimeConstant = VehicleResponseTimeConstant.UNAVAILABLE; }
+        if(!checkInt(VehicleResponseTimeDelay.class, responseTimeDelay, "ResponseTimeDelay")){ responseTimeDelay = VehicleResponseTimeDelay.UNAVAILABLE; }
+        if(!checkInt(TargetLongitudonalAcceleration.class, targetLongAcc, "TargetLongitudinalAcceleration")){ targetLongAcc = TargetLongitudonalAcceleration.UNAVAILABLE; }
+        if(!checkInt(TimeHeadway.class, timeHeadway, "TimeHeadway")){ timeHeadway = TimeHeadway.UNAVAILABLE; }
+        if(!checkInt(CruiseSpeed.class, cruiseSpeed, "CruiseSpeed")){ cruiseSpeed = CruiseSpeed.UNAVAILABLE; }
 
         if(this.hasLowFrequencyContainer()){
             if(this.hasParticipantsReady())
@@ -145,10 +145,10 @@ public class LocalIclcm{
         }
         
         if(!checkInt(StationID.class, mioID, "MioID")){ throw new IllegalArgumentException(); }
-        if(!checkInt(MioRange.class, mioRange, "MioRange")){ mioRange = MioRange.unavailable; }
-        if(!checkInt(MioBearing.class, mioBearing, "MioBearing")){ mioBearing = MioBearing.unavailable; }
-        if(!checkInt(MioRangeRate.class, mioRangeRate, "MioRangeRate")){ mioRangeRate = MioRangeRate.unavailable; }
-        if(!checkInt(Lane.class, lane, "Lane")){ lane = Lane.unavailable; }
+        if(!checkInt(MioRange.class, mioRange, "MioRange")){ mioRange = MioRange.UNAVAILABLE; }
+        if(!checkInt(MioBearing.class, mioBearing, "MioBearing")){ mioBearing = MioBearing.UNAVAILABLE; }
+        if(!checkInt(MioRangeRate.class, mioRangeRate, "MioRangeRate")){ mioRangeRate = MioRangeRate.UNAVAILABLE; }
+        if(!checkInt(Lane.class, lane, "Lane")){ lane = Lane.UNAVAILABLE; }
         if(!checkInt(StationID.class, forwardID, "ForwardID")){ throw new IllegalArgumentException(); }
         if(!checkInt(StationID.class, backwardID, "BackwardID")){ throw new IllegalArgumentException(); }
         if(!checkInt(MergeRequest.class, mergeRequest, "MergeRequest")){ throw new IllegalArgumentException(); }

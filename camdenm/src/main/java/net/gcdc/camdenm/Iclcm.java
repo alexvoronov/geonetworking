@@ -396,7 +396,7 @@ public final  class Iclcm {
 
 	@IntRange(minValue = 0, maxValue = 4095)
     public static class VehicleRearAxleLocation extends Asn1Integer {
-        public static final int oneMeter = 100;
+        public static final int ONE_METER = 100;
 
         public VehicleRearAxleLocation() { this(0); }
         public VehicleRearAxleLocation(int value) { super(value); }
@@ -404,20 +404,20 @@ public final  class Iclcm {
 	
 	@IntRange(minValue = 0, maxValue = 3)
 	public static class ControllerType extends Asn1Integer {
-		public static final int manual = 0;
-		public static final int cc = 1;
-		public static final int acc = 2;
-		public static final int cacc = 3;
+		public static final int MANUAL = 0;
+		public static final int CC = 1;
+		public static final int ACC = 2;
+		public static final int CACC = 3;
 		
-		public ControllerType() { this(manual); }
+		public ControllerType() { this(MANUAL); }
 		public ControllerType(int value) { super(value); }
 		
 		@Override public String toString() {
 			switch((int)value){
-			case manual: return "manual";
-			case cc: return "cc";
-			case acc: return "acc";
-			case cacc: return "cacc";
+			case MANUAL: return "manual";
+			case CC: return "cc";
+			case ACC: return "acc";
+			case CACC: return "cacc";
 			default: return "Unkown";
 			}
 		}
@@ -425,139 +425,139 @@ public final  class Iclcm {
 	
 	@IntRange(minValue = 0, maxValue = 1001)
 	public static class VehicleResponseTimeConstant extends Asn1Integer {
-		public static final int oneSecond = 100;
-		public static final int unavailable = 1001;
+		public static final int ONE_SECOND = 100;
+		public static final int UNAVAILABLE = 1001;
 		
-		public VehicleResponseTimeConstant() { this(unavailable); }
+		public VehicleResponseTimeConstant() { this(UNAVAILABLE); }
 		public VehicleResponseTimeConstant(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 0, maxValue = 1001)
 	public static class VehicleResponseTimeDelay extends Asn1Integer {
-		public static final int oneSecond = 100;
-		public static final int unavailable = 1001;
+		public static final int ONE_SECOND = 100;
+		public static final int UNAVAILABLE= 1001;
 		
-		public VehicleResponseTimeDelay() { this(unavailable); }
+		public VehicleResponseTimeDelay() { this(UNAVAILABLE); }
 		public VehicleResponseTimeDelay(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = -1000, maxValue = 1001)
 	public static class TargetLongitudonalAcceleration extends Asn1Integer {
-		public static final int oneMeterPerSecondSquared = 100;
-		public static final int unavailable = 1001;
+		public static final int ONE_METER_PER_SECOND_SQUARED = 100;
+		public static final int UNAVAILABLE = 1001;
 		
-		public TargetLongitudonalAcceleration() { this(unavailable); }
+		public TargetLongitudonalAcceleration() { this(UNAVAILABLE); }
 		public TargetLongitudonalAcceleration(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 0, maxValue = 65535)
 	public static class MioRange extends Asn1Integer {
-		public static final int oneMeter = 100;
-		public static final int unavailable = 65535;
+		public static final int ONE_METER = 100;
+		public static final int UNAVAILABLE = 65535;
 		
-		public MioRange() { this(unavailable); }
+		public MioRange() { this(UNAVAILABLE); }
 		public MioRange(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = -1571, maxValue = 1572)
 	public static class MioBearing extends Asn1Integer {
-		public static final int zeroRadians = 0;
-		public static final int oneRadianRight = 500;
-		public static final int unavailable = 1572;
+		public static final int ZERO_RADIANS = 0;
+		public static final int ONE_RADIANT_RIGHT = 500;
+		public static final int UNAVAILABLE = 1572;
 		
-		public MioBearing() { this(unavailable); }
+		public MioBearing() { this(UNAVAILABLE); }
 		public MioBearing(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = -32767, maxValue = 32767)
 	public static class MioRangeRate extends Asn1Integer {
-		public static final int zeroMeterPerSecond = 0;
-		public static final int oneMeterPerSecond = 100;
-		public static final int unavailable = 32767;
+		public static final int ZERO_METER_PER_SECOND = 0;
+		public static final int ONE_METER_PER_SECOND = 100;
+		public static final int UNAVAILABLE = 32767;
 		
-		public MioRangeRate() { this(unavailable); }
+		public MioRangeRate() { this(UNAVAILABLE); }
 		public MioRangeRate(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 0, maxValue = 361)
 	public static class TimeHeadway extends Asn1Integer {
-		public static final int oneSecond = 10;
-		public static final int unavailable = 361;
+		public static final int ONE_SECOND = 10;
+		public static final int UNAVAILABLE = 361;
 		
-		public TimeHeadway() { this(unavailable); }
+		public TimeHeadway() { this(UNAVAILABLE); }
 		public TimeHeadway(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 0, maxValue = 5001)
 	public static class CruiseSpeed extends Asn1Integer {
-		public static final int oneMeterPerSecond = 100;
-		public static final int unavailable = 5001;
+		public static final int ONE_METER_PER_SECOND = 100;
+		public static final int UNAVAILABLE = 5001;
 		
-		public CruiseSpeed() { this(unavailable); }
+		public CruiseSpeed() { this(UNAVAILABLE); }
 		public CruiseSpeed(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 0, maxValue = 1)
 	public static class MergeRequest extends Asn1Integer {
-		public static final int noMergeRequest = 0;
+		public static final int NO_MERGE_REQUEST = 0;
 		public static final int mergeRequest = 1;
 		
-		public MergeRequest() { this(noMergeRequest); }
+		public MergeRequest() { this(NO_MERGE_REQUEST); }
 		public MergeRequest(int value) { super(value); }
-		@Override public String toString(){ return value==noMergeRequest?"MergeRequest(no)":"MergeRequest(yes)";}
+		@Override public String toString(){ return value==NO_MERGE_REQUEST?"MergeRequest(no)":"MergeRequest(yes)";}
 	}
 	
 	@IntRange(minValue = 0, maxValue = 1)
 	public static class MergeSafeToMerge extends Asn1Integer {
-		public static final int notSafe = 0;
-		public static final int safe = 1;
+		public static final int NOT_SAFE = 0;
+		public static final int SAFE = 1;
 		
-		public MergeSafeToMerge() { this(notSafe); }
+		public MergeSafeToMerge() { this(NOT_SAFE); }
 		public MergeSafeToMerge(int value) { super(value); }
 		
-		@Override public String toString(){ return value==notSafe?"MergeSafeToMerge(not safe)":"MergeSafeToMerge(safe)";}
+		@Override public String toString(){ return value==NOT_SAFE?"MergeSafeToMerge(not safe)":"MergeSafeToMerge(safe)";}
 	}
 	
 	@IntRange(minValue = 0, maxValue = 1)
 	public static class MergeFlag extends Asn1Integer {
-		public static final int notMergeReady = 0;
-		public static final int mergeReady = 1;
+		public static final int NOT_MERGE_READY = 0;
+		public static final int MERGE_READY = 1;
 		
-		public MergeFlag() { this(notMergeReady); }
+		public MergeFlag() { this(NOT_MERGE_READY); }
 		public MergeFlag(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 0, maxValue = 1)
 	public static class MergeFlagTail extends Asn1Integer {
-		public static final int notLastVehicle = 0;
-		public static final int lastVehicle = 1;
+		public static final int NOT_LAST_VEHICLE = 0;
+		public static final int LAST_VEHICLE = 1;
 		
-		public MergeFlagTail() { this(notLastVehicle); }
+		public MergeFlagTail() { this(NOT_LAST_VEHICLE); }
 		public MergeFlagTail(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 0, maxValue = 1)
 	public static class MergeFlagHead extends Asn1Integer {
-		public static final int notFirstVehicle = 0;
-		public static final int firstVehicle = 1;
+		public static final int NOT_FIRST_VEHICLE = 0;
+		public static final int FIRST_VEHICLE = 1;
 		
-		public MergeFlagHead() { this(notFirstVehicle); }
+		public MergeFlagHead() { this(NOT_FIRST_VEHICLE); }
 		public MergeFlagHead(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 0, maxValue = 255)
 	public static class PlatoonID extends Asn1Integer {
-		public static final int platoonA = 1;
-		public static final int platoonB = 2;
-		public static final int notUsed = 3;
+		public static final int PLATOON_A = 1;
+		public static final int PLATOON_B = 2;
+		public static final int NOT_USED = 3;
 		
-		public PlatoonID() { this(notUsed); }
+		public PlatoonID() { this(NOT_USED); }
 		public PlatoonID(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 0, maxValue = 10000)
 	public static class DistanceTravelledCZ extends Asn1Integer {
-		public static final int oneMeter = 10;
+		public static final int ONE_METER = 10;
 		
 		public DistanceTravelledCZ() { this(0); }
 		public DistanceTravelledCZ(int value) { super(value); }
@@ -565,66 +565,66 @@ public final  class Iclcm {
 
 	@IntRange(minValue = 1, maxValue = 3)
 	public static class Intention extends Asn1Integer {
-		public static final int straightNoTurning = 1;
-		public static final int turnLeft = 2;
-		public static final int turnRight = 3;
+		public static final int STRAIGHT_NO_TURNING = 1;
+		public static final int TURN_LEFT = 2;
+		public static final int TURN_RIGHT = 3;
 		
-		public Intention() { this(straightNoTurning); }
+		public Intention() { this(STRAIGHT_NO_TURNING); }
 		public Intention(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 1, maxValue = 4)
 	public static class Lane extends Asn1Integer {
-		public static final int laneOne = 1;
-		public static final int laneTwo = 2;
-		public static final int laneThree = 3;
-		public static final int unavailable = 4;
+		public static final int LANE_ONE = 1;
+		public static final int LANE_TWO = 2;
+		public static final int LANE_THREE = 3;
+		public static final int UNAVAILABLE = 4;
 		
-		public Lane() { this(unavailable); }
+		public Lane() { this(UNAVAILABLE); }
 		public Lane(int value) { super(value); }
 	}
 
 	@IntRange(minValue = 0, maxValue = 3)
 	public static class Counter extends Asn1Integer {
-		public static final int noVehicles = 0;
-		public static final int oneVehicle = 1;
+		public static final int NO_VEHICLES = 0;
+		public static final int ONE_VEHICLE = 1;
 		
-		public Counter() { this(noVehicles); }
+		public Counter() { this(NO_VEHICLES); }
 		public Counter(int value) { super(value); }
 	}
 
 	@IntRange(minValue = 0, maxValue = 1)
 	public static class AcknowledgeFlag extends Asn1Integer {
-		public static final int acknowledged = 1;
-		public static final int notAcknowledged = 0;
+		public static final int ACKNOWLEDGED = 1;
+		public static final int NOT_ACKNOWLEDGED = 0;
 		
-		public AcknowledgeFlag() { this(notAcknowledged); }
+		public AcknowledgeFlag() { this(ACKNOWLEDGED); }
 		public AcknowledgeFlag(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 0, maxValue = 1)
 	public static class ParticipantsReady extends Asn1Integer {
-		public static final int notReady = 0;
-		public static final int ready  =1;
+		public static final int NOT_READY = 0;
+		public static final int READY  =1;
 		
-		public ParticipantsReady() { this(notReady); }
+		public ParticipantsReady() { this(NOT_READY); }
 		public ParticipantsReady(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 0, maxValue = 1)
 	public static class StartPlatoon extends Asn1Integer {
-		public static final int startPlatoonAAtSpeed80kph = 0;
-		public static final int startPlatoonBAtSpeed60kph = 1;
+		public static final int START_PLATOON_A_AT_SPEED_80KPH = 0;
+		public static final int START_PLATOON_B_AT_SPEED_60KPH = 1;
 		
-		public StartPlatoon() { this(startPlatoonAAtSpeed80kph); }
+		public StartPlatoon() { this(START_PLATOON_A_AT_SPEED_80KPH); }
 		public StartPlatoon(int value) { super(value); }
 	}
 	
 	@IntRange(minValue = 1, maxValue = 1)
 	public static class EndOfScenario extends Asn1Integer {
-		public static final int endOfScenario = 1;
+		public static final int END_OF_SCENRIO = 1;
 		
-		public EndOfScenario() { this(endOfScenario); }
+		public EndOfScenario() { this(END_OF_SCENRIO); }
 		public EndOfScenario(int value) { super(value); }
 	}
 	
