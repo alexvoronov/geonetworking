@@ -1,4 +1,5 @@
-# ETSI ITS G5 GeoNetworking Stack [![Build Status](https://travis-ci.org/alexvoronov/geonetworking.svg?branch=master)](https://travis-ci.org/alexvoronov/geonetworking) [![Coverage Status](https://coveralls.io/repos/alexvoronov/geonetworking/badge.svg)](https://coveralls.io/r/alexvoronov/geonetworking)
+# ETSI ITS G5 GeoNetworking Stack [![Build Status](https://travis-ci.org/alexvoronov/geonetworking.svg?branch=master)](https://travis-ci.org/alexvoronov/geonetworking) [![Coverage Status](https://coveralls.io/repos/alexvoronov/geonetworking/badge.svg)](https://coveralls.io/r/alexvoronov/geonetworking) [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.55650.svg)](http://dx.doi.org/10.5281/zenodo.55650)
+
 
 
 A basic implementation of the [ETSI](http://en.wikipedia.org/wiki/ETSI) ITS G5 stack including: [CAM-DENM](https://github.com/alexvoronov/geonetworking/tree/master/camdenm) / [ASN.1](https://github.com/alexvoronov/geonetworking/tree/master/asn1-uper) / [BTP / GeoNetworking](https://github.com/alexvoronov/geonetworking/tree/master/geonetworking). For lower layer (DataLinkLayer/AccessTechnologies) see [udp2eth](https://github.com/jandejongh/udp2eth) and [utoepy](https://github.com/alexvoronov/utoepy). For even lower layers, see [Hardware and Drivers](https://github.com/alexvoronov/geonetworking/blob/master/HARDWARE.md). To test/simulate together with vehicle control models, use e.g. [ITT](https://github.com/alexvoronov/itt-gt).
@@ -30,6 +31,10 @@ mvn clean install
 
 mvn --projects uppertester exec:java -Dexec.mainClass="net.gcdc.uppertester.ItsStation" -Dexec.args="--localPortForUdpLinkLayer 1237 --remoteAddressForUdpLinkLayer 192.168.159.102:1235 --upperTesterUdpPort 1600 --hasEthernetHeader"
 ```
+
+
+### Citing
+If you'd like to cite this GeoNetworking library or ASN.1 UPER encoder in an academic publication, you can use DOI [10.5281/zenodo.55650](http://dx.doi.org/10.5281/zenodo.55650). If you'd like to cite [Vehicle Adapter](https://github.com/RNDITS/geonetworking/tree/master/vehicle-adapter) that uses the library, you can use DOI [10.5281/zenodo.51295](http://dx.doi.org/10.5281/zenodo.51295).
 
 
 ### Acknowledgements
