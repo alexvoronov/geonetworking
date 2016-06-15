@@ -1,8 +1,8 @@
-package net.gcdc.asn1.uper;
+package net.gcdc.camdenm;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import net.gcdc.camdenm.CoopIts;
+import net.gcdc.asn1.uper.UperEncoder;
 import net.gcdc.camdenm.CoopIts.AccelerationControl;
 import net.gcdc.camdenm.CoopIts.Altitude;
 import net.gcdc.camdenm.CoopIts.AltitudeConfidence;
@@ -196,40 +196,6 @@ PositionOfPillars ::= SEQUENCE (SIZE(1..3, ...)) OF PosPillar
     }
 
 
-    @Test public void Utf8StringTest4() throws IllegalArgumentException, IllegalAccessException {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 15; i++) {
-            sb.append("1234567890");
-        }
-        String string150 = sb.toString();
-        Object pdu = new Utf8TestClass(
-                new Utf8TestClass.CompanyName(string150)
-              );
-        byte[] encoded = UperEncoder.encode(pdu);
-        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
-        assertEquals("8096313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930",
-                UperEncoder.hexStringFromBytes(encoded));
-
-        Object decoded = UperEncoder.decode(encoded, Utf8TestClass.class);
-        byte[] reencoded = UperEncoder.encode(decoded);
-        assertArrayEquals("encoded and reencoded", encoded, reencoded);
-    }
-
-    @Test public void Utf8StringTest5() throws IllegalArgumentException, IllegalAccessException {
-        Object pdu = new Utf8TestClass(
-                new Utf8TestClass.CompanyName("mölndal")
-              );
-        byte[] encoded = UperEncoder.encode(pdu);
-        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
-        assertEquals("086DC3B66C6E64616C",
-                UperEncoder.hexStringFromBytes(encoded));
-
-        Object decoded = UperEncoder.decode(encoded, Utf8TestClass.class);
-        byte[] reencoded = UperEncoder.encode(decoded);
-        assertArrayEquals("encoded and reencoded", encoded, reencoded);
-    }
-
-
     @Test public void Utf8StringTest() throws IllegalArgumentException, IllegalAccessException {
         Object pdu = new DangerousGoodsExtended(
                 DangerousGoodsBasic.explosives4, 13, false, false, true, "abc", "cde", "zxc"
@@ -243,6 +209,7 @@ PositionOfPillars ::= SEQUENCE (SIZE(1..3, ...)) OF PosPillar
         byte[] reencoded = UperEncoder.encode(decoded);
         assertArrayEquals("encoded and reencoded", encoded, reencoded);
     }
+
 
     @Test public void Utf8StringTest2() throws IllegalArgumentException, IllegalAccessException {
         Object pdu = new DangerousGoodsExtended(

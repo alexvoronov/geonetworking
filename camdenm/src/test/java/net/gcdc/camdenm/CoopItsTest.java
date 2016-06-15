@@ -1,4 +1,4 @@
-package net.gcdc.asn1.uper;
+package net.gcdc.camdenm;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 
+import net.gcdc.asn1.uper.UperEncoder;
 import net.gcdc.camdenm.CoopIts;
 import net.gcdc.camdenm.CoopIts.AccelerationControl;
 import net.gcdc.camdenm.CoopIts.ActionID;
@@ -693,23 +694,6 @@ public class CoopItsTest {
         byte[] encoded = UperEncoder.encode(pdu);
         logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
         assertEquals("E300348B0E2C62C79328430B131E1DB3C3CBD0",
-                UperEncoder.hexStringFromBytes(encoded));
-    }
-
-
-
-    @Test public void Utf8StringTest4() throws IllegalArgumentException, IllegalAccessException {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 15; i++) {
-            sb.append("1234567890");
-        }
-        String string150 = sb.toString();
-        Object pdu = new Utf8TestClass(
-                new Utf8TestClass.CompanyName(string150)
-              );
-        byte[] encoded = UperEncoder.encode(pdu);
-        logger.debug("data hex: {}", UperEncoder.hexStringFromBytes(encoded));
-        assertEquals("8096313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930313233343536373839303132333435363738393031323334353637383930",
                 UperEncoder.hexStringFromBytes(encoded));
     }
 

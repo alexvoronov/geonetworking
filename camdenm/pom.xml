@@ -14,11 +14,18 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>net.gcdc</groupId>
 			<artifactId>asn1-datatypes</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>net.gcdc</groupId>
+            <artifactId>asn1-uper</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 </project>

@@ -1,8 +1,7 @@
-package net.gcdc.asn1.uper;
+package net.gcdc.camdenm;
 
 import static org.junit.Assert.assertEquals;
-
-
+import net.gcdc.asn1.uper.UperEncoder;
 import net.gcdc.camdenm.CoopIts.GenerationDeltaTime;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader;
 import net.gcdc.camdenm.CoopIts.StationID;
