@@ -15,6 +15,8 @@ public class BtpPacket {
 
     private byte[] gnPayload = null;
 
+    public static final int HEADER_LENGTH = 4;
+
     private BtpPacket(
             Optional<Short>              sourcePort,
             short                        destinationPort,
@@ -133,8 +135,6 @@ public class BtpPacket {
         }
         return gnPayload;
     }
-
-    public static final int HEADER_LENGTH = 4;
 
     private ByteBuffer putHeaderTo(ByteBuffer buffer) {
         return buffer.putShort(destinationPort)

@@ -11,6 +11,19 @@ public class BasicHeader {
                                                 // octet 1 (reserved)
     private final Lifetime   lifetime;          // octet 2
     private final byte       remainingHopLimit; // octet 3
+    
+    public BasicHeader(
+            byte version,
+            NextHeader nextHeader,
+            Lifetime lifetime,
+            byte remainingHopLimit
+            ) {
+        this.version              = version;
+        this.nextHeader           = nextHeader;
+        this.lifetime             = lifetime;
+        this.remainingHopLimit    = remainingHopLimit;
+    }
+
 
     public byte       version()           { return version;           }
     public NextHeader nextHeader()        { return nextHeader;        }
@@ -126,18 +139,6 @@ public class BasicHeader {
             return (byte) (multiplier << 2 | base.code());
         }
 
-    }
-
-    public BasicHeader(
-            byte version,
-            NextHeader nextHeader,
-            Lifetime lifetime,
-            byte remainingHopLimit
-            ) {
-        this.version              = version;
-        this.nextHeader           = nextHeader;
-        this.lifetime             = lifetime;
-        this.remainingHopLimit    = remainingHopLimit;
     }
 
     public ByteBuffer putTo(ByteBuffer buffer) {
