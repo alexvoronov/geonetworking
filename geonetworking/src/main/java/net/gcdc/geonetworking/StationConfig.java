@@ -10,43 +10,166 @@ package net.gcdc.geonetworking;
  */
 public class StationConfig {
 
-    public long itsGnLoacalGnAddr = Address.random(false, StationType.Passenger_Car, 752).value();
+    private static  final byte ZERO_BYTE = 0x00;
+
+    private   long itsGnLoacalGnAddr;
 
     /** Version of the GeoNetworking protocol set in the GeoNetworking protocol headers. */
-    public final int itsGnProtocolVersion = 0;  // Version for EN 302 636-4-1 (V1.2.1).
+    private   int itsGnProtocolVersion;  // Version for EN 302 636-4-1 (V1.2.1).
 
     /** Default packet lifetime in seconds. */
-    public int itsGnDefaultPacketLifetime = 60;
+    private  int itsGnDefaultPacketLifetime;
 
     /** Default hop limit indicating the maximum number of hops a packet travels. */
-    public int itsGnDefaultHopLimit = 10;
+    private  int itsGnDefaultHopLimit;
 
     /** Traffic class that represents Facility-layer requirements on packet transport.
      *  Here - Forwarding: Default traffic class */
-    public byte itsGnDefaultTrafficClass = 0x00;
+    private  byte itsGnDefaultTrafficClass;
 
     /** Indicates whether ITS-S is stationary or mobile. Stationary = 0, Mobile = 1. */
-    public int itsGnIsMobile = 1;
+    private  int itsGnIsMobile = 1;
 
     /** Beacon service: Duration of Beacon retransmit timer in ms. */
-    public int itsGnBeaconServiceRetransmitTimer = 3000;
+    private  int itsGnBeaconServiceRetransmitTimer;
 
     /** Beacon service: Maximum Beacon Jitter in ms. */
-    public int itsGnBeaconServiceMaxJitter = itsGnBeaconServiceRetransmitTimer / 4;
+    private  int itsGnBeaconServiceMaxJitter;
 
     /** Default theoretical maximum communication range in meters. */
-    public int itsGnDefaultMaxCommunicationRange = 1000;
+    private  int itsGnDefaultMaxCommunicationRange;
 
     /** Minimum duration a GeoBroadcast packet shall be buffered in the CBF packet buffer in ms. */
-    public int itsGnGeoBroadcastCbfMinTime = 1;
+    private  int itsGnGeoBroadcastCbfMinTime;
 
     /** Maximum duration a GeoBroadcast packet shall be buffered in the CBF packet buffer in ms. */
-    public int itsGnGeoBroadcastCbfMaxTime = 100;
+    private  int itsGnGeoBroadcastCbfMaxTime;
 
     /** Lifetime of location table entry in seconds */
-    public int itsGnLifetimeLocTE = 20;
+    private  int itsGnLifetimeLocTE;
 
     /** Default GeoBroadcast forwarding algorithm: 0 unspecified, 1 simple, 2 cbf, 3 advanced. */
-    public int itsGnGeoBroadcastForwardingAlgorithm = 0;
+    private  int itsGnGeoBroadcastForwardingAlgorithm;
 
+    public long getItsGnLoacalGnAddr() {
+        return itsGnLoacalGnAddr;
+    }
+
+    public StationConfig() {
+        setItsGnLocalGnAddr(Address.random(false, StationType.Passenger_Car, 752).value());
+        setItsGnProtocolVersion(0);
+        setItsGnDefaultPacketLifetime(60);
+        setItsGnDefaultHopLimit(10);
+        setItsGnDefaultTrafficClass(ZERO_BYTE);
+        setItsGnIsMobile(1);
+        setItsGnBeaconServiceRetransmitTimer(3000);
+        setItsGnBeaconServiceMaxJitter(getItsGnBeaconServiceRetransmitTimer()/4);
+        setItsGnDefaultMaxCommunicationRange(1000);
+        setItsGnGeoBroadcastCbfMinTime(1);
+        setItsGnGeoBroadcastCbfMaxTime(100);
+        setItsGnLifetimeLocTE(20);
+        setItsGnGeoBroadcastForwardingAlgorithm(0);
+    }
+
+
+
+    public void setItsGnLocalGnAddr(long itsGnLoacalGnAddr) {
+        this.itsGnLoacalGnAddr = itsGnLoacalGnAddr;
+    }
+
+    public int getItsGnProtocolVersion() {
+        return itsGnProtocolVersion;
+    }
+
+    public void setItsGnProtocolVersion(int itsGnProtocolVersion) {
+        this.itsGnProtocolVersion = itsGnProtocolVersion;
+    }
+
+    public int getItsGnDefaultPacketLifetime() {
+        return itsGnDefaultPacketLifetime;
+    }
+
+    public void setItsGnDefaultPacketLifetime(int itsGnDefaultPacketLifetime) {
+        this.itsGnDefaultPacketLifetime = itsGnDefaultPacketLifetime;
+    }
+
+    public int getItsGnDefaultHopLimit() {
+        return itsGnDefaultHopLimit;
+    }
+
+    public void setItsGnDefaultHopLimit(int itsGnDefaultHopLimit) {
+        this.itsGnDefaultHopLimit = itsGnDefaultHopLimit;
+    }
+
+    public byte getItsGnDefaultTrafficClass() {
+        return itsGnDefaultTrafficClass;
+    }
+
+    public void setItsGnDefaultTrafficClass(byte itsGnDefaultTrafficClass) {
+        this.itsGnDefaultTrafficClass = itsGnDefaultTrafficClass;
+    }
+
+    public int getItsGnIsMobile() {
+        return itsGnIsMobile;
+    }
+
+    public void setItsGnIsMobile(int itsGnIsMobile) {
+        this.itsGnIsMobile = itsGnIsMobile;
+    }
+
+    public int getItsGnBeaconServiceRetransmitTimer() {
+        return itsGnBeaconServiceRetransmitTimer;
+    }
+
+    public void setItsGnBeaconServiceRetransmitTimer(int itsGnBeaconServiceRetransmitTimer) {
+        this.itsGnBeaconServiceRetransmitTimer = itsGnBeaconServiceRetransmitTimer;
+    }
+
+    public int getItsGnBeaconServiceMaxJitter() {
+        return itsGnBeaconServiceMaxJitter;
+    }
+
+    public void setItsGnBeaconServiceMaxJitter(int itsGnBeaconServiceMaxJitter) {
+        this.itsGnBeaconServiceMaxJitter = itsGnBeaconServiceMaxJitter;
+    }
+
+    public int getItsGnDefaultMaxCommunicationRange() {
+        return itsGnDefaultMaxCommunicationRange;
+    }
+
+    public void setItsGnDefaultMaxCommunicationRange(int itsGnDefaultMaxCommunicationRange) {
+        this.itsGnDefaultMaxCommunicationRange = itsGnDefaultMaxCommunicationRange;
+    }
+
+    public int getItsGnGeoBroadcastCbfMinTime() {
+        return itsGnGeoBroadcastCbfMinTime;
+    }
+
+    public void setItsGnGeoBroadcastCbfMinTime(int itsGnGeoBroadcastCbfMinTime) {
+        this.itsGnGeoBroadcastCbfMinTime = itsGnGeoBroadcastCbfMinTime;
+    }
+
+    public int getItsGnGeoBroadcastCbfMaxTime() {
+        return itsGnGeoBroadcastCbfMaxTime;
+    }
+
+    public void setItsGnGeoBroadcastCbfMaxTime(int itsGnGeoBroadcastCbfMaxTime) {
+        this.itsGnGeoBroadcastCbfMaxTime = itsGnGeoBroadcastCbfMaxTime;
+    }
+
+    public int getItsGnLifetimeLocTE() {
+        return itsGnLifetimeLocTE;
+    }
+
+    public void setItsGnLifetimeLocTE(int itsGnLifetimeLocTE) {
+        this.itsGnLifetimeLocTE = itsGnLifetimeLocTE;
+    }
+
+    public int getItsGnGeoBroadcastForwardingAlgorithm() {
+        return itsGnGeoBroadcastForwardingAlgorithm;
+    }
+
+    public void setItsGnGeoBroadcastForwardingAlgorithm(int itsGnGeoBroadcastForwardingAlgorithm) {
+        this.itsGnGeoBroadcastForwardingAlgorithm = itsGnGeoBroadcastForwardingAlgorithm;
+    }
 }

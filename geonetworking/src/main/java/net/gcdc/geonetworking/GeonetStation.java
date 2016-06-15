@@ -62,7 +62,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
     public GeonetStation(StationConfig config, LinkLayer linkLayer, PositionProvider positionProvider, MacAddress senderMac) {
         this.config = config;
         if (senderMac.value() != 0) {
-            config.itsGnLoacalGnAddr = new Address(false, StationType.Passenger_Car, 752, senderMac.value()).value();
+            config.setItsGnLocalGnAddr(new Address(false, StationType.Passenger_Car, 752, senderMac.value()).value());
         }
         this.linkLayer = linkLayer;
         this.positionProvider = positionProvider;
@@ -70,7 +70,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
         this.locationTable = new LocationTable(new ConfigProvider() {
             @Override public StationConfig config() { return GeonetStation.this.config;}
         });
-        logger.info("Initialized station with GN address {} and MAC address {}", config.itsGnLoacalGnAddr, this.senderMac);
+        logger.info("Initialized station with GN address {} and MAC address {}", config.getItsGnLoacalGnAddr(), this.senderMac);
     }
 
     // Common function to get the current time.
@@ -87,21 +87,21 @@ public class GeonetStation implements Runnable, AutoCloseable {
 
     private BasicHeader basicHeader(GeonetData data) {
         return new BasicHeader(
-                (byte) config.itsGnProtocolVersion,
+                (byte) config.getItsGnProtocolVersion(),
                 BasicHeader.NextHeader.COMMON_HEADER,
                 BasicHeader.Lifetime.fromSeconds(data.destination.maxLifetimeSeconds().orElse(
-                        (double) config.itsGnDefaultPacketLifetime)),
-                data.destination.remainingHopLimit().orElse((byte) config.itsGnDefaultHopLimit));
+                        (double) config.getItsGnDefaultPacketLifetime())),
+                data.destination.remainingHopLimit().orElse((byte) config.getItsGnDefaultHopLimit()));
     }
 
     private CommonHeader commonHeader(GeonetData data) {
         return new CommonHeader(
                 data.protocol,
                 data.destination.typeAndSubtype(),
-                data.trafficClass.orElse(TrafficClass.fromByte(config.itsGnDefaultTrafficClass)),
-                config.itsGnIsMobile == 1,
+                data.trafficClass.orElse(TrafficClass.fromByte(config.getItsGnDefaultTrafficClass())),
+                config.getItsGnIsMobile() == 1,
                 (short) data.payload.length,
-                data.destination.maxHopLimit().orElse((byte) config.itsGnDefaultHopLimit));
+                data.destination.maxHopLimit().orElse((byte) config.getItsGnDefaultHopLimit()));
     }
 
     /** Adds a listener for GeonetData indications (received messages from link layer).
@@ -125,7 +125,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
         CommonHeader commonHeader = commonHeader(data);
         LongPositionVector senderPosition = data.sender.orElse(positionProvider.getLatestPosition());
         LongPositionVector positionVector = senderPosition.address().isPresent() ?
-                senderPosition : senderPosition.withAddress(new Address(config.itsGnLoacalGnAddr));
+                senderPosition : senderPosition.withAddress(new Address(config.getItsGnLoacalGnAddr()));
 
         GeonetData completeData = data.withSender(Optional.of(positionVector));
 
@@ -227,7 +227,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
             }
 
             BasicHeader  basicHeader  = BasicHeader.getFrom(buffer);
-            if (basicHeader.version() != config.itsGnProtocolVersion) {
+            if (basicHeader.version() != config.getItsGnProtocolVersion()) {
                 logger.warn("Unrecognized protocol version: " + basicHeader.version());
                 return;
             }
@@ -348,7 +348,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                             Optional.of(senderLpv),
                             upperPayload
                             );
-                    final long myMac = (new Address(config.itsGnLoacalGnAddr)).lowLevelAddress();
+                    final long myMac = (new Address(config.getItsGnLoacalGnAddr())).lowLevelAddress();
                     if (destSpv.address().lowLevelAddress() == myMac
                             && !isDuplicate(indication, sequenceNumber)) {
                         sendToUpperLayer(indication);
@@ -432,9 +432,9 @@ public class GeonetStation implements Runnable, AutoCloseable {
         if(data.destination.remainingHopLimit().orElse((byte) 1) < 2) { return; }
 
         if (((Geobroadcast)data.destination).area().contains(position())) {
-            long   maxTimeout  = config.itsGnGeoBroadcastCbfMaxTime;        // In milliseconds.
-            long   minTimeout  = config.itsGnGeoBroadcastCbfMinTime;        // In milliseconds.
-            double maxDistance = config.itsGnDefaultMaxCommunicationRange;  // In meters.
+            long   maxTimeout  = config.getItsGnGeoBroadcastCbfMaxTime();        // In milliseconds.
+            long   minTimeout  = config.getItsGnGeoBroadcastCbfMinTime();        // In milliseconds.
+            double maxDistance = config.getItsGnDefaultMaxCommunicationRange();  // In meters.
 
 
             Position lastForwarderPosition = locationTable.getPosition(lastForwarderMac);
@@ -495,7 +495,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
         // Do not forward if remaining hop limit (RHL) is too low.
         // TODO: is it 1 or 0 which is too low? Beacons are sent with RHL=1, but they are never
         // forwarded. Does this imply that anything with RHL=1 should not be forwarded?
-        if (indication.destination.remainingHopLimit().orElse((byte) config.itsGnDefaultHopLimit)
+        if (indication.destination.remainingHopLimit().orElse((byte) config.getItsGnDefaultHopLimit())
                 <= 1) {
             return;
         }
@@ -506,7 +506,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
             return;
         }
 
-        switch (config.itsGnGeoBroadcastForwardingAlgorithm) {
+        switch (config.getItsGnGeoBroadcastForwardingAlgorithm()) {
             case 0:
                 logger.debug("Fwd alg set to 0 (unspecified), forwarding disabled");
                 break;
@@ -520,7 +520,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
                 break;
             default:
                 logger.error("Unsupported forwarding algorithm: {}. Forwarding disabled.",
-                        config.itsGnGeoBroadcastForwardingAlgorithm);
+                        config.getItsGnGeoBroadcastForwardingAlgorithm());
                 break;
         }
     }
@@ -732,8 +732,8 @@ public class GeonetStation implements Runnable, AutoCloseable {
         }
 
         private long randomDelayMs() {
-            return config.itsGnBeaconServiceRetransmitTimer +
-                    new Random().nextInt(config.itsGnBeaconServiceMaxJitter);
+            return config.getItsGnBeaconServiceRetransmitTimer() +
+                    new Random().nextInt(config.getItsGnBeaconServiceMaxJitter());
         }
     };
 
