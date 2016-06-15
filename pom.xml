@@ -6,7 +6,7 @@
 	<name>Parent for GeoNetworking</name>
 	<description>ETSI ITS stack</description>
 	<inceptionYear>2015</inceptionYear>
-	<version>0.1.0</version>
+	<version>1.0.0</version>
 	<packaging>pom</packaging>
 
 	<properties>
