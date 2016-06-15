@@ -22,10 +22,9 @@ import java.nio.BufferOverflowException;
 import net.gcdc.camdenm.CoopIts.*;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
-import java.lang.annotation.Annotation;
 import java.lang.IllegalArgumentException;
 import net.gcdc.asn1.datatypes.IntRange;
-import net.gcdc.asn1.datatypes.Asn1Integer;
+
 
 public class LocalCam{
     private final static Logger logger = LoggerFactory.getLogger(VehicleAdapter.class);

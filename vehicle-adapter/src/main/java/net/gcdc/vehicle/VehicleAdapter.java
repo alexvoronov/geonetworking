@@ -29,7 +29,6 @@ import net.gcdc.asn1.uper.UperEncoder;
 import net.gcdc.camdenm.CoopIts.Cam;
 import net.gcdc.camdenm.CoopIts.Denm;
 import net.gcdc.geonetworking.Area;
-import net.gcdc.geonetworking.Area.*;
 import net.gcdc.geonetworking.BtpPacket;
 import net.gcdc.geonetworking.BtpSocket;
 import net.gcdc.geonetworking.Destination.Geobroadcast;
@@ -45,11 +44,10 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+
 
 import com.lexicalscope.jewel.cli.ArgumentValidationException;
 import com.lexicalscope.jewel.cli.CliFactory;
-import com.lexicalscope.jewel.cli.InvalidOptionSpecificationException;
 import com.lexicalscope.jewel.cli.Option;
 
 /*
@@ -123,19 +121,17 @@ import net.gcdc.camdenm.CoopIts.YawRate;
 import net.gcdc.camdenm.CoopIts.YawRateConfidence;
 import net.gcdc.camdenm.CoopIts.YawRateValue;
 */
-import net.gcdc.camdenm.CoopIts.*;
+
 import net.gcdc.camdenm.CoopIts.ItsPduHeader.MessageId;
-import net.gcdc.camdenm.CoopIts.ItsPduHeader.ProtocolVersion;
+
 
 import net.gcdc.camdenm.Iclcm.*;
 
 import net.gcdc.geonetworking.LinkLayerUdpToEthernet;
 import net.gcdc.geonetworking.LongPositionVector;
-import net.gcdc.geonetworking.Position;
-import net.gcdc.geonetworking.StationConfig;
+
 import net.gcdc.geonetworking.Address;
-import net.gcdc.geonetworking.Optional;
-//import net.gcdc.geonetworking.StationType;
+
 
 import org.threeten.bp.Instant;
 
