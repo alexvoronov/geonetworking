@@ -87,13 +87,13 @@ public class ICLCMTest {
 		
 		VehicleContainerHighFrequency vf_filled = new VehicleContainerHighFrequency(
 				new VehicleRearAxleLocation(4095),
-				new ControllerType(ControllerType.cacc),
+				new ControllerType(ControllerType.CACC),
 				new VehicleResponseTime(
-						new VehicleResponseTimeConstant(VehicleResponseTimeConstant.oneSecond),
-						new VehicleResponseTimeDelay(VehicleResponseTimeDelay.oneSecond)),
+						new VehicleResponseTimeConstant(VehicleResponseTimeConstant.ONE_SECOND),
+						new VehicleResponseTimeDelay(VehicleResponseTimeDelay.ONE_SECOND)),
 				new TargetLongitudonalAcceleration(0),
-				new TimeHeadway(TimeHeadway.oneSecond),
-				new CruiseSpeed(CruiseSpeed.oneMeterPerSecond));
+				new TimeHeadway(TimeHeadway.ONE_SECOND),
+				new CruiseSpeed(CruiseSpeed.ONE_METER_PER_SECOND));
 		
 		byte[] encoded_vf_filled=UperEncoder.encode(vf_filled);
 		logger.debug("hex: {}", getStringByteCode(encoded_vf_filled));
@@ -134,8 +134,8 @@ public class ICLCMTest {
 	}
 	
 	@Test public void test_encodeLaneObject(){
-		LaneObject lane_unavailable = new LaneObject(new Lane(Lane.unavailable));
-		LaneObject lane_one = new LaneObject(new Lane(Lane.laneOne));
+		LaneObject lane_unavailable = new LaneObject(new Lane(Lane.UNAVAILABLE));
+		LaneObject lane_one = new LaneObject(new Lane(Lane.LANE_ONE));
 		
 		byte[] encoded_empty = UperEncoder.encode(lane_unavailable);
 		byte[] encoded_one = UperEncoder.encode(lane_one);

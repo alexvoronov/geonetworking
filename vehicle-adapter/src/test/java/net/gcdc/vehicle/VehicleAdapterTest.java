@@ -179,17 +179,17 @@ public class VehicleAdapterTest{
         byteBuffer.putInt(0); //controllerType
         byteBuffer.putInt(1001); //responseTimeConstant
         byteBuffer.putInt(1001); //responseTimeDelay
-        byteBuffer.putInt(TargetLongitudonalAcceleration.unavailable); //targetLongAcc
-        byteBuffer.putInt(TimeHeadway.unavailable); //timeHeadway
-        byteBuffer.putInt(CruiseSpeed.unavailable); //cruiseSpeed
+        byteBuffer.putInt(TargetLongitudonalAcceleration.UNAVAILABLE); //targetLongAcc
+        byteBuffer.putInt(TimeHeadway.UNAVAILABLE); //timeHeadway
+        byteBuffer.putInt(CruiseSpeed.UNAVAILABLE); //cruiseSpeed
         byteBuffer.put((byte) 128); //lowFrequencyMask
         byteBuffer.putInt(1); //participantsReady
         byteBuffer.putInt(0); //startPlatoon
         byteBuffer.putInt(0); //endOfScenario
         byteBuffer.putInt(255); //mioID
-        byteBuffer.putInt((int) MioRange.unavailable); //mioRange
-        byteBuffer.putInt((int) MioBearing.unavailable); //mioBearing
-        byteBuffer.putInt((int) MioRangeRate.unavailable); //mioRangeRate
+        byteBuffer.putInt((int) MioRange.UNAVAILABLE); //mioRange
+        byteBuffer.putInt((int) MioBearing.UNAVAILABLE); //mioBearing
+        byteBuffer.putInt((int) MioRangeRate.UNAVAILABLE); //mioRangeRate
         byteBuffer.putInt(3); //lane
         byteBuffer.putInt(0); //forwardID
         byteBuffer.putInt(0); //backwardID
