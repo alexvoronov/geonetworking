@@ -132,16 +132,20 @@ public class CoopIts {
         GenerationDeltaTime generationDeltaTime;
         CamParameters camParameters;
 
-        public CoopAwareness() { this(new GenerationDeltaTime(), new CamParameters()); }
+        public CoopAwareness() {
+            this(new GenerationDeltaTime(), new CamParameters());
+        }
         public CoopAwareness(GenerationDeltaTime generationDeltaTime, CamParameters camParameters) {
             this.generationDeltaTime = generationDeltaTime;
             this.camParameters = camParameters;
         }
 		public GenerationDeltaTime getGenerationDeltaTime() {
-			return generationDeltaTime;
+
+            return generationDeltaTime;
 		}
 		public CamParameters getCamParameters() {
-			return camParameters;
+
+            return camParameters;
 		}
     }
 
@@ -150,8 +154,12 @@ public class CoopIts {
         public static final int oneMilliSec = 1;
         public static final int oneSecond = 1000;
 
-        public GenerationDeltaTime() { this(100 * oneMilliSec); }
-        public GenerationDeltaTime(int value) { super(value); }
+        public GenerationDeltaTime() {
+            this(100 * oneMilliSec);
+        }
+        public GenerationDeltaTime(int value) {
+            super(value);
+        }
     }
 
     @Sequence
@@ -290,15 +298,20 @@ public class CoopIts {
 
         protected BasicVehicleContainerHighFrequency() {}
 
-        public static Builder builder() { return new Builder(); }
+        public static Builder builder() {
+            return new Builder();
+        }
 
         public static class Builder {
             private BasicVehicleContainerHighFrequency val = new BasicVehicleContainerHighFrequency();
             private boolean created = false;
             private void checkCreated() {
+
                 if (created) { throw new IllegalStateException("Already created"); }
             }
-            public BasicVehicleContainerHighFrequency create() { created = true; return val; }
+            public BasicVehicleContainerHighFrequency create() {
+                created = true; return val;
+            }
 
             private Builder() {
                 val.heading = new Heading();
@@ -331,11 +344,13 @@ public class CoopIts {
         }
 
 		public Heading getHeading() {
-			return heading;
+
+            return heading;
 		}
 
 		public Speed getSpeed() {
-			return speed;
+
+            return speed;
 		}
 
 		public DriveDirection getDriveDirection() {
@@ -347,7 +362,8 @@ public class CoopIts {
 		}
 
 		public VehicleWidth getVehicleWidth() {
-			return vehicleWidth;
+
+            return vehicleWidth;
 		}
 
 		public LongitudinalAcceleration getLongitudinalAcceleration() {
@@ -363,26 +379,33 @@ public class CoopIts {
 		}
 
 		public YawRate getYawRate() {
-			return yawRate;
+
+            return yawRate;
 		}
 		public boolean hasAccelerationControl(){
-			return accelerationControl != null;
+
+            return accelerationControl != null;
 		}
 		public AccelerationControl getAccelerationControl() {
-			return accelerationControl;
+
+            return accelerationControl;
 		}
 		public boolean hasLanePosition(){
-			return lanePosition != null;
+
+            return lanePosition != null;
 		}
 		public LanePosition getLanePosition() {
-			return lanePosition;
+
+            return lanePosition;
 		}
 		public boolean hasSteeringWheelAngle(){
-			return steeringWheelAngle != null;
+
+            return steeringWheelAngle != null;
 		}
 
 		public SteeringWheelAngle getSteeringWheelAngle() {
-			return steeringWheelAngle;
+
+            return steeringWheelAngle;
 		}
 
 		public boolean hasLateralAcceleration(){
@@ -390,27 +413,33 @@ public class CoopIts {
 		}
 		
 		public LateralAcceleration getLateralAcceleration() {
-			return lateralAcceleration;
+
+            return lateralAcceleration;
 		}
 		
 		public boolean hasVerticalAcceleration(){
-			return verticalAcceleration != null;
+
+            return verticalAcceleration != null;
 		}
 
 		public VerticalAcceleration getVerticalAcceleration() {
-			return verticalAcceleration;
+
+            return verticalAcceleration;
 		}
 		
-		public boolean hasPerformanceClass(){
-			return performanceClass != null;
+		public boolean hasPerformanceClass() {
+
+            return performanceClass != null;
 		}
 
 		public PerformanceClass getPerformanceClass() {
-			return performanceClass;
+
+            return performanceClass;
 		}
 		
-		public boolean hasCenDsrcTollingZone(){
-			return cenDsrcTollingZone != null;
+		public boolean hasCenDsrcTollingZone() {
+
+            return cenDsrcTollingZone != null;
 		}
 
 		public CenDsrcTollingZone getCenDsrcTollingZone() {
@@ -458,16 +487,20 @@ public class CoopIts {
             this.altitude = altitude;
         }
 		public Latitude getLatitude() {
-			return latitude;
+
+            return latitude;
 		}
 		public Longitude getLongitude() {
-			return longitude;
+
+            return longitude;
 		}
 		public PosConfidenceEllipse getPositionConfidenceEllipse() {
-			return positionConfidenceEllipse;
+
+            return positionConfidenceEllipse;
 		}
 		public Altitude getAltitude() {
-			return altitude;
+
+            return altitude;
 		}
 		@Override
 		public String toString(){
@@ -480,16 +513,20 @@ public class CoopIts {
         HeadingValue headingValue;
         HeadingConfidence headingConfidence;
 
-        public Heading() { this(new HeadingValue(), new HeadingConfidence()); }
+        public Heading() {
+            this(new HeadingValue(), new HeadingConfidence());
+        }
         public Heading(HeadingValue headingValue, HeadingConfidence headingConfidence) {
             this.headingValue = headingValue;
             this.headingConfidence = headingConfidence;
         }
 		public HeadingValue getHeadingValue() {
-			return headingValue;
+
+            return headingValue;
 		}
 		public HeadingConfidence getHeadingConfidence() {
-			return headingConfidence;
+
+            return headingConfidence;
 		}
     }
 
@@ -498,7 +535,9 @@ public class CoopIts {
         SpeedValue speedValue;
         SpeedConfidence speedConfidence;
 
-        public Speed() { this(new SpeedValue(), new SpeedConfidence()); }
+        public Speed() {
+            this(new SpeedValue(), new SpeedConfidence());
+        }
         public Speed(SpeedValue speedValue, SpeedConfidence speedConfidence) {
             this.speedValue = speedValue;
             this.speedConfidence = speedConfidence;
@@ -507,7 +546,8 @@ public class CoopIts {
 			return speedValue;
 		}
 		public SpeedConfidence getSpeedConfidence() {
-			return speedConfidence;
+
+            return speedConfidence;
 		}
     }
 
@@ -517,8 +557,12 @@ public class CoopIts {
         public static final int oneCentimeterPerSec = 1;
         public static final int unavailable = 16383;
 
-        public SpeedValue() { this(unavailable); }
-        public SpeedValue(int value) { super(value); }
+        public SpeedValue() {
+            this(unavailable);
+        }
+        public SpeedValue(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = 1, maxValue = 127)
@@ -528,8 +572,12 @@ public class CoopIts {
         public static final int outOfRange = 126;
         public static final int unavailable = 127;
 
-        public SpeedConfidence() { this(unavailable); }
-        public SpeedConfidence(int value) { super(value); }
+        public SpeedConfidence() {
+            this(unavailable);
+        }
+        public SpeedConfidence(int value) {
+            super(value);
+        }
     }
 
     public static enum DriveDirection {
@@ -553,6 +601,7 @@ public class CoopIts {
         VehicleLengthConfidenceIndication vehicleLengthConfidenceIndication;
 
         public VehicleLength() {
+
             this(new VehicleLengthValue(), VehicleLengthConfidenceIndication.unavailable);
         }
 
@@ -564,7 +613,8 @@ public class CoopIts {
         }
 
 		public VehicleLengthValue getVehicleLengthValue() {
-			return vehicleLengthValue;
+
+            return vehicleLengthValue;
 		}
 
 		public VehicleLengthConfidenceIndication getVehicleLengthConfidenceIndication() {
@@ -600,8 +650,12 @@ public class CoopIts {
         public static final int outOfRange = 61;
         public static final int unavailable = 62;
 
-        public VehicleWidth() { this(unavailable); }
-        public VehicleWidth(int value) { super(value); }
+        public VehicleWidth() {
+            this(unavailable);
+        }
+        public VehicleWidth(int value) {
+            super(value);
+        }
     }
 
     @Sequence
@@ -609,7 +663,9 @@ public class CoopIts {
         LongitudinalAccelerationValue longitudinalAccelerationValue;
         AccelerationConfidence longitudinalAccelerationConfidence;
 
-        public LongitudinalAcceleration() { this(new LongitudinalAccelerationValue(), new AccelerationConfidence()); }
+        public LongitudinalAcceleration() {
+            this(new LongitudinalAccelerationValue(), new AccelerationConfidence());
+        }
         public LongitudinalAcceleration(LongitudinalAccelerationValue longitudinalAccelerationValue,
                 AccelerationConfidence longitudinalAccelerationConfidence) {
             this.longitudinalAccelerationValue = longitudinalAccelerationValue;
@@ -654,10 +710,12 @@ public class CoopIts {
             this.curvatureConfidence = curvatureConfidence;
         }
 		public CurvatureValue getCurvatureValue() {
-			return curvatureValue;
+
+            return curvatureValue;
 		}
 		public CurvatureConfidence getCurvatureConfidence() {
-			return curvatureConfidence;
+
+            return curvatureConfidence;
 		}
     }
 
@@ -684,7 +742,9 @@ public class CoopIts {
 
         private final int value;
         public int value() { return value; }
-        private CurvatureConfidence(int value) { this.value = value; }
+        private CurvatureConfidence(int value) {
+            this.value = value;
+        }
     }
 
     @HasExtensionMarker
@@ -694,8 +754,12 @@ public class CoopIts {
         unavailable(2);
 
         private final int value;
-        public int value() { return value; }
-        private CurvatureCalculationMode(int value) { this.value = value; }
+        public int value() {
+            return value;
+        }
+        private CurvatureCalculationMode(int value) {
+            this.value = value;
+        }
     }
 
     @Sequence
@@ -703,16 +767,20 @@ public class CoopIts {
         YawRateValue yawRateValue;
         YawRateConfidence yawRateConfidence;
 
-        public YawRate() { this(new YawRateValue(), YawRateConfidence.unavailable); }
+        public YawRate() {
+            this(new YawRateValue(), YawRateConfidence.unavailable);
+        }
         public YawRate(YawRateValue yawRateValue, YawRateConfidence yawRateConfidence) {
             this.yawRateValue = yawRateValue;
             this.yawRateConfidence = yawRateConfidence;
         }
 		public YawRateValue getYawRateValue() {
-			return yawRateValue;
+
+            return yawRateValue;
 		}
 		public YawRateConfidence getYawRateConfidence() {
-			return yawRateConfidence;
+
+            return yawRateConfidence;
 		}
     }
 
@@ -723,8 +791,12 @@ public class CoopIts {
         public static final int degSec_000_01ToLeft = 1;
         public static final int unavailable = 32767;
 
-        public YawRateValue() { this(unavailable); }
-        public YawRateValue(int value) { super(value); }
+        public YawRateValue() {
+            this(unavailable);
+        }
+        public YawRateValue(int value) {
+            super(value);
+        }
     }
 
     public static enum YawRateConfidence {
@@ -739,7 +811,9 @@ public class CoopIts {
         unavailable (8);
 
         private final int value;
-        public int value() { return value; }
+        public int value() {
+            return value;
+        }
         private YawRateConfidence(int value) { this.value = value; }
         static public boolean isMember(int value) { return value >= 0 && value <= 8; }
 
@@ -751,7 +825,9 @@ public class CoopIts {
         SemiAxisLength semiMinorConfidence;
         HeadingValue semiMajorOrientation;
 
-        public PosConfidenceEllipse() { this(new SemiAxisLength(), new SemiAxisLength(), new HeadingValue()); }
+        public PosConfidenceEllipse() {
+            this(new SemiAxisLength(), new SemiAxisLength(), new HeadingValue());
+        }
         public PosConfidenceEllipse (
             SemiAxisLength semiMajorConfidence,
             SemiAxisLength semiMinorConfidence,
@@ -761,7 +837,8 @@ public class CoopIts {
             this.semiMajorOrientation = semiMajorOrientation;
         }
 		public SemiAxisLength getSemiMajorConfidence() {
-			return semiMajorConfidence;
+
+            return semiMajorConfidence;
 		}
 		public SemiAxisLength getSemiMinorConfidence() {
 			return semiMinorConfidence;
@@ -799,10 +876,11 @@ public class CoopIts {
 			return altitudeValue;
 		}
 		public AltitudeConfidence getAltitudeConfidence() {
-			return altitudeConfidence;
+
+            return altitudeConfidence;
 		}
 		@Override
-		public String toString(){
+		public String toString()  {
 			return "Altitude("+altitudeValue+", "+altitudeConfidence+")";
 		}
     }
@@ -813,8 +891,12 @@ public class CoopIts {
         public static final int oneCentimeter = 1;
         public static final int unavailable = 800001;
 
-        public AltitudeValue() { this(unavailable); }
-        public AltitudeValue(int value) { super(value); }
+        public AltitudeValue() {
+            this(unavailable);
+        }
+        public AltitudeValue(int value) {
+            super(value);
+        }
     }
 
     public static enum AltitudeConfidence {
@@ -848,8 +930,12 @@ public class CoopIts {
         public static final int wgs84West = 2700;
         public static final int unavailable = 3601;
 
-        public HeadingValue() { this(unavailable); }
-        public HeadingValue(int value) { super(value); }
+        public HeadingValue() {
+            this(unavailable);
+        }
+        public HeadingValue(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = 1, maxValue = 127)
@@ -859,8 +945,12 @@ public class CoopIts {
         public static final int outOfRange = 126;
         public static final int unavailable = 127;
 
-        public HeadingConfidence() { this(unavailable); }
-        public HeadingConfidence(int value) { super(value); }
+        public HeadingConfidence() {
+            this(unavailable);
+        }
+        public HeadingConfidence(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = -900000000, maxValue = 900000001)
@@ -869,8 +959,12 @@ public class CoopIts {
         public static final int oneMicrodegreeSouth = -10;
         public static final int unavailable = 900000001;
 
-        public Latitude() { this(unavailable); }
-        public Latitude(int value) { super(value); }
+        public Latitude() {
+            this(unavailable);
+        }
+        public Latitude(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = -1800000000, maxValue = 1800000001)
@@ -896,24 +990,44 @@ public class CoopIts {
 
         protected AccelerationControl() {}
 
-        public static Builder builder() { return new Builder(); }
+        public static Builder builder() {
+            return new Builder();
+        }
 
         public static class Builder {
             private AccelerationControl val = new AccelerationControl();
             private boolean created = false;
             private void checkCreated() {
-                if (created) { throw new IllegalStateException("Already created"); }
+                if (created) {
+                    throw new IllegalStateException("Already created");
+                }
             }
-            public AccelerationControl create() { created = true; return val; }
+            public AccelerationControl create() {
+                created = true; return val;
+            }
             private Builder() {}
 
-            public Builder brakePedalEngaged(boolean brakePedalEngaged) { checkCreated(); val.brakePedalEngaged = brakePedalEngaged; return this; }
-            public Builder gasPedalEngaged(boolean gasPedalEngaged) { checkCreated(); val.gasPedalEngaged = gasPedalEngaged; return this; }
-            public Builder emergencyBrakeEngaged(boolean emergencyBrakeEngaged) { checkCreated(); val.emergencyBrakeEngaged = emergencyBrakeEngaged; return this; }
-            public Builder collisionWarningEngaged(boolean collisionWarningEngaged) { checkCreated(); val.collisionWarningEngaged = collisionWarningEngaged; return this; }
-            public Builder accEngaged(boolean accEngaged) { checkCreated(); val.accEngaged = accEngaged; return this; }
-            public Builder cruiseControlEngaged(boolean cruiseControlEngaged) { checkCreated(); val.cruiseControlEngaged = cruiseControlEngaged; return this; }
-            public Builder speedLimiterEngaged(boolean speedLimiterEngaged) { checkCreated(); val.speedLimiterEngaged = speedLimiterEngaged; return this; }
+            public Builder brakePedalEngaged(boolean brakePedalEngaged) {
+                checkCreated(); val.brakePedalEngaged = brakePedalEngaged; return this;
+            }
+            public Builder gasPedalEngaged(boolean gasPedalEngaged) {
+                checkCreated(); val.gasPedalEngaged = gasPedalEngaged; return this;
+            }
+            public Builder emergencyBrakeEngaged(boolean emergencyBrakeEngaged) {
+                checkCreated(); val.emergencyBrakeEngaged = emergencyBrakeEngaged; return this;
+            }
+            public Builder collisionWarningEngaged(boolean collisionWarningEngaged) {
+                checkCreated(); val.collisionWarningEngaged = collisionWarningEngaged; return this;
+            }
+            public Builder accEngaged(boolean accEngaged) {
+                checkCreated(); val.accEngaged = accEngaged; return this;
+            }
+            public Builder cruiseControlEngaged(boolean cruiseControlEngaged) {
+                checkCreated(); val.cruiseControlEngaged = cruiseControlEngaged; return this;
+            }
+            public Builder speedLimiterEngaged(boolean speedLimiterEngaged) {
+                checkCreated(); val.speedLimiterEngaged = speedLimiterEngaged; return this;
+            }
         
             public Builder set(
             		boolean brakePedalEngaged,
@@ -937,15 +1051,18 @@ public class CoopIts {
         }
 
 		public boolean isBrakePedalEngaged() {
-			return brakePedalEngaged;
+
+            return brakePedalEngaged;
 		}
 
 		public boolean isGasPedalEngaged() {
-			return gasPedalEngaged;
+
+            return gasPedalEngaged;
 		}
 
 		public boolean isEmergencyBrakeEngaged() {
-			return emergencyBrakeEngaged;
+
+            return emergencyBrakeEngaged;
 		}
 
 		public boolean isCollisionWarningEngaged() {
@@ -953,15 +1070,18 @@ public class CoopIts {
 		}
 
 		public boolean isAccEngaged() {
-			return accEngaged;
+
+            return accEngaged;
 		}
 
 		public boolean isCruiseControlEngaged() {
-			return cruiseControlEngaged;
+
+            return cruiseControlEngaged;
 		}
 
 		public boolean isSpeedLimiterEngaged() {
-			return speedLimiterEngaged;
+
+            return speedLimiterEngaged;
 		}
     }
 
@@ -991,7 +1111,7 @@ public class CoopIts {
             this.steeringWheelAngleConfidence = steeringWheelAngleConfidence;
         }
 
-		public SteeringWheelAngleValue getSteeringWheelAngleValue() {
+		public SteeringWheelAngleValue getSteeringWheelAngleValue()  {
 			return steeringWheelAngleValue;
 		}
 
@@ -1006,8 +1126,11 @@ public class CoopIts {
         public static final int onePointFiveDegreesToRight = -1;
         public static final int onePointFiveDegreesToLeft = 1;
 
-        public SteeringWheelAngleValue() { this(straight); }
-        public SteeringWheelAngleValue(int value) { super(value); }
+        public SteeringWheelAngleValue() {
+            this(straight); }
+        public SteeringWheelAngleValue(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = 1, maxValue = 127)
@@ -1016,8 +1139,12 @@ public class CoopIts {
         public static final int outOfRange = 126;
         public static final int unavailable = 127;
 
-        public SteeringWheelAngleConfidence() { this(unavailable); }
-        public SteeringWheelAngleConfidence(int value) { super(value); }
+        public SteeringWheelAngleConfidence() {
+            this(unavailable);
+        }
+        public SteeringWheelAngleConfidence(int value) {
+            super(value);
+        }
     }
 
     @Sequence
@@ -1025,7 +1152,9 @@ public class CoopIts {
         LateralAccelerationValue lateralAccelerationValue;
         AccelerationConfidence lateralAccelerationConfidence;
 
-        public LateralAcceleration() { this(new LateralAccelerationValue(), new AccelerationConfidence()); }
+        public LateralAcceleration() {
+            this(new LateralAccelerationValue(), new AccelerationConfidence());
+        }
         public LateralAcceleration(LateralAccelerationValue lateralAccelerationValue,
                 AccelerationConfidence lateralAccelerationConfidence) {
             this.lateralAccelerationValue = lateralAccelerationValue;
@@ -1035,7 +1164,8 @@ public class CoopIts {
 			return lateralAccelerationValue;
 		}
 		public AccelerationConfidence getLateralAccelerationConfidence() {
-			return lateralAccelerationConfidence;
+
+            return lateralAccelerationConfidence;
 		}
     }
 
@@ -1045,8 +1175,12 @@ public class CoopIts {
         public static final int pointOneMeterPerSecSquaredToLeft = 1;
         public static final int unavailable = 161;
 
-        public LateralAccelerationValue() { this(unavailable); }
-        public LateralAccelerationValue(int value) { super(value); }
+        public LateralAccelerationValue() {
+            this(unavailable);
+        }
+        public LateralAccelerationValue(int value) {
+            super(value);
+        }
     }
 
     @Sequence
@@ -1093,7 +1227,9 @@ public class CoopIts {
         Longitude protectedZoneLongitude;
         @Asn1Optional ProtectedZoneID cenDsrcTollingZoneID;
 
-        public CenDsrcTollingZone() { this(new Latitude(), new Longitude(), null); }
+        public CenDsrcTollingZone() {
+            this(new Latitude(), new Longitude(), null);
+        }
         public CenDsrcTollingZone(Latitude protectedZoneLatitude, Longitude protectedZoneLongitude,
                 ProtectedZoneID cenDsrcTollingZoneID) {
             this.protectedZoneLatitude = protectedZoneLatitude;
@@ -1101,17 +1237,19 @@ public class CoopIts {
             this.cenDsrcTollingZoneID = cenDsrcTollingZoneID;
         }
 		public Latitude getProtectedZoneLatitude() {
-			return protectedZoneLatitude;
+
+            return protectedZoneLatitude;
 		}
 		public Longitude getProtectedZoneLongitude() {
-			return protectedZoneLongitude;
+
+            return protectedZoneLongitude;
 		}
 		
-		public boolean hasProtectedZoneID(){
+		public boolean hasProtectedZoneID() {
 			return cenDsrcTollingZoneID != null;
 		}
 		
-		public ProtectedZoneID getCenDsrcTollingZoneID() {
+		public ProtectedZoneID getCenDsrcTollingZoneID()  {
 			return cenDsrcTollingZoneID;
 		}
     }
@@ -1133,11 +1271,12 @@ public class CoopIts {
         }
         
         public boolean hasBasicVehicleContainerLowFrequency(){
-        	return basicVehicleContainerLowFrequency!= null;
+
+            return basicVehicleContainerLowFrequency!= null;
         }
         
 		public BasicVehicleContainerLowFrequency getBasicVehicleContainerLowFrequency() {
-			return basicVehicleContainerLowFrequency;
+            return basicVehicleContainerLowFrequency;
 		}
     }
 
@@ -1161,15 +1300,18 @@ public class CoopIts {
         }
 
 		public VehicleRole getVehicleRole() {
-			return vehicleRole;
+
+            return vehicleRole;
 		}
 
 		public ExteriorLights getExteriorLights() {
-			return exteriorLights;
+
+            return exteriorLights;
 		}
 
 		public PathHistory getPathHistory() {
-			return pathHistory;
+
+            return pathHistory;
 		}
     }
 
@@ -1192,14 +1334,24 @@ public class CoopIts {
         reserved3(15);
 
         private final int value;
-        public int value() { return value; }
-        private VehicleRole(int value) { this.value = value; }
+        public int value() {
+            return value;
+        }
+        private VehicleRole(int value) {
+            this.value = value;
+        }
         public static VehicleRole fromCode(int value) {
-            for (VehicleRole element : values()) { if (element.value() == value) { return element; } }
+            for (VehicleRole element : values()) {
+                if (element.value() == value) {
+                    return element;
+                }
+            }
             throw new IllegalArgumentException("Can't find element in enum " +
                     VehicleRole.class.getName() + " for code " + value);
         }
-        public static boolean isMember(int value) { return value >= 0 && value <= 15; }
+        public static boolean isMember(int value) {
+            return value >= 0 && value <= 15;
+        }
     }
 
     @Bitstring
@@ -1216,26 +1368,58 @@ public class CoopIts {
 
         protected ExteriorLights() {}
 
-        public static Builder builder() { return new Builder(); }
+        public static Builder builder() {
+            return new Builder();
+        }
 
         public static class Builder {
             private ExteriorLights val = new ExteriorLights();
             private boolean created = false;
             private void checkCreated() {
-                if (created) { throw new IllegalStateException("Already created"); }
+
+                if (created) { throw new IllegalStateException("Already created");
+                }
             }
-            public ExteriorLights create() { created = true; return val; }
+            public ExteriorLights create() {
+                created = true; return val;
+            }
 
             private Builder() { }
 
-            public Builder lowBeamHeadlightsOn(boolean lowBeamHeadlightsOn) { checkCreated(); val.lowBeamHeadlightsOn = lowBeamHeadlightsOn; return this; }
-            public Builder highBeamHeadlightsOn(boolean highBeamHeadlightsOn) { checkCreated(); val.highBeamHeadlightsOn = highBeamHeadlightsOn; return this; }
-            public Builder leftTurnSignalOn(boolean leftTurnSignalOn) { checkCreated(); val.leftTurnSignalOn = leftTurnSignalOn; return this; }
-            public Builder rightTurnSignalOn(boolean rightTurnSignalOn) { checkCreated(); val.rightTurnSignalOn = rightTurnSignalOn; return this; }
-            public Builder daytimeRunningLightsOn(boolean daytimeRunningLightsOn) { checkCreated(); val.daytimeRunningLightsOn = daytimeRunningLightsOn; return this; }
-            public Builder reverseLightOn(boolean reverseLightOn) { checkCreated(); val.reverseLightOn = reverseLightOn; return this; }
-            public Builder fogLightOn(boolean fogLightOn) { checkCreated(); val.fogLightOn = fogLightOn; return this; }
-            public Builder parkingLightsOn(boolean parkingLightsOn) { checkCreated(); val.parkingLightsOn = parkingLightsOn; return this; }
+            public Builder lowBeamHeadlightsOn(boolean lowBeamHeadlightsOn) {
+                checkCreated();
+                val.lowBeamHeadlightsOn = lowBeamHeadlightsOn; return this;
+            }
+            public Builder highBeamHeadlightsOn(boolean highBeamHeadlightsOn) {
+                checkCreated();
+                val.highBeamHeadlightsOn = highBeamHeadlightsOn; return this;
+            }
+            public Builder leftTurnSignalOn(boolean leftTurnSignalOn) {
+                checkCreated();
+                val.leftTurnSignalOn = leftTurnSignalOn; return this;
+            }
+            public Builder rightTurnSignalOn(boolean rightTurnSignalOn) {
+                checkCreated(); val.rightTurnSignalOn = rightTurnSignalOn; return this;
+            }
+            public Builder daytimeRunningLightsOn(boolean daytimeRunningLightsOn) {
+                checkCreated();
+                val.daytimeRunningLightsOn = daytimeRunningLightsOn;
+                return this;
+            }
+            public Builder reverseLightOn(boolean reverseLightOn) {
+                checkCreated();
+                val.reverseLightOn = reverseLightOn;
+                return this;
+            }
+            public Builder fogLightOn(boolean fogLightOn) {
+                checkCreated();
+                val.fogLightOn = fogLightOn; return this;
+            }
+            public Builder parkingLightsOn(boolean parkingLightsOn) {
+                checkCreated();
+                val.parkingLightsOn = parkingLightsOn;
+                return this;
+            }
         
             public Builder set(
             		boolean lowBeamHeadlightsOn,
@@ -1261,35 +1445,43 @@ public class CoopIts {
         }
 
 		public boolean isLowBeamHeadlightsOn() {
-			return lowBeamHeadlightsOn;
+
+            return lowBeamHeadlightsOn;
 		}
 
 		public boolean isHighBeamHeadlightsOn() {
-			return highBeamHeadlightsOn;
+
+            return highBeamHeadlightsOn;
 		}
 
 		public boolean isLeftTurnSignalOn() {
-			return leftTurnSignalOn;
+
+            return leftTurnSignalOn;
 		}
 
 		public boolean isRightTurnSignalOn() {
-			return rightTurnSignalOn;
+
+            return rightTurnSignalOn;
 		}
 
 		public boolean isDaytimeRunningLightsOn() {
-			return daytimeRunningLightsOn;
+
+            return daytimeRunningLightsOn;
 		}
 
 		public boolean isReverseLightOn() {
-			return reverseLightOn;
+
+            return reverseLightOn;
 		}
 
 		public boolean isFogLightOn() {
-			return fogLightOn;
+
+            return fogLightOn;
 		}
 
 		public boolean isParkingLightsOn() {
-			return parkingLightsOn;
+
+            return parkingLightsOn;
 		}
 
     }
@@ -1299,11 +1491,14 @@ public class CoopIts {
     public static class RSUContainerHighFrequency {
         @Asn1Optional ProtectedCommunicationZonesRSU protectedCommunicationZonesRSU;
 
-        public RSUContainerHighFrequency() { this(null); }
+        public RSUContainerHighFrequency() {
+            this(null);
+        }
         public RSUContainerHighFrequency(ProtectedCommunicationZonesRSU protectedCommunicationZonesRSU) {
             this.protectedCommunicationZonesRSU = protectedCommunicationZonesRSU;
         }
-        public boolean hasProtectedCommunicationZonesRSU(){
+        public boolean hasProtectedCommunicationZonesRSU() {
+
         	return protectedCommunicationZonesRSU != null;
         }
         
@@ -1315,9 +1510,11 @@ public class CoopIts {
     @SizeRange(minValue = 0, maxValue = 40)
     public static class PathHistory extends Asn1SequenceOf<PathPoint> {
         public PathHistory(PathPoint... coll) {
+
             this(Arrays.asList(coll));
         }
         public PathHistory(Collection<PathPoint> coll) {
+
             super(coll);
         }
     }
@@ -1325,6 +1522,7 @@ public class CoopIts {
     @SizeRange(minValue = 1, maxValue = 16)
     public static class ProtectedCommunicationZonesRSU extends Asn1SequenceOf<ProtectedCommunicationZone> {
         public ProtectedCommunicationZonesRSU(ProtectedCommunicationZone... coll) {
+
             this(Arrays.asList(coll));
         }
         public ProtectedCommunicationZonesRSU(Collection<ProtectedCommunicationZone> coll) {
@@ -1342,30 +1540,38 @@ public class CoopIts {
         @Asn1Optional ProtectedZoneID protectedZoneID;
         
 		public ProtectedZoneType getProtectedZoneType() {
-			return protectedZoneType;
+
+            return protectedZoneType;
 		}
 		
 		public boolean hasExpiryTime(){
-			return expiryTime != null;
+
+            return expiryTime != null;
 		}
 		
 		public TimestampIts getExpiryTime() {
-			return expiryTime;
+
+            return expiryTime;
 		}
 		public Latitude getProtectedZoneLatitude() {
-			return protectedZoneLatitude;
+
+            return protectedZoneLatitude;
 		}
 		public Longitude getProtectedZoneLongitude() {
-			return protectedZoneLongitude;
+
+            return protectedZoneLongitude;
 		}
 		public boolean hasProtectedZoneRadius(){
-			return protectedZoneRadius!=null;
+
+            return protectedZoneRadius!=null;
 		}
 		public ProtectedZoneRadius getProtectedZoneRadius() {
-			return protectedZoneRadius;
+
+            return protectedZoneRadius;
 		}
 		public boolean hasProtectedZoneID(){
-			return protectedZoneID!=null;
+
+            return protectedZoneID!=null;
 		}
 		public ProtectedZoneID getProtectedZoneID() {
 			return protectedZoneID;
@@ -1377,8 +1583,12 @@ public class CoopIts {
         cenDsrcTolling (0);
 
         private final int value;
-        public int value() { return value; }
-        private ProtectedZoneType(int value) { this.value = value; }
+        public int value() {
+            return value;
+        }
+        private ProtectedZoneType(int value) {
+            this.value = value;
+        }
     }
 
     @IntRange(minValue = 0, maxValue = 4398046511103L)
@@ -1386,15 +1596,21 @@ public class CoopIts {
         public static final int utcStartOf2004 = 0;
         public static final int oneMillisecAfterUTCStartOf2004 = 1;
 
-        public TimestampIts() { this(utcStartOf2004); }
-        public TimestampIts(long value) { super(value); }
+        public TimestampIts() {
+            this(utcStartOf2004);
+        }
+        public TimestampIts(long value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = 1, maxValue = 255, hasExtensionMarker = true)
     public static class ProtectedZoneRadius extends Asn1Integer {
         public static final int oneMeter = 1;
 
-        public ProtectedZoneRadius() { this(oneMeter); }
+        public ProtectedZoneRadius() {
+            this(oneMeter);
+        }
         public ProtectedZoneRadius(int value) { super(value); }
     }
 
@@ -1403,19 +1619,24 @@ public class CoopIts {
         DeltaReferencePosition pathPosition;
         @Asn1Optional PathDeltaTime pathDeltaTime;
 
-        public PathPoint() { this(new DeltaReferencePosition(), null); }
+        public PathPoint() {
+            this(new DeltaReferencePosition(), null);
+        }
         public PathPoint(DeltaReferencePosition pathPosition, PathDeltaTime pathDeltaTime) {
             this.pathPosition = pathPosition;
             this.pathDeltaTime = pathDeltaTime;
         }
 		public DeltaReferencePosition getPathPosition() {
-			return pathPosition;
+
+            return pathPosition;
 		}
 		public boolean hasPathDeltaTime(){
-			return pathDeltaTime!=null;
+
+            return pathDeltaTime!=null;
 		}
 		public PathDeltaTime getPathDeltaTime() {
-			return pathDeltaTime;
+
+            return pathDeltaTime;
 		}
     }
 
@@ -1425,7 +1646,9 @@ public class CoopIts {
         DeltaLongitude deltaLongitude;
         DeltaAltitude deltaAltitude;
 
-        public DeltaReferencePosition() { this(new DeltaLatitude(), new DeltaLongitude(), new DeltaAltitude()); }
+        public DeltaReferencePosition() {
+            this(new DeltaLatitude(), new DeltaLongitude(), new DeltaAltitude());
+        }
         public DeltaReferencePosition(DeltaLatitude deltaLatitude,
                 DeltaLongitude deltaLongitude,
                 DeltaAltitude deltaAltitude) {
@@ -1434,13 +1657,16 @@ public class CoopIts {
             this.deltaAltitude = deltaAltitude;
         }
 		public DeltaLatitude getDeltaLatitude() {
-			return deltaLatitude;
+
+            return deltaLatitude;
 		}
 		public DeltaLongitude getDeltaLongitude() {
-			return deltaLongitude;
+
+            return deltaLongitude;
 		}
 		public DeltaAltitude getDeltaAltitude() {
-			return deltaAltitude;
+
+            return deltaAltitude;
 		}
     }
 
@@ -1450,8 +1676,12 @@ public class CoopIts {
         public static final int oneMicrodegreeSouth = -10;
         public static final int unavailable = 131072;
 
-        public DeltaLatitude() { this(unavailable); }
-        public DeltaLatitude(int value) { super(value); }
+        public DeltaLatitude() {
+            this(unavailable);
+        }
+        public DeltaLatitude(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = -131071, maxValue = 131072)
@@ -1460,8 +1690,12 @@ public class CoopIts {
         public static final int oneMicrodegreeWest = -10;
         public static final int unavailable = 131072;
 
-        public DeltaLongitude() { this(unavailable); }
-        public DeltaLongitude(int value) { super(value); }
+        public DeltaLongitude() {
+            this(unavailable);
+        }
+        public DeltaLongitude(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = -12700, maxValue = 12800)
@@ -1470,16 +1704,24 @@ public class CoopIts {
         public static final int oneCentimeterDown = -1;
         public static final int unavailable = 12800;
 
-        public DeltaAltitude() { this(unavailable); }
-        public DeltaAltitude(int value) { super(value); }
+        public DeltaAltitude() {
+            this(unavailable);
+        }
+        public DeltaAltitude(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = 1, maxValue = 65535, hasExtensionMarker = true)
     public static class PathDeltaTime extends Asn1Integer {
         public static final int tenMilliSecondsInPast = 1;
 
-        public PathDeltaTime() { this(tenMilliSecondsInPast); }
-        public PathDeltaTime(int value) { super(value); }
+        public PathDeltaTime() {
+            this(tenMilliSecondsInPast);
+        }
+        public PathDeltaTime(int value) {
+            super(value);
+        }
     }
 
     @Choice
@@ -1493,57 +1735,86 @@ public class CoopIts {
         EmergencyContainer emergencyContainer;
         SafetyCarContainer safetyCarContainer;
 
-        public SpecialVehicleContainer() { this(new PublicTransportContainer()); }
+        public SpecialVehicleContainer() {
+            this(new PublicTransportContainer());
+        }
 
-        public SpecialVehicleContainer(PublicTransportContainer publicTransportContainer) { this.publicTransportContainer = publicTransportContainer; }
-        public SpecialVehicleContainer(SpecialTransportContainer specialTransportContainer) { this.specialTransportContainer = specialTransportContainer; }
-        public SpecialVehicleContainer(DangerousGoodsContainer dangerousGoodsContainer) { this.dangerousGoodsContainer = dangerousGoodsContainer; }
-        public SpecialVehicleContainer(RoadWorksContainerBasic roadWorksContainerBasic) { this.roadWorksContainerBasic = roadWorksContainerBasic; }
-        public SpecialVehicleContainer(RescueContainer rescueContainer) { this.rescueContainer = rescueContainer; }
-        public SpecialVehicleContainer(EmergencyContainer emergencyContainer) { this.emergencyContainer = emergencyContainer; }
-        public SpecialVehicleContainer(SafetyCarContainer safetyCarContainer) { this.safetyCarContainer = safetyCarContainer; }
+        public SpecialVehicleContainer(PublicTransportContainer publicTransportContainer) {
+            this.publicTransportContainer = publicTransportContainer;
+        }
+        public SpecialVehicleContainer(SpecialTransportContainer specialTransportContainer) {
+            this.specialTransportContainer = specialTransportContainer;
+        }
+        public SpecialVehicleContainer(DangerousGoodsContainer dangerousGoodsContainer) {
+            this.dangerousGoodsContainer = dangerousGoodsContainer;
+        }
+        public SpecialVehicleContainer(RoadWorksContainerBasic roadWorksContainerBasic) {
+            this.roadWorksContainerBasic = roadWorksContainerBasic;
+        }
+        public SpecialVehicleContainer(RescueContainer rescueContainer) {
+            this.rescueContainer = rescueContainer;
+        }
+        public SpecialVehicleContainer(EmergencyContainer emergencyContainer) {
+            this.emergencyContainer = emergencyContainer;
+        }
+        public SpecialVehicleContainer(SafetyCarContainer safetyCarContainer) {
+            this.safetyCarContainer = safetyCarContainer;
+        }
 
         public boolean hasPublicTransportContainer(){
-        	return publicTransportContainer != null;
+
+            return publicTransportContainer != null;
         }
 		public PublicTransportContainer getPublicTransportContainer() {
 			return publicTransportContainer;
 		}
 		public boolean hasSpecialTransportContainer(){
-        	return specialTransportContainer != null;
+
+            return specialTransportContainer != null;
         }
 		public SpecialTransportContainer getSpecialTransportContainer() {
-			return specialTransportContainer;
+
+            return specialTransportContainer;
 		}
 		public boolean hasDangerousGoodsContainer(){
-        	return dangerousGoodsContainer != null;
+
+            return dangerousGoodsContainer != null;
         }
 		public DangerousGoodsContainer getDangerousGoodsContainer() {
-			return dangerousGoodsContainer;
+
+            return dangerousGoodsContainer;
 		}
 		public boolean hasRoadWorksContainerBasic(){
-        	return roadWorksContainerBasic != null;
+
+            return roadWorksContainerBasic != null;
         }
 		public RoadWorksContainerBasic getRoadWorksContainerBasic() {
-			return roadWorksContainerBasic;
+
+            return roadWorksContainerBasic;
 		}
 		public boolean hasRescueContainer(){
-        	return rescueContainer != null;
+
+            return rescueContainer != null;
         }
 		public RescueContainer getRescueContainer() {
-			return rescueContainer;
+
+            return rescueContainer;
 		}
-		public boolean hasEmergencyContainer(){
+		public boolean hasEmergencyContainer()
+        {
         	return emergencyContainer != null;
         }
 		public EmergencyContainer getEmergencyContainer() {
-			return emergencyContainer;
+
+            return emergencyContainer;
 		}
 		public boolean hasSafetyCarContainer(){
-        	return safetyCarContainer != null;
+
+            return safetyCarContainer != null;
         }
 		public SafetyCarContainer getSafetyCarContainer() {
-			return safetyCarContainer;
+
+            return safetyCarContainer;
 		}
     }
 
@@ -1551,8 +1822,11 @@ public class CoopIts {
     public static class PublicTransportContainer {
         boolean embarkationStatus;
         @Asn1Optional PtActivation ptActivation;
-        public PublicTransportContainer() { this(false); }
+        public PublicTransportContainer() {
+            this(false);
+        }
         public PublicTransportContainer(boolean embarkationStatus) {
+
             this(embarkationStatus, null);
         }
         public PublicTransportContainer(boolean embarkationStatus, PtActivation ptActivation) {
@@ -1560,13 +1834,16 @@ public class CoopIts {
             this.ptActivation = ptActivation;
         }
 		public boolean isEmbarkationStatus() {
-			return embarkationStatus;
+
+            return embarkationStatus;
 		}
 		public boolean hasPtActivation(){
-			return ptActivation!=null;
+
+            return ptActivation!=null;
 		}
 		public PtActivation getPtActivation() {
-			return ptActivation;
+
+            return ptActivation;
 		}
     }
 
@@ -1575,16 +1852,20 @@ public class CoopIts {
         PtActivationType ptActivationType;
         PtActivationData ptActivationData;
 
-        public PtActivation() { this(new PtActivationType(), new PtActivationData()); }
+        public PtActivation() {
+            this(new PtActivationType(), new PtActivationData());
+        }
         public PtActivation(PtActivationType ptActivationType, PtActivationData ptActivationData) {
             this.ptActivationType = ptActivationType;
             this.ptActivationData = ptActivationData;
         }
 		public PtActivationType getPtActivationType() {
-			return ptActivationType;
+
+            return ptActivationType;
 		}
 		public PtActivationData getPtActivationData() {
-			return ptActivationData;
+
+            return ptActivationData;
 		}
     }
 
@@ -1594,29 +1875,39 @@ public class CoopIts {
         public static final int r09_16CodingType = 1;
         public static final int vdv_50149CodingType = 2;
 
-        public PtActivationType() { this(undefinedCodingType); }
-        public PtActivationType(int value) { super(value); }
+        public PtActivationType() {
+            this(undefinedCodingType);
+        }
+        public PtActivationType(int value) {
+            super(value);
+        }
     }
 
     @OctetString
     @SizeRange(minValue = 1, maxValue = 20)
     public static class PtActivationData extends Asn1SequenceOf<Byte> {
         public PtActivationData() {
+
             this(new byte[] {0});  // min size is 1.
         }
         public PtActivationData(byte... coll) {
+
             this(boxed(coll));
         }
         private PtActivationData(Byte... coll) {
+
             this(Arrays.asList(coll));
         }
         public PtActivationData(Collection<Byte> coll) {
+
             super(coll);
         }
 
         private static Byte[] boxed(byte... coll) {
             Byte[] boxedArray = new Byte[coll.length];
-            for (int i = 0; i < coll.length; i++) { boxedArray[i] = coll[i]; }
+            for (int i = 0; i < coll.length; i++) {
+                boxedArray[i] = coll[i];
+            }
             return boxedArray;
         }
     }
@@ -1626,17 +1917,21 @@ public class CoopIts {
         SpecialTransportType specialTransportType;
         LightBarSirenInUse lightBarSirenInUse;
 
-        public SpecialTransportContainer() { this (new SpecialTransportType(), new LightBarSirenInUse()); }
+        public SpecialTransportContainer() {
+            this (new SpecialTransportType(), new LightBarSirenInUse());
+        }
         public SpecialTransportContainer(SpecialTransportType specialTransportType,
         LightBarSirenInUse lightBarSirenInUse) {
             this.specialTransportType = specialTransportType;
             this.lightBarSirenInUse = lightBarSirenInUse;
         }
 		public SpecialTransportType getSpecialTransportType() {
-			return specialTransportType;
+
+            return specialTransportType;
 		}
 		public LightBarSirenInUse getLightBarSirenInUse() {
-			return lightBarSirenInUse;
+
+            return lightBarSirenInUse;
 		}
     }
 
@@ -1653,12 +1948,15 @@ public class CoopIts {
     public static class DangerousGoodsContainer {
         DangerousGoodsBasic dangerousGoodsBasic;
 
-        public DangerousGoodsContainer() { this (DangerousGoodsBasic.defaultValue()); }
+        public DangerousGoodsContainer() {
+            this (DangerousGoodsBasic.defaultValue());
+        }
         public DangerousGoodsContainer(DangerousGoodsBasic dangerousGoodsBasic) {
             this.dangerousGoodsBasic = dangerousGoodsBasic;
         }
 		public DangerousGoodsBasic getDangerousGoodsBasic() {
-			return dangerousGoodsBasic;
+
+            return dangerousGoodsBasic;
 		}
     }
 
@@ -1685,11 +1983,21 @@ public class CoopIts {
         miscellaneousDangerousSubstances(19);
 
         private final int value;
-        public int value() { return value; }
-        private DangerousGoodsBasic(int value) { this.value = value; }
-        public static DangerousGoodsBasic defaultValue() { return explosives1; }
+        public int value() {
+            return value;
+        }
+        private DangerousGoodsBasic(int value) {
+            this.value = value;
+        }
+        public static DangerousGoodsBasic defaultValue() {
+            return explosives1;
+        }
         public static DangerousGoodsBasic fromCode(int value) {
-            for (DangerousGoodsBasic element : values()) { if (element.value() == value) { return element; } }
+            for (DangerousGoodsBasic element : values()) {
+                if (element.value() == value) {
+                    return element;
+                }
+            }
             throw new IllegalArgumentException("Can't find element in enum " +
                     DangerousGoodsBasic.class.getName() + " for code " + value);
         }
@@ -1702,7 +2010,9 @@ public class CoopIts {
         LightBarSirenInUse lightBarSirenInUse;
         @Asn1Optional ClosedLanes closedLanes;
 
-        public RoadWorksContainerBasic() { this(new LightBarSirenInUse()); }
+        public RoadWorksContainerBasic() {
+            this(new LightBarSirenInUse());
+        }
         public RoadWorksContainerBasic(LightBarSirenInUse lightBarSirenInUse) {
             this(null, lightBarSirenInUse, null);
         }
@@ -1714,19 +2024,24 @@ public class CoopIts {
             this.closedLanes = closedLanes;
         }
         public boolean hasRoadworksSubCauseCode(){
-        	return roadworksSubCauseCode!=null;
+
+            return roadworksSubCauseCode!=null;
         }
 		public RoadworksSubCauseCode getRoadworksSubCauseCode() {
-			return roadworksSubCauseCode;
+
+            return roadworksSubCauseCode;
 		}
 		public LightBarSirenInUse getLightBarSirenInUse() {
-			return lightBarSirenInUse;
+
+            return lightBarSirenInUse;
 		}
 		public boolean hasClosedLanes(){
-			return closedLanes!=null;
+
+            return closedLanes!=null;
 		}
 		public ClosedLanes getClosedLanes() {
-			return closedLanes;
+
+            return closedLanes;
 		}
     }
 
@@ -1740,8 +2055,12 @@ public class CoopIts {
         public static final int streetCleaning = 5;
         public static final int winterService = 6;
 
-        public RoadworksSubCauseCode() { this(unavailable); }
-        public RoadworksSubCauseCode(int value) { super(value); }
+        public RoadworksSubCauseCode() {
+            this(unavailable);
+        }
+        public RoadworksSubCauseCode(int value) {
+            super(value);
+        }
     }
 
     @Bitstring
@@ -1756,10 +2075,12 @@ public class CoopIts {
             this.sirenActivated = sirenActivated;
         }
 		public boolean isLightBarActivated() {
-			return lightBarActivated;
+
+            return lightBarActivated;
 		}
 		public boolean isSirenActivated() {
-			return sirenActivated;
+
+            return sirenActivated;
 		}
     }
 
@@ -1769,8 +2090,12 @@ public class CoopIts {
         @Asn1Optional HardShoulderStatus hardShoulderStatus;
         DrivingLaneStatus drivingLaneStatus;
 
-        public ClosedLanes() { this(new DrivingLaneStatus()); }
-        public ClosedLanes(DrivingLaneStatus drivingLaneStatus) { this(null, drivingLaneStatus); }
+        public ClosedLanes() {
+            this(new DrivingLaneStatus());
+        }
+        public ClosedLanes(DrivingLaneStatus drivingLaneStatus) {
+            this(null, drivingLaneStatus);
+        }
         public ClosedLanes(
                 HardShoulderStatus hardShoulderStatus,
                 DrivingLaneStatus drivingLaneStatus
@@ -1795,31 +2120,48 @@ public class CoopIts {
         availableForDriving(2);
 
         private final int value;
-        public int value() { return value; }
-        private HardShoulderStatus(int value) { this.value = value; }
-        public static HardShoulderStatus defaultValue() { return vailableForStopping; }
+        public int value() {
+            return value;
+        }
+        private HardShoulderStatus(int value) {
+            this.value = value;
+        }
+        public static HardShoulderStatus defaultValue() {
+            return vailableForStopping;
+        }
     }
 
     @Bitstring
     @SizeRange(minValue = 1, maxValue = 14)
     public static class DrivingLaneStatus extends Asn1VarSizeBitstring {
 
-        public boolean outermostLaneClosed() { return getBit(1); }
-        public boolean secondLaneFromOutsideClosed() { return getBit(2); }
+        public boolean outermostLaneClosed() {
+            return getBit(1);
+        }
+        public boolean secondLaneFromOutsideClosed() {
+            return getBit(2);
+        }
 
         public DrivingLaneStatus(Collection<Boolean> coll) {
             super(coll);
         }
 
         public DrivingLaneStatus(Boolean... coll) {
+
             this(Arrays.asList(coll));
         }
 
-        protected DrivingLaneStatus() { super(new ArrayList<Boolean>()); }
+        protected DrivingLaneStatus() {
+            super(new ArrayList<Boolean>());
+        }
 
-        protected DrivingLaneStatus(Builder builder) { super(builder.bitset); }
+        protected DrivingLaneStatus(Builder builder) {
+            super(builder.bitset);
+        }
 
-        public static Builder builder() { return new Builder(); }
+        public static Builder builder() {
+            return new Builder();
+        }
 
         public static class Builder {
             private static final int minSize = Builder.class.getDeclaringClass().getAnnotation(SizeRange.class).minValue();
@@ -1845,6 +2187,7 @@ public class CoopIts {
             }
 
             public Builder outermostLaneClosed(boolean outermostLaneClosed) {
+
                 return setBit(1, outermostLaneClosed);
             }
             public Builder secondLaneFromOutsideClosed(boolean secondLaneFromOutsideClosed) {
@@ -1857,12 +2200,16 @@ public class CoopIts {
     public static class RescueContainer {
         LightBarSirenInUse lightBarSirenInUse;
 
-        public RescueContainer() { this(new LightBarSirenInUse()); }
-        public RescueContainer(LightBarSirenInUse lightBarSirenInUse) {
+        public RescueContainer() {
+            this(new LightBarSirenInUse());
+        }
+        public RescueContainer(LightBarSirenInUse lightBarSirenInUse)
+        {
             this.lightBarSirenInUse = lightBarSirenInUse;
         }
 		public LightBarSirenInUse getLightBarSirenInUse() {
-			return lightBarSirenInUse;
+
+            return lightBarSirenInUse;
 		}
     }
 
@@ -1872,7 +2219,9 @@ public class CoopIts {
         @Asn1Optional CauseCode incidentIndication;
         @Asn1Optional EmergencyPriority emergencyPriority;
 
-        public EmergencyContainer() { this(new LightBarSirenInUse()); }
+        public EmergencyContainer() {
+            this(new LightBarSirenInUse());
+        }
 
         public EmergencyContainer(LightBarSirenInUse lightBarSirenInUse) {
             this(lightBarSirenInUse, null, null);
@@ -1908,17 +2257,21 @@ public class CoopIts {
         CauseCodeType causeCode;
         SubCauseCodeType subCauseCode;
 
-        public CauseCode() { this(new CauseCodeType(), new SubCauseCodeType()); }
+        public CauseCode() {
+            this(new CauseCodeType(), new SubCauseCodeType());
+        }
         public CauseCode(CauseCodeType causeCode,
         SubCauseCodeType subCauseCode) {
             this.causeCode = causeCode;
             this.subCauseCode = subCauseCode;
         }
 		public CauseCodeType getCauseCode() {
-			return causeCode;
+
+            return causeCode;
 		}
 		public SubCauseCodeType getSubCauseCode() {
-			return subCauseCode;
+
+            return subCauseCode;
 		}
     }
 
@@ -1967,10 +2320,12 @@ public class CoopIts {
         boolean requestForRightOfWay;  // Bit 0.
         boolean requestForFreeCrossingAtATrafficLight;  // Bit 1.
 		public boolean isRequestForRightOfWay() {
-			return requestForRightOfWay;
+
+            return requestForRightOfWay;
 		}
 		public boolean isRequestForFreeCrossingAtATrafficLight() {
-			return requestForFreeCrossingAtATrafficLight;
+
+            return requestForFreeCrossingAtATrafficLight;
 		}
     }
 
@@ -1993,22 +2348,28 @@ public class CoopIts {
             this.speedLimit = speedLimit;
         }
 		public LightBarSirenInUse getLightBarSirenInUse() {
-			return lightBarSirenInUse;
+
+            return lightBarSirenInUse;
 		}
 		public boolean hasIncidentIndication(){
-			return incidentIndication!=null;
+
+            return incidentIndication!=null;
 		}
 		public CauseCode getIncidentIndication() {
-			return incidentIndication;
+
+            return incidentIndication;
 		}
 		public boolean hasTrafficRule(){
-			return trafficRule!=null;
+
+            return trafficRule!=null;
 		}
 		public TrafficRule getTrafficRule() {
-			return trafficRule;
+
+            return trafficRule;
 		}
 		public boolean hasSpeedLimit(){
-			return speedLimit!=null;
+
+            return speedLimit!=null;
 		}
 		public SpeedLimit getSpeedLimit() {
 			return speedLimit;
@@ -2023,16 +2384,26 @@ public class CoopIts {
         passToLeft(3);
 
         private final int value;
-        public int value() { return value; }
-        private TrafficRule(int value) { this.value = value; }
-        public static TrafficRule defaultValue() { return noPassing; }
+        public int value() {
+            return value;
+        }
+        private TrafficRule(int value) {
+            this.value = value;
+        }
+        public static TrafficRule defaultValue() {
+            return noPassing;
+        }
     }
 
     @IntRange(minValue = 1, maxValue = 255)
     public static class SpeedLimit extends Asn1Integer {
         public static final int oneKmPerHour = 1;
-        public SpeedLimit() { this(oneKmPerHour); }
-        public SpeedLimit(int value) { super(value); }
+        public SpeedLimit() {
+            this(oneKmPerHour);
+        }
+        public SpeedLimit(int value) {
+            super(value);
+        }
     }
 
     @Sequence
@@ -2048,14 +2419,17 @@ public class CoopIts {
         }
 
 		public ItsPduHeader getHeader() {
-			return header;
+
+            return header;
 		}
 
 		public DecentralizedEnvironmentalNotificationMessage getDenm() {
-			return denm;
+
+            return denm;
 		}
 		public String toString(){
-			return "Denm("+header+", "+denm+")";
+
+            return "Denm("+header+", "+denm+")";
 		}
     }
 
@@ -2066,7 +2440,9 @@ public class CoopIts {
         @Asn1Optional LocationContainer location;
         @Asn1Optional AlacarteContainer alacarte;
 
-        public DecentralizedEnvironmentalNotificationMessage() { this(new ManagementContainer()); }
+        public DecentralizedEnvironmentalNotificationMessage() {
+            this(new ManagementContainer());
+        }
 
         public DecentralizedEnvironmentalNotificationMessage(ManagementContainer management) {
             this(management, null, null, null);
@@ -2084,25 +2460,31 @@ public class CoopIts {
         }
 
 		public ManagementContainer getManagement() {
-			return management;
+
+            return management;
 		}
 		public boolean hasSituation(){
-			return situation!=null;
+
+            return situation!=null;
 		}
 		public SituationContainer getSituation() {
-			return situation;
+
+            return situation;
 		}
 		public boolean hasLocation(){
-			return location!=null;
+
+            return location!=null;
 		}
 		public LocationContainer getLocation() {
-			return location;
+
+            return location;
 		}
 		public boolean hasAlacarte(){
 			return alacarte!=null;
 		}
 		public AlacarteContainer getAlacarte() {
-			return alacarte;
+
+            return alacarte;
 		}
 		@Override
         public String toString(){
@@ -2183,7 +2565,9 @@ public class CoopIts {
                     builder.stationType);
         }
 
-        public static Builder builder() { return new Builder(); }
+        public static Builder builder() {
+            return new Builder();
+        }
 
         public static class Builder {
             ActionID actionID;
@@ -2197,7 +2581,9 @@ public class CoopIts {
             TransmissionInterval transmissionInterval;
             StationType stationType;
 
-            public ManagementContainer create() { return new ManagementContainer(this); }
+            public ManagementContainer create() {
+                return new ManagementContainer(this);
+            }
 
             private Builder() { }
 
@@ -2214,7 +2600,8 @@ public class CoopIts {
         }
 
 		public ActionID getActionID() {
-			return actionID;
+
+            return actionID;
 		}
 
 		public TimestampIts getDetectionTime() {
@@ -2270,7 +2657,9 @@ public class CoopIts {
         StationID originatingStationID;
         SequenceNumber sequenceNumber;
 
-        public ActionID() { this (new StationID(), new SequenceNumber()); }
+        public ActionID() {
+            this (new StationID(), new SequenceNumber());
+        }
 
         public ActionID(StationID originatingStationID, SequenceNumber sequenceNumber) {
             this.originatingStationID = originatingStationID;
@@ -2278,15 +2667,18 @@ public class CoopIts {
         }
 
 		public StationID getOriginatingStationID() {
-			return originatingStationID;
+
+            return originatingStationID;
 		}
 
 		public SequenceNumber getSequenceNumber() {
-			return sequenceNumber;
+
+            return sequenceNumber;
 		}
 		@Override
 		public String toString(){
-			return "ActionID("+originatingStationID+", "+sequenceNumber+")";
+
+            return "ActionID("+originatingStationID+", "+sequenceNumber+")";
 		}
     }
 
@@ -2301,10 +2693,17 @@ public class CoopIts {
         over10km(7);
 
         private final int value;
-        public int value() { return value; }
-        private RelevanceDistance(int value) { this.value = value; }
-        public static RelevanceDistance defaultValue() { return lessThan50m; }
-        public static boolean isMember(int value) { return value >= 0 && value <= 7; }
+        public int value() {
+            return value;
+        }
+        private RelevanceDistance(int value) {
+            this.value = value;
+        }
+        public static RelevanceDistance defaultValue() {
+            return lessThan50m; }
+        public static boolean isMember(int value) {
+            return value >= 0 && value <= 7;
+        }
     }
 
     public static enum RelevanceTrafficDirection {
@@ -2314,16 +2713,28 @@ public class CoopIts {
         oppositeTraffic(3);
 
         private final int value;
-        public int value() { return value; }
-        private RelevanceTrafficDirection(int value) { this.value = value; }
-        public static RelevanceTrafficDirection defaultValue() { return allTrafficDirections; }
-        public static boolean isMember(int value) { return value >= 0 && value <= 3; }        
+        public int value() {
+            return value;
+        }
+        private RelevanceTrafficDirection(int value) {
+            this.value = value;
+        }
+        public static RelevanceTrafficDirection defaultValue() {
+            return allTrafficDirections;
+        }
+        public static boolean isMember(int value) {
+            return value >= 0 && value <= 3;
+        }
     }
 
     @IntRange(minValue = 0, maxValue = 65535)
     public static class SequenceNumber extends Asn1Integer {
-        public SequenceNumber() { this(0); }
-        public SequenceNumber(int value) { super(value); }
+        public SequenceNumber() {
+            this(0);
+        }
+        public SequenceNumber(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = 0, maxValue = 86400)
@@ -2331,8 +2742,12 @@ public class CoopIts {
         public static final int timeOfDetection = 0;
         public static final int oneSecondAfterDetection = 1;
 
-        public ValidityDuration() { this(0); }
-        public ValidityDuration(int value) { super(value); }
+        public ValidityDuration() {
+            this(0);
+        }
+        public ValidityDuration(int value) {
+            super(value);
+        }
     }
 
     public static final ValidityDuration defaultValidity = new ValidityDuration(600);
@@ -2351,10 +2766,18 @@ public class CoopIts {
         isNegation (1);
 
         private final int value;
-        public int value() { return value; }
-        private Termination(int value) { this.value = value; }
-        public static Termination defaultValue() { return isCancellation; }
-        public static boolean isMember(int value){ return value >= 0 && value <= 1; }
+        public int value() {
+            return value;
+        }
+        private Termination(int value) {
+            this.value = value;
+        }
+        public static Termination defaultValue() {
+            return isCancellation;
+        }
+        public static boolean isMember(int value){
+            return value >= 0 && value <= 1;
+        }
     }
 
     @Sequence
@@ -2365,7 +2788,9 @@ public class CoopIts {
         @Asn1Optional CauseCode linkedCause;
         @Asn1Optional EventHistory eventHistory;
 
-        public SituationContainer() { this(new InformationQuality(), new CauseCode()); }
+        public SituationContainer() {
+            this(new InformationQuality(), new CauseCode());
+        }
         public SituationContainer(InformationQuality informationQuality, CauseCode eventType) {
             this(informationQuality, eventType, null, null);
         }
@@ -2381,23 +2806,29 @@ public class CoopIts {
             this.eventHistory = eventHistory;
         }
 		public InformationQuality getInformationQuality() {
-			return informationQuality;
+
+            return informationQuality;
 		}
 
 		public CauseCode getEventType() {
-			return eventType;
+
+            return eventType;
 		}
 		public boolean hasLinkedCause(){
-			return linkedCause!=null;
+
+            return linkedCause!=null;
 		}
 		public CauseCode getLinkedCause() {
-			return linkedCause;
+
+            return linkedCause;
 		}
 		public boolean hasEventHistory(){
 			return eventHistory!=null;
+
 		}
 		public EventHistory getEventHistory() {
-			return eventHistory;
+
+            return eventHistory;
 		}
     }
 
@@ -2427,10 +2858,13 @@ public class CoopIts {
         @Asn1Optional PathDeltaTime eventDeltaTime;
         InformationQuality informationQuality;
 
-        public EventPoint() { this(new DeltaReferencePosition(), new InformationQuality()); }
+        public EventPoint() {
+            this(new DeltaReferencePosition(), new InformationQuality());
+        }
         public EventPoint(DeltaReferencePosition eventPosition,
                 InformationQuality informationQuality) {
-            this(eventPosition, null, informationQuality); }
+            this(eventPosition, null, informationQuality);
+        }
         public EventPoint(DeltaReferencePosition eventPosition,
             PathDeltaTime eventDeltaTime,
             InformationQuality informationQuality) {
@@ -2439,13 +2873,16 @@ public class CoopIts {
             this.informationQuality = informationQuality;
         }
 		public DeltaReferencePosition getEventPosition() {
-			return eventPosition;
+
+            return eventPosition;
 		}
 		public boolean hasPathDeltaTime(){
-			return eventDeltaTime!=null;
+
+            return eventDeltaTime!=null;
 		}
 		public PathDeltaTime getEventDeltaTime() {
-			return eventDeltaTime;
+
+            return eventDeltaTime;
 		}
 		public InformationQuality getInformationQuality() {
 			return informationQuality;
@@ -2460,8 +2897,12 @@ public class CoopIts {
         Traces traces;
         @Asn1Optional RoadType roadType;
 
-        public LocationContainer() { this(new Traces()); }
-        public LocationContainer(Traces traces) { this(null, null, traces, null); }
+        public LocationContainer() {
+            this(new Traces());
+        }
+        public LocationContainer(Traces traces) {
+            this(null, null, traces, null);
+        }
         public LocationContainer(
                 Speed eventSpeed,
                 Heading eventPositionHeading,
@@ -2474,19 +2915,23 @@ public class CoopIts {
             this.roadType = roadType;
         }
         public boolean hasEventSpeed(){
-        	return eventSpeed!=null;
+
+            return eventSpeed!=null;
         }
 		public Speed getEventSpeed() {
-			return eventSpeed;
+
+            return eventSpeed;
 		}
-		public boolean hasEventPositionHeading(){
-			return eventPositionHeading!=null;
+		public boolean hasEventPositionHeading() {
+			return eventPositionHeading != null;
 		}
 		public Heading getEventPositionHeading() {
-			return eventPositionHeading;
+
+            return eventPositionHeading;
 		}
 		public Traces getTraces() {
-			return traces;
+
+            return traces;
 		}
 		public boolean hasRoadType(){
 			return roadType!=null;
@@ -2499,9 +2944,11 @@ public class CoopIts {
     @SizeRange(minValue = 1, maxValue = 7)
     public static class Traces extends Asn1SequenceOf<PathHistory> {
         public Traces(PathHistory... coll) {
+
             this(Arrays.asList(coll));
         }
         public Traces(Collection<PathHistory> coll) {
+
             super(coll);
         }
     }
@@ -2515,7 +2962,9 @@ public class CoopIts {
         private final int value;
         public int value() { return value; }
         private RoadType(int value) { this.value = value; }
-        public static RoadType defaultValue() { return urban_NoStructuralSeparationToOppositeLanes; }
+        public static RoadType defaultValue() {
+            return urban_NoStructuralSeparationToOppositeLanes;
+        }
     }
     
     /////////////////////////////////////////////
@@ -2530,7 +2979,9 @@ public class CoopIts {
         @Asn1Optional PositioningSolutionType positioningSolution;
         @Asn1Optional StationaryVehicleContainer stationaryVehicle;
 
-        public AlacarteContainer() { this(null, null, null, null, null, null); }
+        public AlacarteContainer() {
+            this(null, null, null, null, null, null);
+        }
         public AlacarteContainer(
                 LanePosition lanePosition,
                 ImpactReductionContainer impactReduction,
@@ -2547,40 +2998,51 @@ public class CoopIts {
             this.stationaryVehicle = stationaryVehicle;
         }
         public boolean hasLanePosition(){
-        	return lanePosition!=null;
+
+            return lanePosition!=null;
         }
 		public LanePosition getLanePosition() {
-			return lanePosition;
+
+            return lanePosition;
 		}
 		public boolean hasImpactReductionContainer(){
-			return impactReduction!=null;
+
+            return impactReduction!=null;
 		}
 		public ImpactReductionContainer getImpactReduction() {
-			return impactReduction;
+
+            return impactReduction;
 		}
 		public boolean hasExternalTemperature(){
-			return externalTemperature!=null;
+
+            return externalTemperature!=null;
 		}
 		public Temperature getExternalTemperature() {
 			return externalTemperature;
 		}
 		public boolean hasRoadWorks(){
-			return roadWorks!=null;
+
+            return roadWorks!=null;
 		}
 		public RoadWorksContainerExtended getRoadWorks() {
-			return roadWorks;
+
+            return roadWorks;
 		}
 		public boolean hasPositioningSolution(){
-			return positioningSolution!=null;
+
+            return positioningSolution!=null;
 		}
 		public PositioningSolutionType getPositioningSolution() {
-			return positioningSolution;
+
+            return positioningSolution;
 		}
 		public boolean hasStationaryVehicle(){
-			return stationaryVehicle!=null;
+
+            return stationaryVehicle!=null;
 		}
 		public StationaryVehicleContainer getStationaryVehicle() {
-			return stationaryVehicle;
+
+            return stationaryVehicle;
 		}
     }
 
@@ -2645,11 +3107,13 @@ public class CoopIts {
         }
 
 		public HeightLonCarr getHeightLonCarrLeft() {
-			return heightLonCarrLeft;
+
+            return heightLonCarrLeft;
 		}
 
 		public HeightLonCarr getHeightLonCarrRight() {
-			return heightLonCarrRight;
+
+            return heightLonCarrRight;
 		}
 
 		public PosLonCarr getPosLonCarrLeft() {
@@ -2665,31 +3129,38 @@ public class CoopIts {
 		}
 
 		public PosCentMass getPosCentMass() {
-			return posCentMass;
+
+            return posCentMass;
 		}
 
 		public WheelBaseVehicle getWheelBaseVehicle() {
-			return wheelBaseVehicle;
+
+            return wheelBaseVehicle;
 		}
 
 		public TurningRadius getTurningRadius() {
-			return turningRadius;
+
+            return turningRadius;
 		}
 
 		public PosFrontAx getPosFrontAx() {
-			return posFrontAx;
+
+            return posFrontAx;
 		}
 
 		public PositionOfOccupants getPositionOfOccupants() {
-			return positionOfOccupants;
+
+            return positionOfOccupants;
 		}
 
 		public VehicleMass getVehicleMass() {
-			return vehicleMass;
+
+            return vehicleMass;
 		}
 
 		public RequestResponseIndication getRequestResponseIndication() {
-			return requestResponseIndication;
+
+            return requestResponseIndication;
 		}
     }
 
@@ -2699,8 +3170,12 @@ public class CoopIts {
         public static final int oneCentimeter = 1;
         public static final int unavailable = 100;
 
-        public HeightLonCarr() { this(unavailable); }
-        public HeightLonCarr(int value) { super(value); }
+        public HeightLonCarr() {
+            this(unavailable);
+        }
+        public HeightLonCarr(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = 1, maxValue = 127)
@@ -2734,7 +3209,9 @@ public class CoopIts {
         @Asn1Optional TrafficRule trafficFlowRule;
         @Asn1Optional ReferenceDenms referenceDenms;
 
-        public RoadWorksContainerExtended() { this(null, null, null, null, null, null, null, null, null); }
+        public RoadWorksContainerExtended() {
+            this(null, null, null, null, null, null, null, null, null);
+        }
 
         // This constructor should be changed to a Builder.
         public RoadWorksContainerExtended(
@@ -2759,55 +3236,70 @@ public class CoopIts {
             this.referenceDenms = referenceDenms;
         }
         public boolean hasLightBarSirenInUse(){
-        	return lightBarSirenInUse!=null;
+
+            return lightBarSirenInUse!=null;
         }
 		public LightBarSirenInUse getLightBarSirenInUse() {
-			return lightBarSirenInUse;
+
+            return lightBarSirenInUse;
 		}
 		public boolean hasClosedLanes(){
-			return closedLanes!=null;
+
+            return closedLanes!=null;
 		}
 		public ClosedLanes getClosedLanes() {
-			return closedLanes;
+
+            return closedLanes;
 		}
 		public boolean hasRestriction(){
-			return restriction!=null;
+
+            return restriction!=null;
 		}
 		public RestrictedTypes getRestriction() {
-			return restriction;
+
+            return restriction;
 		}
 		public boolean hasSpeedLimit(){
-			return speedLimit!=null;
+
+            return speedLimit!=null;
 		}
 		public SpeedLimit getSpeedLimit() {
-			return speedLimit;
+
+            return speedLimit;
 		}
 		public boolean hasIncidentIndication(){
-			return incidentIndication!=null;
+
+            return incidentIndication!=null;
 		}
 		public CauseCode getIncidentIndication() {
 			return incidentIndication;
 		}
 		public boolean hasRecommendedPath(){
-			return recommendedPath!=null;
+
+            return recommendedPath!=null;
 		}
 		public ItineraryPath getRecommendedPath() {
-			return recommendedPath;
+
+            return recommendedPath;
 		}
 		public boolean hasStartingPointSpeedLimit(){
-			return startingPointSpeedLimit!=null;
+
+            return startingPointSpeedLimit!=null;
 		}
 		public DeltaReferencePosition getStartingPointSpeedLimit() {
-			return startingPointSpeedLimit;
+
+            return startingPointSpeedLimit;
 		}
 		public boolean hasTrafficFlowRule(){
 			return trafficFlowRule!=null;
 		}
 		public TrafficRule getTrafficFlowRule() {
-			return trafficFlowRule;
+
+            return trafficFlowRule;
 		}
 		public boolean hasReferenceDenms(){
-			return referenceDenms!=null;
+
+            return referenceDenms!=null;
 		}
 		public ReferenceDenms getReferenceDenms() {
 			return referenceDenms;
@@ -2817,6 +3309,7 @@ public class CoopIts {
     @SizeRange(minValue = 1, maxValue = 40)
     public static class ItineraryPath extends Asn1SequenceOf<ReferencePosition> {
         public ItineraryPath(ReferencePosition... coll) {
+
             this(Arrays.asList(coll));
         }
         public ItineraryPath(Collection<ReferencePosition> coll) {
@@ -2827,9 +3320,11 @@ public class CoopIts {
     @SizeRange(minValue = 1, maxValue = 3, hasExtensionMarker = true)
     public static class RestrictedTypes extends Asn1SequenceOf<StationType> {
         public RestrictedTypes(StationType... coll) {
+
             this(Arrays.asList(coll));
         }
         public RestrictedTypes(Collection<StationType> coll) {
+
             super(coll);
         }
     }
@@ -2840,7 +3335,9 @@ public class CoopIts {
         public static final int unavailable = 30;
 
         public PosPillar() { this(unavailable); }
-        public PosPillar(int value) { super(value); }
+        public PosPillar(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = 1, maxValue = 63)
@@ -2848,8 +3345,12 @@ public class CoopIts {
         public static final int tenCentimeters = 1;
         public static final int unavailable = 63;
 
-        public PosCentMass() { this(unavailable); }
-        public PosCentMass(int value) { super(value); }
+        public PosCentMass() {
+            this(unavailable);
+        }
+        public PosCentMass(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = 1, maxValue = 127)
@@ -2857,8 +3358,12 @@ public class CoopIts {
         public static final int tenCentimeters = 1;
         public static final int unavailable = 127;
 
-        public WheelBaseVehicle() { this(unavailable); }
-        public WheelBaseVehicle(int value) { super(value); }
+        public WheelBaseVehicle() {
+            this(unavailable);
+        }
+        public WheelBaseVehicle(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = 1, maxValue = 255)
@@ -2866,8 +3371,12 @@ public class CoopIts {
         public static final int point4Meters = 1;
         public static final int unavailable = 255;
 
-        public TurningRadius() { this(unavailable); }
-        public TurningRadius(int value) { super(value); }
+        public TurningRadius() {
+            this(unavailable);
+        }
+        public TurningRadius(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = 1, maxValue = 20)
@@ -2875,8 +3384,12 @@ public class CoopIts {
         public static final int tenCentimeters = 1;
         public static final int unavailable = 20;
 
-        public PosFrontAx() { this(unavailable); }
-        public PosFrontAx(int value) { super(value); }
+        public PosFrontAx() {
+            this(unavailable);
+        }
+        public PosFrontAx(int value) {
+            super(value);
+        }
     }
 
     @IntRange(minValue = 1, maxValue = 1024)
@@ -2884,8 +3397,12 @@ public class CoopIts {
         public static final int hundredKg = 1;
         public static final int unavailable = 1024;
 
-        public VehicleMass() { this(unavailable); }
-        public VehicleMass(int value) { super(value); }
+        public VehicleMass() {
+            this(unavailable);
+        }
+        public VehicleMass(int value) {
+            super(value);
+        }
     }
 
     @Bitstring
@@ -2918,9 +3435,15 @@ public class CoopIts {
         response(1);
 
         private final int value;
-        public int value() { return value; }
-        public static RequestResponseIndication defaultValue() { return request; }
-        private RequestResponseIndication(int value) { this.value = value; }
+        public int value() {
+            return value;
+        }
+        public static RequestResponseIndication defaultValue() {
+            return request;
+        }
+        private RequestResponseIndication(int value) {
+            this.value = value;
+        }
     }
 
 
@@ -2940,6 +3463,7 @@ public class CoopIts {
             this(Arrays.asList(coll));
         }
         public ReferenceDenms(Collection<ActionID> coll) {
+
             super(coll);
         }
     }
@@ -2954,9 +3478,15 @@ public class CoopIts {
         dR(5);
 
         private final int value;
-        public int value() { return value; }
-        private PositioningSolutionType(int value) { this.value = value; }
-        public static boolean isMember(int value) { return value >= 0 && value <= 5; }
+        public int value() {
+            return value;
+        }
+        private PositioningSolutionType(int value) {
+            this.value = value;
+        }
+        public static boolean isMember(int value) {
+            return value >= 0 && value <= 5;
+        }
     }
 
     @Sequence
@@ -2968,7 +3498,9 @@ public class CoopIts {
         @Asn1Optional VehicleIdentification vehicleIdentification;
         @Asn1Optional EnergyStorageType energyStorageType;
 
-        public StationaryVehicleContainer() { this(null, null, null, null, null, null); }
+        public StationaryVehicleContainer() {
+            this(null, null, null, null, null, null);
+        }
         public StationaryVehicleContainer(
                 StationarySince stationarySince,
                 CauseCode stationaryCause,
@@ -2985,40 +3517,50 @@ public class CoopIts {
             this.energyStorageType = energyStorageType;
         }
         public boolean hasStationarySince(){
-        	return stationarySince!=null;
+
+            return stationarySince!=null;
         }
 		public StationarySince getStationarySince() {
-			return stationarySince;
+
+            return stationarySince;
 		}
 		public boolean hasStationaryCause(){
-			return stationaryCause!=null;
+
+            return stationaryCause!=null;
 		}
 		public CauseCode getStationaryCause() {
-			return stationaryCause;
+
+            return stationaryCause;
 		}
-		public boolean hasCarryingDangerousGoods(){
+		public boolean hasCarryingDangerousGoods() {
 			return carryingDangerousGoods!=null;
 		}
 		public DangerousGoodsExtended getCarryingDangerousGoods() {
-			return carryingDangerousGoods;
+
+            return carryingDangerousGoods;
 		}
-		public boolean hasNumberOfOccupants(){
+		public boolean hasNumberOfOccupants() {
 			return numberOfOccupants!=null;
 		}
 		public NumberOfOccupants getNumberOfOccupants() {
-			return numberOfOccupants;
+
+            return numberOfOccupants;
 		}
-		public boolean hasVehicleIdentification(){
-			return vehicleIdentification!=null;
+		public boolean hasVehicleIdentification() {
+
+            return vehicleIdentification!=null;
 		}
 		public VehicleIdentification getVehicleIdentification() {
-			return vehicleIdentification;
+
+            return vehicleIdentification;
 		}
-		public boolean hasEnergyStorageType(){
-			return energyStorageType!=null;
+		public boolean hasEnergyStorageType() {
+
+            return energyStorageType != null;
 		}
 		public EnergyStorageType getEnergyStorageType() {
-			return energyStorageType;
+
+            return energyStorageType;
 		}
     }
 
@@ -3029,9 +3571,15 @@ public class CoopIts {
         equalOrGreater15Minutes(3);
 
         private final int value;
-        public int value() { return value; }
-        private StationarySince(int value) { this.value = value; }
-        public static StationarySince defaultValue() { return lessThan1Minute; }
+        public int value() {
+            return value;
+        }
+        private StationarySince(int value) {
+            this.value = value;
+        }
+        public static StationarySince defaultValue() {
+            return lessThan1Minute;
+        }
     }
 
     @IntRange(minValue = 0, maxValue = 127)
@@ -3039,8 +3587,12 @@ public class CoopIts {
         public static final int oneOccupant = 1;
         public static final int unavailable = 127;
 
-        public NumberOfOccupants() { this(unavailable); }
-        public NumberOfOccupants(int value) { super(value); }
+        public NumberOfOccupants() {
+            this(unavailable);
+        }
+        public NumberOfOccupants(int value) {
+            super(value);
+        }
     }
 
     @Sequence
@@ -3149,8 +3701,12 @@ public class CoopIts {
         @SizeRange(minValue=1, maxValue=24)
         @RestrictedString(CharacterRestriction.UTF8String)
         public static class CompanyName extends Asn1String {
-            public CompanyName() { this(""); }
-            public CompanyName(String value) { super(value); }
+            public CompanyName() {
+                this("");
+            }
+            public CompanyName(String value) {
+                super(value);
+            }
         }
 
 
@@ -3194,39 +3750,48 @@ public class CoopIts {
         }
 
 		public DangerousGoodsBasic getDangerousGoodsType() {
-			return dangerousGoodsType;
+
+            return dangerousGoodsType;
 		}
 
 		public UnNumber getUnNumber() {
-			return unNumber;
+
+            return unNumber;
 		}
 
 		public boolean isElevatedTemperature() {
-			return elevatedTemperature;
+
+            return elevatedTemperature;
 		}
 
 		public boolean isTunnelsRestricted() {
-			return tunnelsRestricted;
+
+            return tunnelsRestricted;
 		}
 
 		public boolean isLimitedQuantity() {
-			return limitedQuantity;
+
+            return limitedQuantity;
 		}
 		public boolean hasEmergencyActionCode(){
-			return emergencyActionCode!=null;
+
+            return emergencyActionCode!=null;
 		}
 		public EmergencyActionCode getEmergencyActionCode() {
-			return emergencyActionCode;
+
+            return emergencyActionCode;
 		}
 		public boolean hasPhoneNumber(){
-			return phoneNumber!=null;
+
+            return phoneNumber != null;
 		}
 
 		public PhoneNumber getPhoneNumber() {
 			return phoneNumber;
 		}
 		public boolean hasCompanyName(){
-			return companyName!=null;
+
+            return companyName != null;
 		}
 		public CompanyName getCompanyName() {
 			return companyName;

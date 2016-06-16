@@ -34,20 +34,25 @@ class StringCoder implements Decoder, Encoder {
         String string = (obj instanceof String) ? ((String) obj) : ((Asn1String) obj).value();
         RestrictedString restrictionAnnotation = annotations
                 .getAnnotation(RestrictedString.class);
-        if (restrictionAnnotation == null) { throw new UnsupportedOperationException(
+        if (restrictionAnnotation == null) {
+            throw new UnsupportedOperationException(
                 "Unrestricted character strings are not supported yet. All annotations: "
-                        + Arrays.asList(type.getAnnotations())); }
+                        + Arrays.asList(type.getAnnotations()));
+        }
         FixedSize fixedSize = annotations.getAnnotation(FixedSize.class);
         SizeRange sizeRange = annotations.getAnnotation(SizeRange.class);
-        if (fixedSize != null && fixedSize.value() != string.length()) { throw new IllegalArgumentException(
-                "Bad string length, expected " + fixedSize.value() + ", got " + string.length()); }
+        if (fixedSize != null && fixedSize.value() != string.length()) {
+            throw new IllegalArgumentException(
+                "Bad string length, expected " + fixedSize.value() + ", got " + string.length());
+        }
         if (sizeRange != null
                 && !sizeRange.hasExtensionMarker()
                 && (string.length() < sizeRange.minValue() || sizeRange.maxValue() < string
                         .length())) { throw new IllegalArgumentException(
                 "Bad string length, expected " + sizeRange.minValue() + ".."
                         + sizeRange.maxValue() + ", got " + string.length()); }
-        if (restrictionAnnotation.value() == CharacterRestriction.UTF8String) {  // UTF8 length
+        if (restrictionAnnotation.value() == CharacterRestriction.UTF8String) {
+            // UTF8 length
                                                                                 BitBuffer stringbuffer = ByteBitBuffer.createInfinite();
             for (char c : string.toCharArray()) {
                 encodeChar(stringbuffer, c, restrictionAnnotation);
@@ -153,8 +158,10 @@ class StringCoder implements Decoder, Encoder {
         UperEncoder.logger.debug("char {}", c);
         switch (restriction.value()) {
             case IA5String:
-                if (restriction.alphabet() != DefaultAlphabet.class) { throw new UnsupportedOperationException(
-                        "alphabet for IA5String is not supported yet."); }
+                if (restriction.alphabet() != DefaultAlphabet.class) {
+                    throw new UnsupportedOperationException(
+                        "alphabet for IA5String is not supported yet.");
+                }
                 UperEncoder.encodeConstrainedInt(
                         bitbuffer,
                         StandardCharsets.US_ASCII.encode(CharBuffer.wrap(new char[] { c })).get() & 0xff,
@@ -162,8 +169,10 @@ class StringCoder implements Decoder, Encoder {
                         127);
                 return;
             case UTF8String:
-                if (restriction.alphabet() != DefaultAlphabet.class) { throw new UnsupportedOperationException(
-                        "alphabet for UTF8 is not supported yet."); }
+                if (restriction.alphabet() != DefaultAlphabet.class) {
+                    throw new UnsupportedOperationException(
+                        "alphabet for UTF8 is not supported yet.");
+                }
                 ByteBuffer buffer = StandardCharsets.UTF_8
                         .encode(CharBuffer.wrap(new char[] { c }));
                 for (int i = 0; i < buffer.limit(); i++) {
@@ -222,8 +231,10 @@ class StringCoder implements Decoder, Encoder {
             RestrictedString restrictionAnnotation) {
         switch (restrictionAnnotation.value()) {
             case IA5String: {
-                if (restrictionAnnotation.alphabet() != DefaultAlphabet.class) { throw new UnsupportedOperationException(
-                        "alphabet for IA5String is not supported yet."); }
+                if (restrictionAnnotation.alphabet() != DefaultAlphabet.class) {
+                    throw new UnsupportedOperationException(
+                        "alphabet for IA5String is not supported yet.");
+                }
                 byte charByte = (byte) UperEncoder.decodeConstrainedInt(bitqueue, UperEncoder.newRange(0, 127, false));
                 byte[] bytes = new byte[] { charByte };
                 String result = StandardCharsets.US_ASCII.decode(ByteBuffer.wrap(bytes)).toString();
@@ -258,7 +269,8 @@ class StringCoder implements Decoder, Encoder {
                         String result = StandardCharsets.US_ASCII.decode(ByteBuffer.wrap(bytes))
                                 .toString();
                         if (result.length() != 1) { throw new AssertionError(
-                                "decoded more than one char (" + result + ")"); }
+                                "decoded more than one char (" + result + ")");
+                        }
                         return result;
                     }
                 } else {  // Encode normally
@@ -266,8 +278,10 @@ class StringCoder implements Decoder, Encoder {
                     byte[] bytes = new byte[] { charByte };
                     String result = StandardCharsets.US_ASCII.decode(ByteBuffer.wrap(bytes))
                             .toString();
-                    if (result.length() != 1) { throw new AssertionError(
-                            "decoded more than one char (" + result + ")"); }
+                    if (result.length() != 1) {
+                        throw new AssertionError(
+                            "decoded more than one char (" + result + ")");
+                    }
                     return result;
                 }
             }
