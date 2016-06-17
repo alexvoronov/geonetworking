@@ -9,11 +9,13 @@ import java.util.Map;
 
 import net.gcdc.asn1.datatypes.Asn1Integer;
 import net.gcdc.asn1.datatypes.IntRange;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class IntCoder implements Encoder, Decoder {
 
     private static final Map<Class<?>, IntRange> DEFAULT_RANGE;
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(IntCoder.class.getName());
     static {
         DEFAULT_RANGE = new HashMap<>();
         DEFAULT_RANGE.put(short.class, UperEncoder.newRange(Short.MIN_VALUE, Short.MAX_VALUE, false));
@@ -58,7 +60,9 @@ class IntCoder implements Encoder, Decoder {
             try {
                 constructor = classOfT.getConstructor(t);
             } catch (NoSuchMethodException e) {
+                LOGGER.info("Method not found error", e);
                 // ignore and try next
+
             } catch (SecurityException e) {
                 throw new IllegalArgumentException("can't access constructor of "
                         + classOfT.getName() + ": " + e);
