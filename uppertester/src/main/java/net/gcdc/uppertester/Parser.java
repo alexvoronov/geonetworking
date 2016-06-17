@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 public class Parser {
     final static Logger logger = LoggerFactory.getLogger(Parser.class);
     private final Map<Byte, Class<?>> msgToId = new HashMap<>();
-    
+
     public Parser() {
         refreshMessageMap();
     }
@@ -86,7 +86,7 @@ public class Parser {
                 }
                 msgToId.put(msgType, c);
             } catch (InstantiationException | NoSuchFieldException | IllegalAccessException e) {
-                logger.error("Error adding class {}", c.getName());
+                logger.error("Error adding class {}", c.getName(), e);
             }
         }
     }

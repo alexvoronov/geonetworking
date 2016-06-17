@@ -9,6 +9,7 @@ import java.util.Map;
 
 import net.gcdc.asn1.datatypes.Asn1Integer;
 import net.gcdc.asn1.datatypes.IntRange;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,9 +61,8 @@ class IntCoder implements Encoder, Decoder {
             try {
                 constructor = classOfT.getConstructor(t);
             } catch (NoSuchMethodException e) {
-                LOGGER.info("Method not found error", e);
-                // ignore and try next
-
+                // We expect exception here. Just ignore them and try next constructor.
+                // After the loop, check if any constructor was found.
             } catch (SecurityException e) {
                 throw new IllegalArgumentException("can't access constructor of "
                         + classOfT.getName() + ": " + e);
