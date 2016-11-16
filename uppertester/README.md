@@ -8,7 +8,7 @@ This Upper Tester Application was successfully used to do Interoperability Testi
 
 ### Usage
 
-Geonetworking library requires a separate Link Layer entity, you can use e.g. [utoepy](https://github.com/alexvoronov/utoepy) or `udp2eth`.
+Geonetworking library requires a separate Link Layer entity, you can use e.g. [utoepy](https://github.com/alexvoronov/utoepy) or [udp2eth](https://github.com/jandejongh/udp2eth).
 
 First, start `utoepy`:
 

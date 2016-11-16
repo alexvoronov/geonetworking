@@ -8,9 +8,9 @@ A basic implementation of the [ETSI](http://en.wikipedia.org/wiki/ETSI) ITS G5 s
 
 ### Status
 
-Sending CAM via Single Hop Broadcast and DENM via GeoBroadcast is supported. Forwarding of GeoBroadcast packets is on the wishlist. There are currently no plans for GeoUnicast or Security (for Security, try [fitsec](https://www.assembla.com/code/fitsec/subversion/nodes)).
+Sending CAM via Single Hop Broadcast and DENM via GeoBroadcast is supported. Forwarding of GeoBroadcast packets is on the wishlist. There are currently no plans for GeoUnicast or Security (for Security, try [FITSec](https://github.com/fillabs/FITSec)).
 
-Basic functionality was tested at an ETSI Plugtest in March 2015, and many things already worked. However, this is not a production-ready code. Even API is expected to change when usage patterns emerge, feedback is welcome! 
+Basic functionality was tested at an ETSI Plugtest in March 2015 and at Grand Cooperative Driving Challenge in May 2016. 
 
 One way to improve the quality is to set up an automated conformance testing using open-source TTCN-3 [Eclipse Titan](https://projects.eclipse.org/projects/tools.titan) and [ETSI ITS library](http://www.ttcn-3.org/index.php/development/devlibraries/devlib-libits). 
 
@@ -24,7 +24,9 @@ Most IDEs work with Maven projects directly, e.g. Eclipse supports Maven through
 
 Since this is a multi-module setup, Maven flags for multiple projects become useful (`--projects`, `--also-make`, `--also-make-dependents`). See [Maven docs](https://maven.apache.org/guides/mini/guide-multiple-modules.html) for manual, and a [Sonatype blog post](http://blog.sonatype.com/2009/10/maven-tips-and-tricks-advanced-reactor-options/) for a nice tutorial introduction.
 
-Running: 
+Since this project is a library and not a standalone program, you'd need some main program. There are two examples of writing such main programs: one is [Upper Tester](https://github.com/alexvoronov/geonetworking/tree/master/uppertester) (used during the ETSI Plugtest), and another is [Vehicle Adapter](https://github.com/alexvoronov/geonetworking/tree/master/vehicle-adapter) (used during GCDC, merged from [RNDITS fork](https://github.com/RNDITS/geonetworking/tree/master/vehicle-adapter)). For more details see their respective documentations and documentation of [GeoNetworking](https://github.com/alexvoronov/geonetworking/tree/master/geonetworking).
+
+Here is an example of running the Upper Tester (assuming that udp2eth is already started):
 
 ```
 mvn clean install
