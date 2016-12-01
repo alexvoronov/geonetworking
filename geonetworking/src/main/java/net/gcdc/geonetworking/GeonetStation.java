@@ -588,6 +588,7 @@ public class GeonetStation implements Runnable, AutoCloseable {
         } catch (Exception e) {
             logger.error("Exception in LinkLayer close()", e);
         }
+        scheduler.shutdownNow();
     }
 
     private class PacketId {
