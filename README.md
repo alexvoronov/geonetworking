@@ -2,13 +2,13 @@
 
 
 
-A basic implementation of the [ETSI](http://en.wikipedia.org/wiki/ETSI) ITS G5 stack including: [CAM-DENM](https://github.com/alexvoronov/geonetworking/tree/master/camdenm) / [ASN.1](https://github.com/alexvoronov/geonetworking/tree/master/asn1-uper) / [BTP / GeoNetworking](https://github.com/alexvoronov/geonetworking/tree/master/geonetworking). For lower layer (DataLinkLayer/AccessTechnologies) see [udp2eth](https://github.com/jandejongh/udp2eth) and [utoepy](https://github.com/alexvoronov/utoepy). For even lower layers, see [Hardware and Drivers](https://github.com/alexvoronov/geonetworking/blob/master/HARDWARE.md). To test/simulate together with vehicle control models, use e.g. [ITT](https://github.com/alexvoronov/itt-gt).
+A basic implementation of the [ETSI](http://en.wikipedia.org/wiki/ETSI) ITS G5 stack including: [CAM-DENM](https://github.com/alexvoronov/geonetworking/tree/master/camdenm) / [ASN.1](https://github.com/alexvoronov/geonetworking/tree/master/asn1-uper) / [BTP / GeoNetworking](https://github.com/alexvoronov/geonetworking/tree/master/geonetworking). For lower layer (DataLinkLayer/AccessTechnologies) see [udp2eth](https://github.com/jandejongh/udp2eth) and [utoepy](https://github.com/alexvoronov/utoepy). For even lower layers, see [Hardware and Drivers](https://github.com/alexvoronov/geonetworking/blob/master/HARDWARE.md). To test/simulate together with vehicle control models, use e.g. [ITT](https://github.com/alexvoronov/itt-gt). For a C++ ITS-G5, see [vanetza](https://github.com/riebl/vanetza).
 
 ![Stack](https://rawgit.com/alexvoronov/geonetworking/master/doc/img/stack.svg)
 
 ### Status
 
-Sending CAM via Single Hop Broadcast and DENM via GeoBroadcast is supported. Forwarding of GeoBroadcast packets is on the wishlist. There are currently no plans for GeoUnicast or Security (for Security, try [FITSec](https://github.com/fillabs/FITSec)).
+Sending CAM via Single Hop Broadcast and DENM via GeoBroadcast is supported. Forwarding of GeoBroadcast packets is on the wishlist. There are currently no plans for GeoUnicast or Security (for Security, try [FITSec](https://github.com/fillabs/FITSec) or [vanetza](https://github.com/riebl/vanetza)).
 
 Basic functionality was tested at an ETSI Plugtest in March 2015 and at Grand Cooperative Driving Challenge in May 2016. 
 
