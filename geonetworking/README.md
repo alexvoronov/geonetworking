@@ -95,7 +95,7 @@ java -cp target/geonetworking-0.0.1-SNAPSHOT-jar-with-dependencies.jar net.gcdc.
 
 ### Related implementations
 
-This implementation was inspired by [DriveITS](https://github.com/Dimme/driveits). Another open-source implementation, now outdated, is [CarGeo6](http://www.cargeo6.org/).
+This implementation was inspired by [DriveITS](https://github.com/Dimme/driveits). A good C++ LGPL implementation is [vanetza](https://github.com/riebl/vanetza). Another open-source implementation, now outdated, is [CarGeo6](http://www.cargeo6.org/).
 
 
 ### Acknowledgements
