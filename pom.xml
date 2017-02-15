@@ -30,7 +30,6 @@
 		<module>asn1-datatypes</module>
 		<module>asn1-uper</module>
 		<module>camdenm</module>
-		<module>vehicle-adapter</module>
 	</modules>
 
 	<dependencyManagement>
@@ -133,7 +132,7 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
+				<!--This plugin's configuration is used to store Eclipse m2e settings
 					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
@@ -152,7 +151,7 @@
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<!-- m2e doesn't know what to do with jacoco, let's ignore it or 
+										<!-- m2e doesn't know what to do with jacoco, let's ignore it or
 											annoying error markers appear see https://www.eclipse.org/m2e/documentation/m2e-execution-not-covered.html -->
 										<ignore />
 									</action>
