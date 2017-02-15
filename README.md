@@ -24,7 +24,7 @@ Most IDEs work with Maven projects directly, e.g. Eclipse supports Maven through
 Since this is a multi-module setup, Maven flags for multiple projects become useful (`--projects`, `--also-make`, `--also-make-dependents`). See [Maven docs](https://maven.apache.org/guides/mini/guide-multiple-modules.html) for manual, and a [Sonatype blog post](http://blog.sonatype.com/2009/10/maven-tips-and-tricks-advanced-reactor-options/) for a nice tutorial introduction.
 
 ### Running
-Since this project is a library and not a standalone program, you need some main program. There are two examples of such main programs: one is [Upper Tester](https://github.com/alexvoronov/geonetworking/tree/master/uppertester) (used during the ETSI Plugtest), and another is the [Rendits Vehicle-to-Anything Router](https://github.com/rendits/router). The router replaces Vehicle Adapter that was used during GCDC. For more details see their respective documentations and documentation of [GeoNetworking](https://github.com/alexvoronov/geonetworking/tree/master/geonetworking).
+Since this project is a library and not a standalone program, you need some main program. There are two examples of such main programs: one is [Upper Tester](https://github.com/alexvoronov/geonetworking/tree/master/uppertester) (used during the ETSI Plugtest), and another is the [Rendits Vehicle-to-Anything Router](https://github.com/rendits/router). The router replaces Vehicle Adapter that was used during GCDC. For more details see their respective documentation and the documentation of [GeoNetworking](https://github.com/alexvoronov/geonetworking/tree/master/geonetworking).
 
 Here is an example of running the Upper Tester (assuming that udp2eth is already started):
 ```
@@ -34,7 +34,7 @@ mvn --projects uppertester exec:java -Dexec.mainClass="net.gcdc.uppertester.ItsS
 ```
 
 ### Citing
-If you'd like to cite this GeoNetworking library or ASN.1 UPER encoder in an academic publication, you can use DOI [10.5281/zenodo.55650](http://dx.doi.org/10.5281/zenodo.55650). If you'd like to cite [Vehicle Adapter](https://github.com/RNDITS/geonetworking/tree/master/vehicle-adapter) that uses the library, you can use DOI [10.5281/zenodo.51295](http://dx.doi.org/10.5281/zenodo.51295).
+If you'd like to cite this GeoNetworking library or ASN.1 UPER encoder in an academic publication, you can use DOI [10.5281/zenodo.55650](http://dx.doi.org/10.5281/zenodo.55650). If you'd like to cite Vehicle Adapter that uses the library, you can use DOI [10.5281/zenodo.51295](http://dx.doi.org/10.5281/zenodo.51295).
 
 
 ### Acknowledgements
