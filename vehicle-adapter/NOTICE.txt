@@ -1,4 +1,0 @@
-Geonetworking Vehicle Adapter
-Copyright 2016 Albin Severinson
-
-This product includes software developed by Alexey Voronov
