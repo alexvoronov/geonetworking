@@ -5,6 +5,10 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Objects;
 
+/**
+ * Convenience class for Bitstrings of variable size.
+ * For UPER, {@code List<Boolean>} works just as well.
+ */
 public class Asn1VarSizeBitstring extends AbstractList<Boolean> {
 
     private final BitSet backing;

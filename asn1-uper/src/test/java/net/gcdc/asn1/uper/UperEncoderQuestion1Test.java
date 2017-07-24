@@ -11,7 +11,6 @@ import net.gcdc.asn1.datatypes.Asn1VarSizeBitstring;
 import net.gcdc.asn1.datatypes.Bitstring;
 import net.gcdc.asn1.datatypes.FixedSize;
 import net.gcdc.asn1.datatypes.Sequence;
-import net.gcdc.asn1.datatypes.SizeRange;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -54,7 +53,7 @@ public class UperEncoderQuestion1Test {
         public Foo(Bar bar, Baz baz) { this.bar = bar; this.baz = baz; }
     }
 
-    @SizeRange(maxValue = 3, minValue = 3)  // @SizeRange with equal bounds is a temporary solution until @FixedSize is implemented for SEQUENCE OF.
+    @FixedSize(3)
     public static class Bar extends Asn1SequenceOf<Byte> {
         // Two constructors -- choose any, or add more.
         public Bar(Byte... coll)          { this(Arrays.asList(coll)); }

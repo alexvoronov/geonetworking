@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import net.gcdc.asn1.datatypes.FixedSize;
 import net.gcdc.asn1.datatypes.SizeRange;
 import net.jodah.typetools.TypeResolver;
 import net.jodah.typetools.TypeResolver.Unknown;
@@ -21,7 +22,15 @@ class SeqOfCoder implements Decoder, Encoder {
                 extraAnnotations);
         UperEncoder.logger.debug("SEQUENCE OF");
         List<?> list = (List<?>) obj;
+        final FixedSize fixedSize = annotations.getAnnotation(FixedSize.class);
         SizeRange sizeRange = annotations.getAnnotation(SizeRange.class);
+        if (fixedSize != null)
+            sizeRange = new SizeRange() {
+                @Override public Class<? extends Annotation> annotationType() { return SizeRange.class; }
+                @Override public int minValue() { return fixedSize.value(); }
+                @Override public int maxValue() { return fixedSize.value(); }
+                @Override public boolean hasExtensionMarker() { return false; }
+            };
         if (sizeRange == null) {
             int position1 = bitbuffer.position();
             try {
@@ -75,10 +84,12 @@ class SeqOfCoder implements Decoder, Encoder {
         AnnotationStore annotations = new AnnotationStore(classOfT.getAnnotations(),
                 extraAnnotations);
         UperEncoder.logger.debug("SEQUENCE OF for {}", classOfT);
+        FixedSize fixedSize = annotations.getAnnotation(FixedSize.class);
         SizeRange sizeRange = annotations.getAnnotation(SizeRange.class);
-        long size = (sizeRange != null) ? UperEncoder.decodeConstrainedInt(bitbuffer,
-                UperEncoder.intRangeFromSizeRange(sizeRange)) :
-                UperEncoder.decodeLengthDeterminant(bitbuffer);
+        long size =
+          (fixedSize != null) ? fixedSize.value() :
+              (sizeRange != null) ? UperEncoder.decodeConstrainedInt(bitbuffer, UperEncoder.intRangeFromSizeRange(sizeRange)) :
+                  UperEncoder.decodeLengthDeterminant(bitbuffer);
         Collection<Object> coll = new ArrayList<Object>((int) size);
         for (int i = 0; i < size; i++) {
             Class<?>[] typeArgs = TypeResolver.resolveRawArguments(List.class, classOfT);
