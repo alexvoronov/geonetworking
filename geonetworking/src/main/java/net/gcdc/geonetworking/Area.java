@@ -13,20 +13,20 @@ public final class Area {
 
 
     private final Position center;
-    private final double   distanceAmeters;
-    private final double   distanceBmeters;
-    private final double   angleDegreesFromNorth;
+    private final int      distanceAmeters;
+    private final int      distanceBmeters;
+    private final int      angleDegreesFromNorth;
     private final Type     type;
 
 
-    private Area(Position center, double distanceA, double distanceB, double angleDegreesFromNorth, Type type) {
+    private Area(Position center, int distanceA, int distanceB, int angleDegreesFromNorth, Type type) {
         this.center    = center;
-        this.distanceAmeters = distanceA;
-        this.distanceBmeters = distanceB;
-        this.angleDegreesFromNorth = angleDegreesFromNorth;
+        this.distanceAmeters = validU16Range(distanceA);
+        this.distanceBmeters = validU16Range(distanceB);
+        this.angleDegreesFromNorth = validDegrees(angleDegreesFromNorth);
         this.type = type;
     }
-    
+
 	@Override public String toString() {
         return "Area [center=" + center + ", distanceAmeters=" + distanceAmeters
                 + ", distanceBmeters=" + distanceBmeters + ", angleDegreesFromNorth="
@@ -37,9 +37,9 @@ public final class Area {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + (short)angleDegreesFromNorth;
-        result = prime * result + (short)distanceAmeters;
-        result = prime * result + (short)distanceBmeters;
+        result = prime * result + angleDegreesFromNorth;
+        result = prime * result + distanceAmeters;
+        result = prime * result + distanceBmeters;
         result = prime * result + ((center == null) ? 0 : center.hashCode());
         result = prime * result + ((type == null) ? 0 : type.hashCode());
         return result;
@@ -54,11 +54,11 @@ public final class Area {
         if (getClass() != obj.getClass())
             return false;
         Area other = (Area) obj;
-        if ((short)angleDegreesFromNorth != (short)other.angleDegreesFromNorth)
+        if (angleDegreesFromNorth != other.angleDegreesFromNorth)
             return false;
-        if ((short)distanceAmeters != (short)other.distanceAmeters)
+        if (distanceAmeters != other.distanceAmeters)
             return false;
-        if ((short)distanceBmeters != (short)other.distanceBmeters)
+        if (distanceBmeters != other.distanceBmeters)
             return false;
         if (center == null) {
             if (other.center != null)
@@ -70,7 +70,7 @@ public final class Area {
         return true;
     }
 
-    public static enum Type {
+    public enum Type {
         CIRCLE    (0),
         RECTANGLE (1),
         ELLIPSE   (2);
@@ -87,9 +87,9 @@ public final class Area {
 
     public static Area getFrom(ByteBuffer buffer, Area.Type type) {
         Position center = Position.getFrom(buffer);
-        double distanceA = buffer.getShort() & 0xffff;  // Convert to int to remove sign from short.
-        double distanceB = buffer.getShort() & 0xffff;
-        double angleDegreesFromNorth = buffer.getShort() & 0xffff;
+        int distanceA = buffer.getShort() & 0xffff;  // Convert to int to remove sign from short.
+        int distanceB = buffer.getShort() & 0xffff;
+        int angleDegreesFromNorth = buffer.getShort() & 0xffff;
         return new Area(center, distanceA, distanceB, angleDegreesFromNorth, type);
     }
 
@@ -140,14 +140,12 @@ public final class Area {
                 return 1 - Math.pow(x/a, 2) - Math.pow(y/b, 2);
             case RECTANGLE:
                 return Math.min(1 - Math.pow(x/a, 2), 1 - Math.pow(y/b, 2));
-            default:
-                return 0;  // At a border of an unknown shape...
+
         }
+        throw new IllegalStateException("At a border of an unknown shape");
     }
 
-
-
-    public static Area circle(Position center, double radius) {
+    public static Area circle(Position center, int radius) {
         return new Area(center, radius, 0, 0, Type.CIRCLE);
     }
 
@@ -163,20 +161,33 @@ side);
      */
     public static Area rectangle(
             Position center,
-            double longDistanceMeters,
-            double shortDistanceMeters,
-            double azimuthAngleDegreesFromNorth) {
+            int longDistanceMeters,
+            int shortDistanceMeters,
+            int azimuthAngleDegreesFromNorth) {
         return new Area(center, longDistanceMeters, shortDistanceMeters, azimuthAngleDegreesFromNorth,
                 Type.RECTANGLE);
     }
 
     public static Area ellipse(
             Position center,
-            double longSemiAxisMeters,
-            double shortSemiAxisMeters,
-            double azimuthAngleDegreesFromNorth) {
+            int longSemiAxisMeters,
+            int shortSemiAxisMeters,
+            int azimuthAngleDegreesFromNorth) {
         return new Area(center, longSemiAxisMeters, shortSemiAxisMeters,
                 azimuthAngleDegreesFromNorth, Type.ELLIPSE);
     }
 
+    private int validDegrees(int i) {
+        if (0 > i || i > 359) {
+            throw new IllegalArgumentException("Valid range 0 to 359");
+        }
+        return i;
+    }
+
+    private int validU16Range(int i) {
+        if (0 > i || i > 65535) {
+            throw new IllegalArgumentException("Value outside of valid 0 to 65535 range");
+        }
+        return i;
+    }
 }
