@@ -145,20 +145,6 @@ public final class Area {
         throw new IllegalStateException("At a border of an unknown shape");
     }
 
-    private int validU16Range(int i) {
-        if (0 > i || i > 65535) {
-            throw new IllegalArgumentException("Value outside of valid 0 to 65535 range");
-        }
-        return i;
-    }
-
-    private int validDegrees(int i) {
-        if (0 > i || i > 359) {
-            throw new IllegalArgumentException("Valid range 0 to 359");
-        }
-        return i;
-    }
-
     public static Area circle(Position center, int radius) {
         return new Area(center, radius, 0, 0, Type.CIRCLE);
     }
@@ -191,4 +177,17 @@ side);
                 azimuthAngleDegreesFromNorth, Type.ELLIPSE);
     }
 
+    private int validDegrees(int i) {
+        if (0 > i || i > 359) {
+            throw new IllegalArgumentException("Valid range 0 to 359");
+        }
+        return i;
+    }
+
+    private int validU16Range(int i) {
+        if (0 > i || i > 65535) {
+            throw new IllegalArgumentException("Value outside of valid 0 to 65535 range");
+        }
+        return i;
+    }
 }
