@@ -87,8 +87,8 @@ public class BasicGeobroadcastTest {
 
         // Kuggen and Semcon inside, Jarntorget outside.
         final Destination destinationKuggen = Destination.geobroadcast(
-                Area.rectangle(kuggen, 1.2 * kuggen.distanceInMetersTo(semcon),
-                        0.5 * kuggen.distanceInMetersTo(semcon), 50));
+                Area.rectangle(kuggen, (int) (1.2 * kuggen.distanceInMetersTo(semcon)),
+                    (int) (0.5 * kuggen.distanceInMetersTo(semcon)), 50));
 
         // Send.
         final BtpPacket packet = BtpPacket.customDestination(payload, destinationPort, destinationKuggen);
