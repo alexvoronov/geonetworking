@@ -269,6 +269,10 @@ public final class UperEncoder {
         }
         int bitlength = BigInteger.valueOf(range - 1).bitLength();
         logger.trace("This int will require {} bits, available {}", bitlength, bitqueue.remaining());
+        if (bitlength > bitqueue.remaining()) {
+            throw new IllegalArgumentException("Incomplete input, constrained int required " + bitlength + " bits, got "
+                    + bitqueue.remaining());
+        }
         BitBuffer relevantBits = ByteBitBuffer.allocate( ((bitlength + 7) / 8) * 8);  // Full bytes.
         int numPaddingBits = (8 - (bitlength % 8)) % 8;  // Leading padding 0-bits.
         for (int i = 0; i < numPaddingBits; i++) {
@@ -356,7 +360,7 @@ public final class UperEncoder {
     }
 
     static boolean isTestInstrumentation(Field f) {
-        return f.getName().startsWith("$");
+        return f.getName().startsWith("$") || f.getName().contains("this$");
     }
 
     static void encodeLengthOfBitmask(BitBuffer bitbuffer, int n) throws Asn1EncodingException {
@@ -535,6 +539,10 @@ public final class UperEncoder {
     }
 
     public static byte[] bytesFromHexString(String s) {
+        if ((s.length() % 2) != 0) {
+            throw new IllegalArgumentException(
+                    "Converting to bytes requires even number of characters, got " + s.length());
+        }
         int len = s.length();
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
