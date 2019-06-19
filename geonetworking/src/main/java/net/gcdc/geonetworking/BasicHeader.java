@@ -126,7 +126,7 @@ public class BasicHeader {
         }
 
         public static Lifetime fromByte(byte b) {
-            byte multiplier = (byte) (b >> 2);           // Drop bits 6-7, keep only bits 0-5.
+            byte multiplier = (byte) ((b >> 2)& 0b0011_1111);   // Drop bits 6-7, keep only bits 0-5.
             Base base = Base.fromCode(b & 0b0000_0011);  // Keep only bits 6-7.
             return new Lifetime(base, multiplier);
         }
