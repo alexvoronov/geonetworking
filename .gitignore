@@ -3,6 +3,10 @@
 .project
 .classpath
 
+# IDEA
+.idea/
+*.iml
+
 # Build tool
 target
 project/target
