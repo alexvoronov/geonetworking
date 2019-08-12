@@ -33,31 +33,17 @@ Implementation targets Java 7 at the moment, with some use of backported feature
 
 ### Building, Testing and Running
 
-[Maven](http://maven.apache.org/) is used as a build tool. There is also some support for [SBT](http://www.scala-sbt.org/).
-
-Most IDEs work with Maven projects directly, e.g. Eclipse supports Maven through [M2Eclipse](http://www.eclipse.org/m2e/). If you use SBT, you can generate Eclipse project files with ```sbt eclipse```.
-
-Running tests: 
-
-```
-sbt test
-```
-
-or
-
-```
-mvn test
-```
-
-#### Using as a library
-Compile and install into the local maven repository:
+[Maven](http://maven.apache.org/) is used as a build tool. Compile and install into the local maven repository:
 
 ```
 mvn install
 ```
-Examples of using `geonetworking` as a library, as well as a mechanism to send CAM messages, are in the [uppertester](https://github.com/alexvoronov/gn-uppertester). Another example is in the [Rendits Router](https://github.com/rendits/router). 
 
-#### Run with echo link layer
+Then use `geonetworking` as a library, see examples in the [uppertester](https://github.com/alexvoronov/gn-uppertester), including sending CAM messages. Another example is in the [Rendits Router](https://github.com/rendits/router). 
+
+#### Running standalone (mostly for development and testing)
+
+##### Run with echo link layer
 Compile and run command-line client:
 
 ```
@@ -71,7 +57,7 @@ The second line starts a fake UDP Link Layer entity that echoes packets back. Ec
 
 The third line starts a command line client. The client assumes that Link Layer can be reached by sending payload to UDP port 4001, and expects that the payload from Link Layer can be received on UDP port 4000. The client gets BTP payload from stdin, and prints received BTP payload to stdout.
 
-#### Run with utoepy as link layer
+##### Run with utoepy as link layer
 
 Run command-line client on top of [utoepy](https://github.com/alexvoronov/utoepy) bound to [tap0](http://en.wikipedia.org/wiki/TUN/TAP):
 
@@ -97,7 +83,7 @@ Stdout <---|    4000|<-------------------|         |<---|          |   |       |
 ```
 
 
-#### Run with UdpBtpClient
+##### Run with UdpBtpClient
 
 Assuming that link layer is already started (see previous example), here's how to start UDP BTP client. This client receives the payload of the BTP packet on a UDP port. The destination port for BTP prefixes the BTP payload in the UDP packet. To send CAM to BTP port 2001 (0x07D1), send the following UDP packet to the client: ```07.D1.XX.YY.ZZ```, where ```XXYYZZ``` is the BTP Payload (binary CAM message). Note that there is no way to specify *destination port info* for BTP, but it is usually not used anyway.
 
